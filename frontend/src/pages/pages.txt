@@ -1,0 +1,1 @@
+Contains the main application pages, where each page has its own separate folder and usually corresponds to one route (e.g. /home, /profile, /dashboard). Each page is organized in a separate folder, and the main file in the folder is called index.jsx.
