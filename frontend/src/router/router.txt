@@ -1,0 +1,1 @@
+Contains the complete application routing logic using React Router, including defining all routes and user permission handling (e.g., protecting routes for authorized users).

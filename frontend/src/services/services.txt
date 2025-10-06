@@ -1,0 +1,1 @@
+Encompasses the business logic of the application, such as authentication, data processing, and integration with external services. Primarily uses Axios instances from apis/, enabling consistent and modular API communication.

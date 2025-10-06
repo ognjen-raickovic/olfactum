@@ -1,0 +1,1 @@
+Contains custom React hooks that encapsulate specific logic and enable reusability. For example, hooks for working with local storage (useLocalStorage), form handling (useFormValidation), or API calls (useFetch).

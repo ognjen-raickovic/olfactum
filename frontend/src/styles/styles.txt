@@ -1,0 +1,1 @@
+Folder for global and modular style files of the application.

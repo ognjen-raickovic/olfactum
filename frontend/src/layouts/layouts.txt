@@ -1,0 +1,1 @@
+Defines the basic structure and arrangement of pages in the application, including Navbar, Sidebar, Footer, and MainLayout. These components serve as a frame for pages and help maintain consistent application design.
