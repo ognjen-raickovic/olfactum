@@ -8,15 +8,12 @@ import {
   useTheme,
 } from "@mui/material";
 import { Search, Brightness4, Brightness7 } from "@mui/icons-material";
-import { useThemeContext } from "../contexts/ThemeContext"; // Updated import
+import { useThemeContext } from "../contexts/ThemeContext";
+import { Link } from "react-router-dom"; // Add this import
 
 const Navbar = () => {
   const theme = useTheme();
-  const { mode, toggleTheme } = useThemeContext(); // Updated hook
-
-  const handleLogoClick = () => {
-    window.location.href = "/";
-  };
+  const { mode, toggleTheme } = useThemeContext();
 
   return (
     <AppBar
@@ -32,14 +29,15 @@ const Navbar = () => {
         {/* Left side - Logo */}
         <Typography
           variant="h4"
-          component="h1"
-          onClick={handleLogoClick}
+          component={Link} // Change to Link
+          to="/" // Add to prop
           sx={{
             fontFamily: '"Playfair Display", serif',
             fontWeight: 600,
             color: "primary.main",
             cursor: "pointer",
             textTransform: "lowercase",
+            textDecoration: "none", // Remove underline
             "&:hover": { opacity: 0.8 },
           }}
         >
@@ -50,8 +48,12 @@ const Navbar = () => {
         <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3 }}>
           <Typography
             variant="body1"
+            component={Link} // Change to Link
+            to="/" // Add to prop
             sx={{
               cursor: "pointer",
+              textDecoration: "none",
+              color: "text.primary",
               "&:hover": { color: "primary.main" },
             }}
           >
@@ -68,8 +70,12 @@ const Navbar = () => {
           </Typography>
           <Typography
             variant="body1"
+            component={Link} // Change to Link
+            to="/about" // Add to prop
             sx={{
               cursor: "pointer",
+              textDecoration: "none",
+              color: "text.primary",
               "&:hover": { color: "primary.main" },
             }}
           >

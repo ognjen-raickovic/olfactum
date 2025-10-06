@@ -22,9 +22,7 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <Container maxWidth="xl" sx={{ py: 8 }}>
-      {" "}
-      {/* Changed to xl for wider layout */}
+    <Container maxWidth="xl" sx={{ py: 8, px: { xs: 2, sm: 3, md: 4 } }}>
       <Typography
         variant="h3"
         component="h2"
@@ -37,8 +35,6 @@ const FeaturesSection = () => {
       <Grid container spacing={4} sx={{ mt: 2 }}>
         {features.map((feature, index) => (
           <Grid key={index} size={{ xs: 12, md: 4 }}>
-            {" "}
-            {/* New Grid v2 syntax */}
             <Card elevation={2} sx={{ height: "100%" }}>
               <CardContent sx={{ textAlign: "center", p: 4 }}>
                 <Typography variant="h5" gutterBottom color="primary.main">
