@@ -1,6 +1,13 @@
 Manages global state using React Context API, eliminating the need for prop drilling through multiple component levels. Typical examples include user authentication, application theme, language settings...
 
-Navbar - Main navigation with logo, search, and theme toggle
+Navbar - Main navigation with logo, search and theme toggle
 Footer - Site footer with links and copyright
-HeroSection - Homepage hero banner with call-to-action
+HeroSection - Homepage hero banner with CTA to quiz page
 FeaturesSection - Homepage features grid with cards
+QuizQuestions - Individual quiz question component for dedicated page
+QuizResults - Quiz results with FragranceCard components
+FragranceCard - Compact fragrance display card with image and key info
+FragranceModal - Detailed fragrance information modal with full data
+AboutHero - About page hero section
+AboutMission - About page mission and values
+AboutTeam - About page team/community section

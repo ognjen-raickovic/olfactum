@@ -22,7 +22,10 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <Container maxWidth="xl" sx={{ py: 8, px: { xs: 2, sm: 3, md: 4 } }}>
+    <Container
+      maxWidth="lg"
+      sx={{ py: 8, px: { xs: 2, sm: 3 }, overflowX: "hidden" }}
+    >
       <Typography
         variant="h3"
         component="h2"
@@ -32,9 +35,14 @@ const FeaturesSection = () => {
       >
         Why Choose Olfactum?
       </Typography>
-      <Grid container spacing={4} sx={{ mt: 2 }}>
+
+      <Grid
+        container
+        spacing={4}
+        sx={{ mt: 2, overflowX: "hidden", m: 0, width: "100%" }}
+      >
         {features.map((feature, index) => (
-          <Grid key={index} size={{ xs: 12, md: 4 }}>
+          <Grid item xs={12} md={4} key={index}>
             <Card elevation={2} sx={{ height: "100%" }}>
               <CardContent sx={{ textAlign: "center", p: 4 }}>
                 <Typography variant="h5" gutterBottom color="primary.main">
