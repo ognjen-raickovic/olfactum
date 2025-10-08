@@ -22,11 +22,9 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
       role="button"
       tabIndex={0}
       sx={{
-        height: 420,
         width: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
         cursor: "pointer",
         transition: "all 0.2s ease-in-out",
         "&:hover": {
@@ -35,32 +33,46 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
         },
       }}
     >
-      {/* Larger image to reduce empty space */}
-      <CardMedia
-        component="img"
-        height="275"
-        image={fragrance.image || `/images/${fragrance.slug}.jpg`}
-        alt={fragrance.name}
+      {/* Image wrapper to control height ratio */}
+      <Box
         sx={{
-          objectFit: "cover",
-          bgcolor: "grey.100",
           width: "100%",
+          flexShrink: 0,
+          height: 250,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark" ? "#20160F" : "grey.100",
+          borderBottom: "1px solid",
+          borderColor: "divider",
         }}
-        onError={(e) => {
-          e.target.src =
-            "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDMwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QjlCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiPkZyYWdyYW5jZSBJbWFnZTwvdGV4dD4KPC9zdmc+";
-        }}
-      />
+      >
+        <CardMedia
+          component="img"
+          image={fragrance.image || `/images/${fragrance.slug}.jpg`}
+          alt={fragrance.name}
+          sx={{
+            objectFit: "contain", // keeps full bottle visible
+            maxHeight: "100%",
+            maxWidth: "100%",
+            width: "auto",
+          }}
+          onError={(e) => {
+            e.target.src = "https://via.placeholder.com/400x260?text=No+Image";
+          }}
+        />
+      </Box>
 
+      {/* Info section */}
       <CardContent
         sx={{
-          flexGrow: 1,
           textAlign: "center",
+          flexGrow: 1,
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
           p: 2,
-          pt: 1.5,
         }}
       >
         <Box>
