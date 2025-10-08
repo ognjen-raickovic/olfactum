@@ -39,10 +39,13 @@ const FeaturesSection = () => {
       <Grid
         container
         spacing={4}
+        columns={{ xs: 1, sm: 2, md: 3 }} // define how many columns in each breakpoint
         sx={{ mt: 2, overflowX: "hidden", m: 0, width: "100%" }}
       >
         {features.map((feature, index) => (
-          <Grid item xs={12} md={4} key={index}>
+          <Grid key={index}>
+            {" "}
+            {/* no item / xs / md */}
             <Card elevation={2} sx={{ height: "100%" }}>
               <CardContent sx={{ textAlign: "center", p: 4 }}>
                 <Typography variant="h5" gutterBottom color="primary.main">

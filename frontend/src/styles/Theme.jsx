@@ -41,33 +41,27 @@ export const darkTheme = createTheme({
   palette: {
     mode: "dark",
     background: {
-      default: "#1A1A1A",
-      paper: "#2D2D2D",
+      default: "#1C140E", // deep roasted brown (coffee bean base)
+      paper: "#2A1E14", // lighter brown for cards
     },
     text: {
-      primary: "#E8E8E8",
-      secondary: "#B0B0B0",
+      primary: "#EDE0D4", // warm cream for readability
+      secondary: "#C7B6A1", // muted beige accent
     },
     primary: {
-      main: "#C19A6B",
+      main: "#C19A6B", // caramel/golden brown
       light: "#D4B592",
-      dark: "#A87C49",
+      dark: "#8B6A45",
     },
     secondary: {
-      main: "#E8E8E8",
+      main: "#EDE0D4", // matches text.primary tone
     },
   },
   typography: {
     fontFamily: '"Inter", "Arial", sans-serif',
-    h1: {
-      fontWeight: 600,
-    },
-    h2: {
-      fontWeight: 600,
-    },
-    h3: {
-      fontWeight: 500,
-    },
+    h1: { fontWeight: 600 },
+    h2: { fontWeight: 600 },
+    h3: { fontWeight: 500 },
   },
   shape: {
     borderRadius: 8,

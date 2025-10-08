@@ -50,7 +50,7 @@ const HeroSection = () => {
           variant="contained"
           size="large"
           component={Link}
-          to="/find-your-fragrance"
+          to="/fragrances"
           sx={{
             bgcolor: "white",
             color: "primary.main",
@@ -61,7 +61,7 @@ const HeroSection = () => {
             "&:hover": { bgcolor: "grey.100" },
           }}
         >
-          Find Your Fragrance
+          All Fragrances
         </Button>
 
         <Box sx={{ maxWidth: 500, mx: "auto" }}>

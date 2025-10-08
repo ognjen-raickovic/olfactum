@@ -1,6 +1,6 @@
-import { Box, Typography, Button, Grid } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import { useState } from "react";
-import { getRecommendedFragrances } from "../services/fragranceData";
+import { getRecommendedFragrances } from "../utils/fragranceUtils";
 import FragranceModal from "./FragranceModal";
 import FragranceCard from "./FragranceCard";
 
@@ -44,7 +44,8 @@ const QuizResults = ({ answers, onRestart }) => {
   };
 
   return (
-    <Box>
+    <Box sx={{ py: 6 }}>
+      {/* Header section */}
       <Box sx={{ textAlign: "center", mb: 6 }}>
         <Typography variant="h3" component="h1" gutterBottom>
           Your Perfect Scent Matches! 🎉
@@ -69,21 +70,34 @@ const QuizResults = ({ answers, onRestart }) => {
         </Box>
       </Box>
 
+      {/* Recommendations grid */}
       <Typography variant="h4" gutterBottom sx={{ mb: 4, textAlign: "center" }}>
         Recommended For You ({recommendations.length} matches)
       </Typography>
 
-      <Grid container spacing={3} sx={{ mb: 6 }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "repeat(1, 1fr)",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(3, 1fr)",
+          },
+          gap: 3,
+          mb: 6,
+          justifyItems: "center",
+        }}
+      >
         {recommendations.map((fragrance) => (
-          <Grid item xs={12} sm={6} md={4} key={fragrance.id}>
-            <FragranceCard
-              fragrance={fragrance}
-              onViewDetails={handleFragranceClick}
-            />
-          </Grid>
+          <FragranceCard
+            key={fragrance.id}
+            fragrance={fragrance}
+            onViewDetails={handleFragranceClick}
+          />
         ))}
-      </Grid>
+      </Box>
 
+      {/* Action buttons */}
       <Box
         sx={{
           display: "flex",
@@ -100,6 +114,7 @@ const QuizResults = ({ answers, onRestart }) => {
         </Button>
       </Box>
 
+      {/* Modal */}
       <FragranceModal
         fragrance={selectedFragrance}
         open={modalOpen}
