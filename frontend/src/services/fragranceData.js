@@ -15,6 +15,7 @@ export const fragranceData = [
       "A timeless masculine fragrance that balances freshness with depth.",
     slug: "bleu-de-chanel",
     image: "/images/bleu-de-chanel.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 2,
@@ -31,6 +32,7 @@ export const fragranceData = [
     description: "A raw, fresh fragrance that embodies freedom and adventure.",
     slug: "dior-sauvage",
     image: "/images/dior-sauvage.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 3,
@@ -48,6 +50,7 @@ export const fragranceData = [
       "A fresh, aquatic fragrance inspired by the Italian island of Pantelleria.",
     slug: "acqua-di-gio",
     image: "/images/acqua-di-gio.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 4,
@@ -65,6 +68,7 @@ export const fragranceData = [
       "An earthy, sophisticated scent that captures the essence of the earth.",
     slug: "terre-dhermes",
     image: "/images/terre-dhermes.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 5,
@@ -81,6 +85,7 @@ export const fragranceData = [
     description: "A legendary fragrance symbolizing success and power.",
     slug: "creed-aventus",
     image: "/images/creed-aventus.webp",
+    genderProfile: "Masculine",
   },
   {
     id: 6,
@@ -97,6 +102,7 @@ export const fragranceData = [
     description: "A joyful gourmand fragrance celebrating happiness.",
     slug: "la-vie-est-belle",
     image: "/images/la-vie-est-belle.webp",
+    genderProfile: "Feminine",
   },
   {
     id: 7,
@@ -114,6 +120,7 @@ export const fragranceData = [
       "An addictive rock'n'roll fragrance with coffee and vanilla notes.",
     slug: "black-opium",
     image: "/images/black-opium.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 8,
@@ -130,6 +137,7 @@ export const fragranceData = [
     description: "A fresh, Mediterranean-inspired fragrance for summer days.",
     slug: "light-blue",
     image: "/images/light-blue.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 9,
@@ -146,6 +154,7 @@ export const fragranceData = [
     description: "A unisex fragrance that has become a modern classic.",
     slug: "santal-33",
     image: "/images/santal-33.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 10,
@@ -163,6 +172,7 @@ export const fragranceData = [
       "A luxurious, addictive scent that leaves a lasting impression.",
     slug: "baccarat-rouge-540",
     image: "/images/baccarat-rouge-540.webp",
+    genderProfile: "Unisex",
   },
   {
     id: 11,
@@ -179,6 +189,7 @@ export const fragranceData = [
     description: "A sensual, seductive fragrance inspired by Greek mythology.",
     slug: "versace-eros",
     image: "/images/versace-eros.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 12,
@@ -195,6 +206,7 @@ export const fragranceData = [
     description: "A bold, attention-grabbing scent for confident individuals.",
     slug: "one-million",
     image: "/images/one-million.webp",
+    genderProfile: "Masculine",
   },
   {
     id: 13,
@@ -211,6 +223,7 @@ export const fragranceData = [
     description: "An explosive floral bouquet that's both modern and romantic.",
     slug: "flowerbomb",
     image: "/images/flowerbomb.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 14,
@@ -228,6 +241,7 @@ export const fragranceData = [
       "A modern, sophisticated fragrance for the contemporary woman.",
     slug: "coco-mademoiselle",
     image: "/images/coco-mademoiselle.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 15,
@@ -244,6 +258,7 @@ export const fragranceData = [
     description: "A warm, sensual fragrance perfect for intimate evenings.",
     slug: "the-one",
     image: "/images/the-one.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 16,
@@ -260,6 +275,7 @@ export const fragranceData = [
     description: "A vibrant, energetic fragrance for the active man.",
     slug: "allure-homme-sport",
     image: "/images/allure-homme-sport.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 17,
@@ -276,6 +292,7 @@ export const fragranceData = [
     description: "A revolutionary gourmand that changed perfumery forever.",
     slug: "angel",
     image: "/images/angel.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 18,
@@ -292,6 +309,7 @@ export const fragranceData = [
     description: "An elegant, versatile fragrance for the modern gentleman.",
     slug: "lhomme",
     image: "/images/lhomme.webp",
+    genderProfile: "Masculine",
   },
   {
     id: 19,
@@ -309,6 +327,7 @@ export const fragranceData = [
       "A seductive, dualistic fragrance in an iconic stiletto bottle.",
     slug: "good-girl",
     image: "/images/good-girl.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 20,
@@ -325,6 +344,7 @@ export const fragranceData = [
     description: "An explosive blend of spices and tobacco notes.",
     slug: "spicebomb",
     image: "/images/spicebomb.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 21,
@@ -341,6 +361,7 @@ export const fragranceData = [
     description: "A golden floral bouquet celebrating divine femininity.",
     slug: "jadore",
     image: "/images/jadore.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 22,
@@ -357,6 +378,7 @@ export const fragranceData = [
     description: "A victorious aquatic fragrance for champions.",
     slug: "invictus",
     image: "/images/invictus.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 23,
@@ -373,6 +395,7 @@ export const fragranceData = [
     description: "A tender, romantic interpretation of chance encounters.",
     slug: "chance-eau-tendre",
     image: "/images/chance-eau-tendre.webp",
+    genderProfile: "Feminine",
   },
   {
     id: 24,
@@ -389,6 +412,7 @@ export const fragranceData = [
     description: "A modern gentleman's fragrance with contemporary elegance.",
     slug: "gentleman",
     image: "/images/gentleman.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 25,
@@ -405,6 +429,7 @@ export const fragranceData = [
     description: "A luminous floral fragrance for the new generation.",
     slug: "idole",
     image: "/images/idole.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 26,
@@ -422,6 +447,7 @@ export const fragranceData = [
       "A warm, spicy fragrance with rich tobacco and sweet vanilla notes.",
     slug: "tobacco-vanille",
     image: "/images/tobacco-vanille.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 27,
@@ -439,6 +465,7 @@ export const fragranceData = [
       "An intense, warm tobacco fragrance with spicy and sweet accords.",
     slug: "red-tobacco",
     image: "/images/red-tobacco.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 28,
@@ -456,6 +483,7 @@ export const fragranceData = [
       "A warm, boozy fragrance inspired by fine cognac aging in oak barrels.",
     slug: "angels-share",
     image: "/images/angels-share.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 29,
@@ -472,6 +500,7 @@ export const fragranceData = [
     description: "The cozy scent of burning wood and roasting chestnuts.",
     slug: "by-the-fireplace",
     image: "/images/by-the-fireplace.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 30,
@@ -488,6 +517,7 @@ export const fragranceData = [
     description: "A rich, sophisticated oud fragrance with warm woody notes.",
     slug: "oud-wood",
     image: "/images/oud-wood.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 31,
@@ -505,6 +535,7 @@ export const fragranceData = [
       "A luxurious, sensual fragrance with dark floral and gourmand notes.",
     slug: "black-orchid",
     image: "/images/black-orchid.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 32,
@@ -521,6 +552,7 @@ export const fragranceData = [
     description: "A sensual, addictive vanilla fragrance with almond accents.",
     slug: "hypnotic-poison",
     image: "/images/hypnotic-poison.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 33,
@@ -537,6 +569,7 @@ export const fragranceData = [
     description: "A timeless oriental classic with vanilla and powdery notes.",
     slug: "shalimar",
     image: "/images/shalimar.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 34,
@@ -553,6 +586,7 @@ export const fragranceData = [
     description: "A bold, feminine fragrance blending lavender and vanilla.",
     slug: "libre",
     image: "/images/libre.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 35,
@@ -569,6 +603,7 @@ export const fragranceData = [
     description: "An elegant, musky floral with warm amber and vanilla notes.",
     slug: "narciso-rodriguez-for-her",
     image: "/images/narciso-for-her.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 36,
@@ -585,6 +620,7 @@ export const fragranceData = [
     description: "A warm, radiant amber fragrance for elegant evenings.",
     slug: "grand-soir",
     image: "/images/grand-soir.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 37,
@@ -602,6 +638,7 @@ export const fragranceData = [
       "An intensified version of Spicebomb with added vanilla warmth.",
     slug: "spicebomb-extreme",
     image: "/images/spicebomb-extreme.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 38,
@@ -618,6 +655,7 @@ export const fragranceData = [
     description: "A sophisticated leather fragrance with floral undertones.",
     slug: "ombre-leather",
     image: "/images/ombre-leather.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 39,
@@ -634,6 +672,7 @@ export const fragranceData = [
     description: "A luxurious blend of velvety rose and rich oud wood.",
     slug: "velvet-rose-oud",
     image: "/images/velvet-rose-oud.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 40,
@@ -650,6 +689,7 @@ export const fragranceData = [
     description: "A sweet, honeyed gourmand with seductive caramel notes.",
     slug: "scandal-le-parfum",
     image: "/images/scandal-le-parfum.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 41,
@@ -666,6 +706,7 @@ export const fragranceData = [
     description: "A passionate, fruity-floral with warm vanilla base.",
     slug: "si-passione",
     image: "/images/si-passione.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 42,
@@ -682,6 +723,7 @@ export const fragranceData = [
     description: "A decadent cherry fragrance with almond and vanilla notes.",
     slug: "lost-cherry",
     image: "/images/lost-cherry.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 43,
@@ -698,6 +740,7 @@ export const fragranceData = [
     description: "A modern classic blending lavender and vanilla beautifully.",
     slug: "mon-guerlain",
     image: "/images/mon-guerlain.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 44,
@@ -714,6 +757,7 @@ export const fragranceData = [
     description: "A sensual floral fragrance with addictive white florals.",
     slug: "good-girl-gone-bad",
     image: "/images/good-girl-gone-bad.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 45,
@@ -730,6 +774,7 @@ export const fragranceData = [
     description: "A seductive, intimate fragrance perfect for night-time wear.",
     slug: "la-nuit-de-lhomme",
     image: "/images/la-nuit-de-lhomme.jpg",
+    genderProfile: "Masculine",
   },
   {
     id: 46,
@@ -746,6 +791,7 @@ export const fragranceData = [
     description: "A luxurious fruity-spicy fragrance with warm amber base.",
     slug: "dolce-amalfi",
     image: "/images/dolce-amalfi.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 47,
@@ -762,6 +808,7 @@ export const fragranceData = [
     description: "The intense version of the iconic Baccarat Rouge 540.",
     slug: "baccarat-rouge-540-extrait",
     image: "/images/baccarat-rouge-540-extrait.jpg",
+    genderProfile: "Unisex",
   },
   {
     id: 48,
@@ -778,6 +825,7 @@ export const fragranceData = [
     description: "A sensual vanilla fragrance with salty, marine accents.",
     slug: "olympea",
     image: "/images/olympea.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 49,
@@ -794,6 +842,7 @@ export const fragranceData = [
     description: "An intense floral with vanilla base notes for warmth.",
     slug: "my-way",
     image: "/images/my-way.jpg",
+    genderProfile: "Feminine",
   },
   {
     id: 50,
@@ -810,5 +859,6 @@ export const fragranceData = [
     description: "A warm, vanillic fragrance with spicy and musky notes.",
     slug: "gentle-fluidity-gold",
     image: "/images/gentle-fluidity-gold.jpg",
+    genderProfile: "Unisex",
   },
 ];

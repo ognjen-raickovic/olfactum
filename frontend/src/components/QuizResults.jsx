@@ -8,10 +8,10 @@ const QuizResults = ({ answers, onRestart }) => {
   const [selectedFragrance, setSelectedFragrance] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // --- improved filtering based on multiple quiz answers ---
+  // --- Generate recommendations based on quiz answers ---
   const recommendations = getRecommendedFragrances(answers);
 
-  // --- build a more expressive scent family name ---
+  // --- Human-friendly scent type label ---
   const getScentFamilyDescription = () => {
     const mapping = {
       fresh: "Fresh & Clean",
@@ -23,7 +23,7 @@ const QuizResults = ({ answers, onRestart }) => {
     return mapping[answers.scentType] || "Perfectly Matched";
   };
 
-  // --- improved descriptive text based on multiple answers ---
+  // --- Build a personalized description for user ---
   const getDescription = () => {
     const { scentType, season, occasion, intensity, notes } = answers;
     let desc = "";
@@ -75,13 +75,14 @@ const QuizResults = ({ answers, onRestart }) => {
       desc += occasionDesc[occasion] || "";
     }
 
-    if (intensity === "strong")
+    if (intensity === "strong") {
       desc += "You like your scent to last and make a statement. ";
-    else if (intensity === "noticeable")
+    } else if (intensity === "noticeable") {
       desc +=
         "You prefer a balanced projection that’s noticeable but not too heavy. ";
-    else if (intensity === "subtle")
+    } else if (intensity === "subtle") {
       desc += "You enjoy fragrances that stay close to the skin. ";
+    }
 
     if (notes) {
       desc += `Your chosen note, ${notes}, adds a distinctive touch to your scent personality.`;

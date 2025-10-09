@@ -1,30 +1,30 @@
 import { fragranceData } from "../services/fragranceData";
 
-// Utility function to safely compare text values (case-insensitive)
-const includesIgnoreCase = (str, value) =>
-  str.toLowerCase().includes(value.toLowerCase());
+// Safe comparison helper
+const includesIgnoreCase = (str, value) => {
+  if (!str || !value) return false;
+  return str.toLowerCase().includes(value.toLowerCase());
+};
 
-// Get fragrances by scent family
+// --- CATEGORY FILTERS ---
 export const getFragrancesByFamily = (family) => {
-  return fragranceData.filter((f) => includesIgnoreCase(f.scentFamily, family));
+  return fragranceData.filter((f) =>
+    includesIgnoreCase(f?.scentFamily, family)
+  );
 };
 
-// Get fragrances by season
 export const getFragrancesBySeason = (season) => {
-  return fragranceData.filter((f) => f.season.includes(season));
+  return fragranceData.filter((f) => f?.season?.includes(season));
 };
 
-// Get fragrances by occasion
 export const getFragrancesByOccasion = (occasion) => {
-  return fragranceData.filter((f) => f.occasion.includes(occasion));
+  return fragranceData.filter((f) => f?.occasion?.includes(occasion));
 };
 
-// Main recommendation engine for the quiz
-
+// --- MAIN RECOMMENDER ---
 export const getRecommendedFragrances = (quizAnswers) => {
   let recommendations = [...fragranceData];
 
-  // --- MAPPINGS ---
   const scentTypeMapping = {
     fresh: ["Fresh", "Aquatic", "Citrus", "Aromatic"],
     sweet: ["Gourmand", "Vanilla", "Sweet", "Oriental"],
@@ -56,11 +56,27 @@ export const getRecommendedFragrances = (quizAnswers) => {
   };
 
   // --- FILTERS ---
-  // Scent family
+
+  // Gender
+  if (quizAnswers.gender) {
+    const genderMap = {
+      masculine: "Masculine",
+      feminine: "Feminine",
+      unisex: "Unisex",
+    };
+    const preferredGender = genderMap[quizAnswers.gender];
+    recommendations = recommendations.filter(
+      (f) =>
+        includesIgnoreCase(f?.genderProfile, preferredGender) ||
+        includesIgnoreCase(f?.genderProfile, "Unisex")
+    );
+  }
+
+  // Scent Family
   if (quizAnswers.scentType && scentTypeMapping[quizAnswers.scentType]) {
     const families = scentTypeMapping[quizAnswers.scentType];
     recommendations = recommendations.filter((f) =>
-      families.some((family) => includesIgnoreCase(f.scentFamily, family))
+      families.some((family) => includesIgnoreCase(f?.scentFamily, family))
     );
   }
 
@@ -68,7 +84,7 @@ export const getRecommendedFragrances = (quizAnswers) => {
   if (quizAnswers.season && seasonMapping[quizAnswers.season]) {
     const preferred = seasonMapping[quizAnswers.season];
     recommendations = recommendations.filter((f) =>
-      f.season.some((s) => includesIgnoreCase(s, preferred))
+      f?.season?.some((s) => includesIgnoreCase(s, preferred))
     );
   }
 
@@ -76,31 +92,27 @@ export const getRecommendedFragrances = (quizAnswers) => {
   if (quizAnswers.occasion && occasionMapping[quizAnswers.occasion]) {
     const preferred = occasionMapping[quizAnswers.occasion];
     recommendations = recommendations.filter((f) =>
-      f.occasion.some((o) => includesIgnoreCase(o, preferred))
+      f?.occasion?.some((o) => includesIgnoreCase(o, preferred))
     );
   }
 
   // Intensity
   if (quizAnswers.intensity && intensityMapping[quizAnswers.intensity]) {
     const preferred = intensityMapping[quizAnswers.intensity];
-    recommendations = recommendations.filter(
-      (f) => f.intensity && includesIgnoreCase(f.intensity, preferred)
+    recommendations = recommendations.filter((f) =>
+      includesIgnoreCase(f?.intensity, preferred)
     );
   }
 
   // Notes
   if (quizAnswers.notes) {
     recommendations = recommendations.filter((f) =>
-      f.notes?.some((note) => includesIgnoreCase(note, quizAnswers.notes))
+      f?.notes?.some((note) => includesIgnoreCase(note, quizAnswers.notes))
     );
   }
 
   // --- FALLBACK ---
-  if (recommendations.length === 0) {
-    // fallback: pick top-rated or first few
-    return fragranceData.slice(0, 5);
-  }
+  if (recommendations.length === 0) return fragranceData.slice(0, 5);
 
-  // --- LIMIT TO TOP 5 ---
   return recommendations.slice(0, 5);
 };

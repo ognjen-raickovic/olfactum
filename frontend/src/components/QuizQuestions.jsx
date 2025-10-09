@@ -1,14 +1,31 @@
-import {
-  Box,
-  Typography,
-  Button,
-  Grid,
-  Card,
-  CardContent,
-} from "@mui/material";
+import { Box, Typography, Button, Card, CardContent } from "@mui/material";
 
 const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
   const questions = [
+    {
+      id: "gender",
+      question: "Who will be wearing this fragrance?",
+      answers: [
+        {
+          id: "male",
+          text: "For Men",
+          emoji: "👨",
+          description: "Designed with masculine notes and style",
+        },
+        {
+          id: "female",
+          text: "For Women",
+          emoji: "👩",
+          description: "Elegant, feminine fragrances",
+        },
+        {
+          id: "unisex",
+          text: "Unisex",
+          emoji: "🫶",
+          description: "Balanced for all genders",
+        },
+      ],
+    },
     {
       id: "scentType",
       question: "What type of scents are you usually drawn to?",
@@ -194,11 +211,11 @@ const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
   const currentQuestion = questions[step];
 
   return (
-    <Box sx={{ width: "100%", maxWidth: 800, mx: "auto" }}>
+    <Box sx={{ width: "100%", maxWidth: 900, mx: "auto", py: 6 }}>
+      {/* Header */}
       <Typography variant="h4" gutterBottom align="center">
         {currentQuestion.question}
       </Typography>
-
       <Typography
         variant="body1"
         color="text.secondary"
@@ -208,57 +225,76 @@ const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
         Choose the option that best describes your preference
       </Typography>
 
-      <Grid container spacing={2} justifyContent="center">
+      {/* Options grid */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "repeat(1, 1fr)",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(3, 1fr)",
+          },
+          gap: 3,
+          justifyItems: "center",
+          mb: 6,
+        }}
+      >
         {currentQuestion.answers.map((answer) => (
-          <Grid
-            item
+          <Card
             key={answer.id}
-            xs={12}
-            sm={6}
-            md={4}
-            sx={{ display: "flex", justifyContent: "center" }}
+            onClick={() => onAnswer(currentQuestion.id, answer.id)}
+            sx={{
+              cursor: "pointer",
+              width: "100%",
+              maxWidth: 320,
+              border: answers[currentQuestion.id] === answer.id ? 2 : 1,
+              borderColor:
+                answers[currentQuestion.id] === answer.id
+                  ? "primary.main"
+                  : "divider",
+              bgcolor:
+                answers[currentQuestion.id] === answer.id
+                  ? "primary.light"
+                  : "background.paper",
+              transition: "all 0.2s",
+              "&:hover": { transform: "translateY(-3px)", boxShadow: 2 },
+            }}
           >
-            <Card
-              onClick={() => onAnswer(currentQuestion.id, answer.id)}
-              sx={{
-                cursor: "pointer",
-                width: "100%",
-                maxWidth: 320,
-                border: answers[currentQuestion.id] === answer.id ? 2 : 1,
-                borderColor:
-                  answers[currentQuestion.id] === answer.id
-                    ? "primary.main"
-                    : "divider",
-                bgcolor:
-                  answers[currentQuestion.id] === answer.id
-                    ? "primary.light"
-                    : "background.paper",
-                transition: "all 0.2s",
-                "&:hover": { transform: "translateY(-2px)", boxShadow: 2 },
-              }}
-            >
-              <CardContent sx={{ textAlign: "center", py: 3 }}>
-                <Typography variant="h3" sx={{ mb: 1 }}>
-                  {answer.emoji}
-                </Typography>
-                <Typography variant="h6" gutterBottom>
-                  {answer.text}
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                  {answer.description}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+            <CardContent sx={{ textAlign: "center", py: 3 }}>
+              <Typography variant="h3" sx={{ mb: 1 }}>
+                {answer.emoji}
+              </Typography>
+              <Typography variant="h6" gutterBottom>
+                {answer.text}
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                {answer.description}
+              </Typography>
+            </CardContent>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 6 }}>
-        <Button onClick={onBack} disabled={step === 0}>
+      {/* Navigation buttons */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
+        <Button
+          onClick={onBack}
+          variant="outlined"
+          disabled={step === 0}
+          size="large"
+        >
           Back
         </Button>
         <Button
           variant="contained"
+          size="large"
           onClick={onNext}
           disabled={!answers[currentQuestion.id]}
         >

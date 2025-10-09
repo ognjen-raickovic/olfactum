@@ -33,7 +33,7 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
         },
       }}
     >
-      {/* Image wrapper to control height ratio */}
+      {/* Image */}
       <Box
         sx={{
           width: "100%",
@@ -53,18 +53,18 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
           image={fragrance.image || `/images/${fragrance.slug}.jpg`}
           alt={fragrance.name}
           sx={{
-            objectFit: "contain", // keeps full bottle visible
+            objectFit: "contain",
             maxHeight: "100%",
             maxWidth: "100%",
             width: "auto",
           }}
           onError={(e) => {
-            e.target.src = "https://via.placeholder.com/400x260?text=No+Image";
+            e.target.src = "/images/no-image.png";
           }}
         />
       </Box>
 
-      {/* Info section */}
+      {/* Info */}
       <CardContent
         sx={{
           textAlign: "center",
@@ -89,23 +89,59 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
             {fragrance.name}
           </Typography>
 
-          <Typography color="text.secondary" sx={{ fontSize: 13 }}>
-            {fragrance.brand} • {fragrance.type}
+          <Typography
+            color="text.secondary"
+            sx={{ fontSize: 13, display: "block" }}
+          >
+            {fragrance.brand}
           </Typography>
 
-          <Chip
-            label={fragrance.priceRange}
-            size="small"
-            color={
-              fragrance.priceRange === "Luxury" ||
-              fragrance.priceRange === "Premium"
-                ? "secondary"
-                : "default"
-            }
-            sx={{ mt: 0.8 }}
-          />
+          <Typography
+            color="text.secondary"
+            sx={{ fontSize: 13, display: "block" }}
+          >
+            {fragrance.type}
+          </Typography>
+
+          {/* Price + Gender Chips */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 0.8,
+              mt: 0.8,
+              flexWrap: "wrap",
+            }}
+          >
+            <Chip
+              label={fragrance.priceRange}
+              size="small"
+              color={
+                fragrance.priceRange === "Luxury" ||
+                fragrance.priceRange === "Premium"
+                  ? "secondary"
+                  : "default"
+              }
+            />
+            {fragrance.genderProfile && (
+              <Chip
+                label={fragrance.genderProfile}
+                size="small"
+                color={
+                  fragrance.genderProfile === "Masculine"
+                    ? "primary"
+                    : fragrance.genderProfile === "Feminine"
+                    ? "secondary"
+                    : "default"
+                }
+                variant="outlined"
+              />
+            )}
+          </Box>
         </Box>
 
+        {/* Season + Occasion Chips */}
         <Box
           sx={{
             display: "flex",

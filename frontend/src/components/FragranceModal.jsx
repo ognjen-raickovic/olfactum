@@ -19,7 +19,15 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
 
   const imageUrl = fragrance.image || `/images/${fragrance.slug}.jpg`;
 
-  // Gather all tags for pins row
+  // Build gender display
+  const genderIcon =
+    fragrance.genderProfile === "Masculine"
+      ? "♂️"
+      : fragrance.genderProfile === "Feminine"
+      ? "♀️"
+      : "⚧";
+
+  // Pins row
   const pins = [
     fragrance.scentFamily,
     fragrance.longevity,
@@ -44,7 +52,7 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
           overflow: "auto",
         }}
       >
-        {/* Top Section: Title, Subtitle, Pins */}
+        {/* Header */}
         <Box
           sx={{
             p: 3,
@@ -64,10 +72,9 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
               color="primary.main"
               sx={{ mt: 0.5, mb: 1 }}
             >
-              {fragrance.type}
+              {fragrance.type} • {genderIcon} {fragrance.genderProfile}
             </Typography>
 
-            {/* Pins Row */}
             <Box
               sx={{
                 display: "flex",
@@ -83,7 +90,6 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
             </Box>
           </Box>
 
-          {/* Close button */}
           <Button
             onClick={onClose}
             sx={{ minWidth: "auto", p: 1, mt: { xs: 2, sm: 0 } }}
@@ -94,28 +100,22 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
 
         <Divider />
 
-        {/* Middle Section: Image + Description */}
+        {/* Body */}
         <Box sx={{ p: 3 }}>
           <Grid container spacing={3} alignItems="flex-start">
-            {/* Image */}
             <Grid item xs={12} md={5}>
               <CardMedia
                 component="img"
                 height="350"
                 image={imageUrl}
                 alt={fragrance.name}
-                sx={{
-                  borderRadius: 2,
-                  objectFit: "cover",
-                  width: "100%",
-                }}
+                sx={{ borderRadius: 2, objectFit: "cover", width: "100%" }}
                 onError={(e) => {
                   e.target.src = placeholderImage;
                 }}
               />
             </Grid>
 
-            {/* Description */}
             <Grid item xs={12} md={7}>
               <Typography variant="h6" gutterBottom>
                 Description
@@ -127,9 +127,8 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
 
         <Divider />
 
-        {/* Bottom Section: Notes, Reviews, Buttons */}
+        {/* Notes & Review */}
         <Box sx={{ p: 3 }}>
-          {/* Notes */}
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" gutterBottom>
               Fragrance Notes
@@ -141,7 +140,6 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
             </Box>
           </Box>
 
-          {/* Reviews */}
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" gutterBottom>
               Community Reviews
@@ -157,7 +155,6 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
             </Typography>
           </Box>
 
-          {/* Buttons */}
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             <Button variant="contained" size="large">
               Add to Favorites
