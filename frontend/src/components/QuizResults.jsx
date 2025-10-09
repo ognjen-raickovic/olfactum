@@ -8,34 +8,86 @@ const QuizResults = ({ answers, onRestart }) => {
   const [selectedFragrance, setSelectedFragrance] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // --- improved filtering based on multiple quiz answers ---
   const recommendations = getRecommendedFragrances(answers);
 
+  // --- build a more expressive scent family name ---
   const getScentFamilyDescription = () => {
-    const scentFamilyMapping = {
+    const mapping = {
       fresh: "Fresh & Clean",
       sweet: "Warm & Sweet",
       dark: "Dark & Mysterious",
       elegant: "Elegant & Classic",
       bold: "Bold & Energetic",
     };
-    return scentFamilyMapping[answers.scentType] || "Perfectly Matched";
+    return mapping[answers.scentType] || "Perfectly Matched";
   };
 
+  // --- improved descriptive text based on multiple answers ---
   const getDescription = () => {
-    const descriptions = {
-      fresh:
-        "You prefer fresh, clean scents that are perfect for daily wear and warm weather. These fragrances are uplifting and versatile.",
-      sweet:
-        "You're drawn to warm, comforting scents that feel like a cozy embrace. Perfect for intimate settings and cooler weather.",
-      dark: "You love sophisticated, mysterious fragrances with depth and character. These scents make a statement.",
-      elegant:
-        "You appreciate classic, refined scents that never go out of style. Timeless elegance for any occasion.",
-      bold: "You enjoy confident, attention-grabbing fragrances that make a statement. Perfect for those who want to be noticed.",
-    };
-    return (
-      descriptions[answers.scentType] ||
-      "We've found some great fragrance matches based on your preferences!"
-    );
+    const { scentType, season, occasion, intensity, notes } = answers;
+    let desc = "";
+
+    switch (scentType) {
+      case "fresh":
+        desc +=
+          "You enjoy bright, refreshing scents that feel effortlessly clean. ";
+        break;
+      case "sweet":
+        desc +=
+          "You’re drawn to warm, cozy fragrances with a touch of sweetness. ";
+        break;
+      case "dark":
+        desc +=
+          "You love deep, mysterious notes that exude confidence and class. ";
+        break;
+      case "elegant":
+        desc +=
+          "You appreciate timeless sophistication and refined compositions. ";
+        break;
+      case "bold":
+        desc +=
+          "You’re all about strong, charismatic scents that stand out in a crowd. ";
+        break;
+      default:
+        desc += "You have a balanced taste in fragrances. ";
+    }
+
+    if (season) {
+      const seasonDesc = {
+        spring: "Perfect for the lively freshness of spring days. ",
+        summer: "Ideal for hot summer weather with a refreshing vibe. ",
+        autumn: "Great for the cozy, spicy warmth of autumn. ",
+        winter: "Rich and long-lasting—great for cold winter nights. ",
+        all: "Versatile for any time of year. ",
+      };
+      desc += seasonDesc[season] || "";
+    }
+
+    if (occasion) {
+      const occasionDesc = {
+        everyday: "Suited for daily wear and casual settings. ",
+        office: "Refined enough for the office or college. ",
+        date: "Perfect choice for romantic moments. ",
+        party: "Bold and attention-grabbing for nights out. ",
+        special: "Sophisticated and memorable for special occasions. ",
+      };
+      desc += occasionDesc[occasion] || "";
+    }
+
+    if (intensity === "strong")
+      desc += "You like your scent to last and make a statement. ";
+    else if (intensity === "noticeable")
+      desc +=
+        "You prefer a balanced projection that’s noticeable but not too heavy. ";
+    else if (intensity === "subtle")
+      desc += "You enjoy fragrances that stay close to the skin. ";
+
+    if (notes) {
+      desc += `Your chosen note, ${notes}, adds a distinctive touch to your scent personality.`;
+    }
+
+    return desc.trim();
   };
 
   const handleFragranceClick = (fragrance) => {
@@ -45,7 +97,7 @@ const QuizResults = ({ answers, onRestart }) => {
 
   return (
     <Box sx={{ py: 6 }}>
-      {/* Header section */}
+      {/* Header */}
       <Box sx={{ textAlign: "center", mb: 6 }}>
         <Typography variant="h3" component="h1" gutterBottom>
           Your Perfect Scent Matches! 🎉
@@ -70,7 +122,7 @@ const QuizResults = ({ answers, onRestart }) => {
         </Box>
       </Box>
 
-      {/* Recommendations grid */}
+      {/* Recommendations */}
       <Typography variant="h4" gutterBottom sx={{ mb: 4, textAlign: "center" }}>
         Recommended For You ({recommendations.length} matches)
       </Typography>
@@ -97,7 +149,7 @@ const QuizResults = ({ answers, onRestart }) => {
         ))}
       </Box>
 
-      {/* Action buttons */}
+      {/* Buttons */}
       <Box
         sx={{
           display: "flex",

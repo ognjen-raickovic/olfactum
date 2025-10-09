@@ -1,29 +1,30 @@
 import { fragranceData } from "../services/fragranceData";
 
-// Helper function to get fragrances by scent family
+// Utility function to safely compare text values (case-insensitive)
+const includesIgnoreCase = (str, value) =>
+  str.toLowerCase().includes(value.toLowerCase());
+
+// Get fragrances by scent family
 export const getFragrancesByFamily = (family) => {
-  return fragranceData.filter((fragrance) =>
-    fragrance.scentFamily.toLowerCase().includes(family.toLowerCase())
-  );
+  return fragranceData.filter((f) => includesIgnoreCase(f.scentFamily, family));
 };
 
-// Helper function to get fragrances by season
+// Get fragrances by season
 export const getFragrancesBySeason = (season) => {
-  return fragranceData.filter((fragrance) => fragrance.season.includes(season));
+  return fragranceData.filter((f) => f.season.includes(season));
 };
 
-// Helper function to get fragrances by occasion
+// Get fragrances by occasion
 export const getFragrancesByOccasion = (occasion) => {
-  return fragranceData.filter((fragrance) =>
-    fragrance.occasion.includes(occasion)
-  );
+  return fragranceData.filter((f) => f.occasion.includes(occasion));
 };
 
-// Advanced recommendation engine
+// Main recommendation engine for the quiz
+
 export const getRecommendedFragrances = (quizAnswers) => {
   let recommendations = [...fragranceData];
 
-  // Filter by scent type preference
+  // --- MAPPINGS ---
   const scentTypeMapping = {
     fresh: ["Fresh", "Aquatic", "Citrus", "Aromatic"],
     sweet: ["Gourmand", "Vanilla", "Sweet", "Oriental"],
@@ -32,16 +33,6 @@ export const getRecommendedFragrances = (quizAnswers) => {
     bold: ["Spicy", "Aromatic", "Powerful", "Leather"],
   };
 
-  if (quizAnswers.scentType && scentTypeMapping[quizAnswers.scentType]) {
-    const preferredFamilies = scentTypeMapping[quizAnswers.scentType];
-    recommendations = recommendations.filter((fragrance) =>
-      preferredFamilies.some((family) =>
-        fragrance.scentFamily.toLowerCase().includes(family.toLowerCase())
-      )
-    );
-  }
-
-  // Filter by season
   const seasonMapping = {
     spring: "Spring",
     summer: "Summer",
@@ -50,14 +41,6 @@ export const getRecommendedFragrances = (quizAnswers) => {
     all: "All Year",
   };
 
-  if (quizAnswers.season && seasonMapping[quizAnswers.season]) {
-    const preferredSeason = seasonMapping[quizAnswers.season];
-    recommendations = recommendations.filter((fragrance) =>
-      fragrance.season.includes(preferredSeason)
-    );
-  }
-
-  // Filter by occasion
   const occasionMapping = {
     everyday: "Everyday",
     office: "Office",
@@ -66,41 +49,58 @@ export const getRecommendedFragrances = (quizAnswers) => {
     special: "Special",
   };
 
-  if (quizAnswers.occasion && occasionMapping[quizAnswers.occasion]) {
-    const preferredOccasion = occasionMapping[quizAnswers.occasion];
-    recommendations = recommendations.filter((fragrance) =>
-      fragrance.occasion.includes(preferredOccasion)
-    );
-  }
-
-  // Filter by intensity
   const intensityMapping = {
     subtle: "Light",
     noticeable: "Moderate",
     strong: "Strong",
   };
 
+  // --- FILTERS ---
+  // Scent family
+  if (quizAnswers.scentType && scentTypeMapping[quizAnswers.scentType]) {
+    const families = scentTypeMapping[quizAnswers.scentType];
+    recommendations = recommendations.filter((f) =>
+      families.some((family) => includesIgnoreCase(f.scentFamily, family))
+    );
+  }
+
+  // Season
+  if (quizAnswers.season && seasonMapping[quizAnswers.season]) {
+    const preferred = seasonMapping[quizAnswers.season];
+    recommendations = recommendations.filter((f) =>
+      f.season.some((s) => includesIgnoreCase(s, preferred))
+    );
+  }
+
+  // Occasion
+  if (quizAnswers.occasion && occasionMapping[quizAnswers.occasion]) {
+    const preferred = occasionMapping[quizAnswers.occasion];
+    recommendations = recommendations.filter((f) =>
+      f.occasion.some((o) => includesIgnoreCase(o, preferred))
+    );
+  }
+
+  // Intensity
   if (quizAnswers.intensity && intensityMapping[quizAnswers.intensity]) {
-    const preferredIntensity = intensityMapping[quizAnswers.intensity];
+    const preferred = intensityMapping[quizAnswers.intensity];
     recommendations = recommendations.filter(
-      (fragrance) => fragrance.intensity === preferredIntensity
+      (f) => f.intensity && includesIgnoreCase(f.intensity, preferred)
     );
   }
 
-  // Filter by notes
+  // Notes
   if (quizAnswers.notes) {
-    recommendations = recommendations.filter((fragrance) =>
-      fragrance.notes.some((note) =>
-        note.toLowerCase().includes(quizAnswers.notes.toLowerCase())
-      )
+    recommendations = recommendations.filter((f) =>
+      f.notes?.some((note) => includesIgnoreCase(note, quizAnswers.notes))
     );
   }
 
-  // If no matches found, return some popular fragrances
+  // --- FALLBACK ---
   if (recommendations.length === 0) {
+    // fallback: pick top-rated or first few
     return fragranceData.slice(0, 5);
   }
 
-  // Return top 5 recommendations
+  // --- LIMIT TO TOP 5 ---
   return recommendations.slice(0, 5);
 };
