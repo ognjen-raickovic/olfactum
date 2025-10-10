@@ -9,8 +9,19 @@ import {
   useTheme,
   Paper,
   Typography as MuiTypography,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
 } from "@mui/material";
-import { Search, Brightness4, Brightness7 } from "@mui/icons-material";
+import {
+  Search,
+  Brightness4,
+  Brightness7,
+  Menu as MenuIcon,
+  Close as CloseIcon,
+} from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
 import { useThemeContext } from "../contexts/ThemeContext";
 import { fragranceData } from "../services/fragranceData";
@@ -23,9 +34,10 @@ const Navbar = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [selectedFragrance, setSelectedFragrance] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
-  // display label: if name starts with brand, remove brand prefix -> "Sauvage – Dior"
+  // --- helper for dropdown label ---
   const getDisplayLabel = (f) => {
     const name = (f.name || "").trim();
     const brand = (f.brand || "").trim();
@@ -47,9 +59,8 @@ const Navbar = () => {
       return;
     }
 
-    // use helper; if you prefer inline, you can copy filterFragrances logic here
     const filtered = filterFragrances(fragranceData, val);
-    setResults(filtered.slice(0, 6)); // show top 6 suggestions
+    setResults(filtered.slice(0, 6));
   };
 
   const handleSearchSubmit = () => {
@@ -59,9 +70,7 @@ const Navbar = () => {
   };
 
   const onKeyDown = (e) => {
-    if (e.key === "Enter") {
-      handleSearchSubmit();
-    }
+    if (e.key === "Enter") handleSearchSubmit();
   };
 
   const handleResultClick = (f) => {
@@ -69,6 +78,14 @@ const Navbar = () => {
     setResults([]);
     setQuery("");
   };
+
+  const navLinks = [
+    { label: "Home", path: "/" },
+    { label: "Fragrances", path: "/fragrances" },
+    { label: "Find Your Fragrance", path: "/find-your-fragrance" },
+    { label: "About", path: "/about" },
+    { label: "FAQ", path: "/faq" },
+  ];
 
   return (
     <>
@@ -82,6 +99,7 @@ const Navbar = () => {
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between", position: "relative" }}>
+          {/* Logo */}
           <Typography
             variant="h4"
             component={Link}
@@ -98,58 +116,44 @@ const Navbar = () => {
             olfactum
           </Typography>
 
+          {/* Desktop Links */}
           <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3 }}>
-            <Typography
-              variant="body1"
-              component={Link}
-              to="/"
-              sx={{
-                textDecoration: "none",
-                color: "text.primary",
-                "&:hover": { color: "primary.main" },
-              }}
-            >
-              Home
-            </Typography>
-
-            {/* changed label to Fragrances */}
-            <Typography
-              variant="body1"
-              component={Link}
-              to="/fragrances"
-              sx={{
-                textDecoration: "none",
-                color: "text.primary",
-                "&:hover": { color: "primary.main" },
-              }}
-            >
-              Fragrances
-            </Typography>
-
-            <Typography
-              variant="body1"
-              component={Link}
-              to="/about"
-              sx={{
-                textDecoration: "none",
-                color: "text.primary",
-                "&:hover": { color: "primary.main" },
-              }}
-            >
-              About
-            </Typography>
+            {navLinks.map((link) => (
+              <Typography
+                key={link.path}
+                variant="body1"
+                component={Link}
+                to={link.path}
+                sx={{
+                  textDecoration: "none",
+                  color: "text.primary",
+                  "&:hover": { color: "primary.main" },
+                }}
+              >
+                {link.label}
+              </Typography>
+            ))}
           </Box>
 
+          {/* Mobile Menu Icon */}
+          <Box
+            sx={{ display: { xs: "flex", md: "none" }, alignItems: "center" }}
+          >
+            <IconButton onClick={() => setDrawerOpen(true)}>
+              <MenuIcon />
+            </IconButton>
+          </Box>
+
+          {/* Search + Theme Toggle */}
           <Box
             sx={{
-              display: "flex",
+              display: { xs: "none", sm: "flex" },
               alignItems: "center",
               gap: 1,
               position: "relative",
             }}
           >
-            {/* wrapper to allow absolute dropdown positioned relative to this box */}
-            <Box sx={{ position: "relative", width: 360 }}>
+            <Box sx={{ position: "relative", width: 280 }}>
               <Box
                 sx={{
                   display: "flex",
@@ -172,7 +176,6 @@ const Navbar = () => {
                 </IconButton>
               </Box>
 
-              {/* Dropdown suggestions */}
               {results.length > 0 && (
                 <Paper
                   sx={{
@@ -195,7 +198,7 @@ const Navbar = () => {
                         alignItems: "center",
                         gap: 2,
                         px: 2,
-                        py: 1.25, // slightly larger rows
+                        py: 1.25,
                         cursor: "pointer",
                         "&:hover": { bgcolor: "action.hover" },
                       }}
@@ -234,6 +237,59 @@ const Navbar = () => {
           </Box>
         </Toolbar>
       </AppBar>
+
+      {/* Drawer (Mobile Menu) */}
+      <Drawer
+        anchor="right"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      >
+        <Box
+          sx={{
+            width: 250,
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            bgcolor: "background.paper",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              px: 2,
+              py: 1.5,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+            }}
+          >
+            <Typography variant="h6">Menu</Typography>
+            <IconButton onClick={() => setDrawerOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          <List>
+            {navLinks.map((link) => (
+              <ListItem key={link.path} disablePadding>
+                <ListItemButton
+                  component={Link}
+                  to={link.path}
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  <ListItemText primary={link.label} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+
+          <Box sx={{ mt: "auto", px: 2, pb: 2 }}>
+            <IconButton onClick={toggleTheme} color="inherit">
+              {mode === "dark" ? <Brightness7 /> : <Brightness4 />}
+            </IconButton>
+          </Box>
+        </Box>
+      </Drawer>
 
       {/* Fragrance modal opens when a dropdown item is clicked */}
       {selectedFragrance && (

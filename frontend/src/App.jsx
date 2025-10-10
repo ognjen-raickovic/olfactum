@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import FragrancesPage from "./pages/FragrancesPage";
 import AboutPage from "./pages/AboutPage";
 import QuizPage from "./pages/QuizPage";
+import FAQ from "./pages/FaqPage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             <Route path="/fragrances" element={<FragrancesPage />} />
             <Route path="/browse" element={<FragrancesPage />} />{" "}
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/faq" element={<FAQ />} />
             <Route path="/find-your-fragrance" element={<QuizPage />} />
           </Routes>
         </MainLayout>
