@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -15,30 +15,18 @@ import {
   Stack,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import { fragranceData } from "../services/fragranceData";
 
-const FragranceFilter = ({ onFilterChange }) => {
+const FragranceFilter = ({
+  onFilterChange,
+  seasons = [],
+  occasions = [],
+  priceRanges = [],
+}) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSeasons, setSelectedSeasons] = useState([]);
   const [selectedOccasions, setSelectedOccasions] = useState([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState([]);
   const [sortBy, setSortBy] = useState("relevance");
-
-  const availableOptions = useMemo(() => {
-    const s = new Set();
-    const o = new Set();
-    const p = new Set();
-    fragranceData.forEach((f) => {
-      (f.season || []).forEach((x) => s.add(x));
-      (f.occasion || []).forEach((x) => o.add(x));
-      if (f.priceRange) p.add(f.priceRange);
-    });
-    return {
-      seasons: Array.from(s).sort(),
-      occasions: Array.from(o).sort(),
-      priceRanges: Array.from(p).sort(),
-    };
-  }, []);
 
   const toggleArrayValue = (array, setFn, value) => {
     if (array.includes(value)) setFn(array.filter((v) => v !== value));
@@ -64,6 +52,7 @@ const FragranceFilter = ({ onFilterChange }) => {
 
   return (
     <>
+      {/* Button to open filter drawer */}
       <Stack
         direction="row"
         spacing={1}
@@ -87,6 +76,7 @@ const FragranceFilter = ({ onFilterChange }) => {
         PaperProps={{ sx: { width: { xs: "100%", sm: 420 } } }}
       >
         <Box sx={{ p: 3 }}>
+          {/* Header */}
           <Box
             sx={{
               display: "flex",
@@ -106,7 +96,7 @@ const FragranceFilter = ({ onFilterChange }) => {
             Seasons
           </Typography>
           <FormGroup sx={{ mb: 2 }}>
-            {availableOptions.seasons.map((s) => (
+            {seasons.map((s) => (
               <FormControlLabel
                 key={s}
                 control={
@@ -127,7 +117,7 @@ const FragranceFilter = ({ onFilterChange }) => {
             Occasions
           </Typography>
           <FormGroup sx={{ mb: 2 }}>
-            {availableOptions.occasions.map((o) => (
+            {occasions.map((o) => (
               <FormControlLabel
                 key={o}
                 control={
@@ -147,12 +137,12 @@ const FragranceFilter = ({ onFilterChange }) => {
             ))}
           </FormGroup>
 
-          {/* Price ranges */}
+          {/* Price Ranges */}
           <Typography variant="subtitle1" sx={{ mb: 1 }}>
             Price Range
           </Typography>
           <FormGroup sx={{ mb: 2 }}>
-            {availableOptions.priceRanges.map((p) => (
+            {priceRanges.map((p) => (
               <FormControlLabel
                 key={p}
                 control={
@@ -186,6 +176,14 @@ const FragranceFilter = ({ onFilterChange }) => {
               <MenuItem value="relevance">Relevance</MenuItem>
               <MenuItem value="name-asc">Name (A → Z)</MenuItem>
               <MenuItem value="name-desc">Name (Z → A)</MenuItem>
+              <MenuItem value="rating-desc">Rating (high → low)</MenuItem>
+              <MenuItem value="rating-asc">Rating (low → high)</MenuItem>
+              <MenuItem value="popularity-desc">
+                Popularity (most → least rated)
+              </MenuItem>
+              <MenuItem value="popularity-asc">
+                Popularity (least → most rated)
+              </MenuItem>
               <MenuItem value="longevity-desc">
                 Longevity (long → short)
               </MenuItem>
@@ -198,11 +196,10 @@ const FragranceFilter = ({ onFilterChange }) => {
               <MenuItem value="intensity-asc">
                 Intensity (light → strong)
               </MenuItem>
-              <MenuItem value="price-desc">Price (high → low)</MenuItem>
-              <MenuItem value="price-asc">Price (low → high)</MenuItem>
             </Select>
           </FormControl>
 
+          {/* Buttons */}
           <Box sx={{ mt: 3, display: "flex", gap: 1 }}>
             <Button variant="contained" fullWidth onClick={applyFilters}>
               Apply

@@ -24,8 +24,10 @@ import {
 } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
 import { useThemeContext } from "../contexts/ThemeContext";
-import { fragranceData } from "../services/fragranceData";
-import { filterFragrances } from "../utils/filterFragrances";
+import {
+  getAllFragrances,
+  searchFragrances,
+} from "../services/fragranceService";
 import FragranceModal from "./FragranceModal";
 
 const Navbar = () => {
@@ -59,7 +61,7 @@ const Navbar = () => {
       return;
     }
 
-    const filtered = filterFragrances(fragranceData, val);
+    const filtered = searchFragrances(val); // returns filtered fragrances
     setResults(filtered.slice(0, 6));
   };
 

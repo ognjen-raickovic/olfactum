@@ -10,9 +10,7 @@ import {
   CardMedia,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-
-const placeholderImage =
-  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDMwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QjlCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiPkZyYWdyYW5jZSBJbWFnZTwvdGV4dD4KPC9zdmc+";
+import { humanizeName } from "../utils/humanizeName";
 
 const FragranceModal = ({ fragrance, open, onClose }) => {
   if (!fragrance) return null;
@@ -30,11 +28,11 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
   // Pins row
   const pins = [
     fragrance.scentFamily,
-    fragrance.longevity,
     fragrance.intensity,
-    ...fragrance.season,
-    ...fragrance.occasion,
-  ];
+    fragrance.longevity,
+    ...(fragrance.season || []),
+    ...(fragrance.occasion || []),
+  ].filter(Boolean);
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -65,14 +63,15 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
         >
           <Box sx={{ textAlign: "center", flex: 1 }}>
             <Typography variant="h4" component="h2">
-              {fragrance.brand} {fragrance.name}
+              {humanizeName(fragrance.brand)} {humanizeName(fragrance.name)}
             </Typography>
             <Typography
               variant="h6"
               color="primary.main"
               sx={{ mt: 0.5, mb: 1 }}
             >
-              {fragrance.type} • {genderIcon} {fragrance.genderProfile}
+              {humanizeName(fragrance.type)} • {genderIcon}{" "}
+              {fragrance.genderProfile}
             </Typography>
 
             <Box
@@ -85,7 +84,14 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
               }}
             >
               {pins.map((pin, index) => (
-                <Chip key={index} label={pin} size="small" />
+                <Chip
+                  key={index}
+                  label={humanizeName(pin)}
+                  size="small"
+                  color={
+                    pin === fragrance.inferredFrom ? "secondary" : "default"
+                  }
+                />
               ))}
             </Box>
           </Box>
@@ -108,10 +114,10 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
                 component="img"
                 height="350"
                 image={imageUrl}
-                alt={fragrance.name}
+                alt={humanizeName(fragrance.name)}
                 sx={{ borderRadius: 2, objectFit: "cover", width: "100%" }}
                 onError={(e) => {
-                  e.target.src = placeholderImage;
+                  e.target.src = "/images/no-image.png";
                 }}
               />
             </Grid>
@@ -135,7 +141,11 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
             </Typography>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
               {fragrance.notes.map((note, index) => (
-                <Chip key={index} label={note} variant="outlined" />
+                <Chip
+                  key={index}
+                  label={humanizeName(note)}
+                  variant="outlined"
+                />
               ))}
             </Box>
           </Box>

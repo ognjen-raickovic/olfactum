@@ -5,13 +5,30 @@ import {
   Typography,
   Box,
   Chip,
+  Rating,
 } from "@mui/material";
+import { humanizeName } from "../utils/humanizeName";
 
 const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
+  const ratingNumber =
+    fragrance.rating != null
+      ? Number(String(fragrance.rating).replace(",", "."))
+      : null;
   const handleOpen = (f) => {
     if (onClick) return onClick(f);
     if (onViewDetails) return onViewDetails(f);
   };
+  // Split occasions by "/" and trim them
+  const splitOccasions =
+    fragrance.occasion
+      ?.flatMap((o) => o.split("/").map((x) => x.trim()))
+      .filter(Boolean) || [];
+
+  // Optionally, you can also split seasons if you ever have multiple in a string
+  const splitSeasons =
+    fragrance.season
+      ?.flatMap((s) => s.split("/").map((x) => x.trim()))
+      .filter(Boolean) || [];
 
   return (
     <Card
@@ -51,7 +68,7 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
         <CardMedia
           component="img"
           image={fragrance.image || `/images/${fragrance.slug}.jpg`}
-          alt={fragrance.name}
+          alt={humanizeName(fragrance.name)}
           sx={{
             objectFit: "contain",
             maxHeight: "100%",
@@ -86,22 +103,45 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
               mb: 0.5,
             }}
           >
-            {fragrance.name}
+            {humanizeName(fragrance.name)}
           </Typography>
 
           <Typography
             color="text.secondary"
             sx={{ fontSize: 13, display: "block" }}
           >
-            {fragrance.brand}
+            {humanizeName(fragrance.brand)}
           </Typography>
 
           <Typography
             color="text.secondary"
             sx={{ fontSize: 13, display: "block" }}
           >
-            {fragrance.type}
+            {humanizeName(fragrance.type)}
           </Typography>
+
+          {/* Rating */}
+          {ratingNumber != null && !isNaN(ratingNumber) && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 0.5,
+                mt: 0.5,
+              }}
+            >
+              <Rating
+                value={ratingNumber}
+                precision={0.1}
+                readOnly
+                size="small"
+              />
+              <Typography variant="caption" color="text.secondary">
+                {ratingNumber.toFixed(1)}
+              </Typography>
+            </Box>
+          )}
 
           {/* Price + Gender Chips */}
           <Box
@@ -114,24 +154,30 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
               flexWrap: "wrap",
             }}
           >
-            <Chip
-              label={fragrance.priceRange}
-              size="small"
-              color={
-                fragrance.priceRange === "Luxury" ||
-                fragrance.priceRange === "Premium"
-                  ? "secondary"
-                  : "default"
-              }
-            />
+            {/* Only show price chip if it exists and isn’t “Unknown” */}
+            {fragrance.priceRange &&
+              fragrance.priceRange.toLowerCase() !== "unknown" && (
+                <Chip
+                  label={humanizeName(fragrance.priceRange)}
+                  size="small"
+                  color={
+                    fragrance.priceRange === "Luxury" ||
+                    fragrance.priceRange === "Premium"
+                      ? "secondary"
+                      : "default"
+                  }
+                />
+              )}
+
+            {/* Gender chip, capitalize and style */}
             {fragrance.genderProfile && (
               <Chip
-                label={fragrance.genderProfile}
+                label={humanizeName(fragrance.genderProfile)}
                 size="small"
                 color={
-                  fragrance.genderProfile === "Masculine"
+                  fragrance.genderProfile.toLowerCase() === "masculine"
                     ? "primary"
-                    : fragrance.genderProfile === "Feminine"
+                    : fragrance.genderProfile.toLowerCase() === "feminine"
                     ? "secondary"
                     : "default"
                 }
@@ -140,7 +186,6 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
             )}
           </Box>
         </Box>
-
         {/* Season + Occasion Chips */}
         <Box
           sx={{
@@ -151,11 +196,21 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
             mt: 1.3,
           }}
         >
-          {fragrance.season?.slice(0, 2).map((s) => (
-            <Chip key={s} label={s} size="small" variant="outlined" />
+          {splitSeasons.slice(0, 2).map((s) => (
+            <Chip
+              key={s}
+              label={humanizeName(s)}
+              size="small"
+              variant="outlined"
+            />
           ))}
-          {fragrance.occasion?.slice(0, 1).map((o) => (
-            <Chip key={o} label={o} size="small" variant="outlined" />
+          {splitOccasions.slice(0, 2).map((o) => (
+            <Chip
+              key={o}
+              label={humanizeName(o)}
+              size="small"
+              variant="outlined"
+            />
           ))}
         </Box>
       </CardContent>
