@@ -1,6 +1,14 @@
 import React, { useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Box, Typography, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  IconButton,
+  InputAdornment,
+} from "@mui/material";
+import { Close as CloseIcon, Search as SearchIcon } from "@mui/icons-material";
 import FragranceCard from "../../components/FragranceCard";
 import FragranceModal from "../../components/FragranceModal";
 import FragranceFilter from "../../components/FragranceFilter";
@@ -10,12 +18,12 @@ import { getAllFragrances } from "../../services/fragranceService";
 const FragrancesPage = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const query = params.get("query") || params.get("search") || "";
+  const initialQuery = params.get("query") || params.get("search") || "";
 
-  // Fetch all fragrances once
+  // 🔹 All fragrances loaded once
   const allFragrances = useMemo(() => getAllFragrances(), []);
 
-  // Compute filter options dynamically
+  // 🔹 Extract options dynamically
   const allSeasons = useMemo(
     () => Array.from(new Set(allFragrances.flatMap((f) => f.season || []))),
     [allFragrances]
@@ -24,48 +32,56 @@ const FragrancesPage = () => {
     () => Array.from(new Set(allFragrances.flatMap((f) => f.occasion || []))),
     [allFragrances]
   );
-  const allPriceRanges = useMemo(
-    () =>
-      Array.from(
-        new Set(allFragrances.map((f) => f.priceRange).filter(Boolean))
-      ),
-    [allFragrances]
-  );
+  const allGenders = ["male", "female", "unisex"];
 
-  // Base results after search term
-  const baseResults = useMemo(
-    () => filterFragrances(allFragrances, query),
-    [allFragrances, query]
-  );
-
+  const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [filters, setFilters] = useState({
     selectedSeasons: [],
     selectedOccasions: [],
-    selectedPriceRanges: [],
+    selectedGenders: [],
     sortBy: "relevance",
   });
   const [visibleCount, setVisibleCount] = useState(15);
   const [selected, setSelected] = useState(null);
 
-  // Apply filtering + sorting
+  // 🔹 Normalize search term safely
+  const normalizedSearch = useMemo(() => {
+    return searchTerm
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, " ")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  }, [searchTerm]);
+
+  // 🔹 Base search results
+  const baseResults = useMemo(() => {
+    return filterFragrances(allFragrances, normalizedSearch);
+  }, [allFragrances, normalizedSearch]);
+
+  // 🔹 Apply filters and sorting
   const filteredResults = useMemo(() => {
     let items = baseResults.slice();
-    const { selectedSeasons, selectedOccasions, selectedPriceRanges, sortBy } =
+    const { selectedSeasons, selectedOccasions, selectedGenders, sortBy } =
       filters;
 
     // --- FILTERS ---
     if (selectedSeasons.length)
       items = items.filter((f) =>
-        (f.season || []).some((s) => selectedSeasons.includes(s))
+        selectedSeasons.every((s) => (f.season || []).includes(s))
       );
 
     if (selectedOccasions.length)
       items = items.filter((f) =>
-        (f.occasion || []).some((o) => selectedOccasions.includes(o))
+        selectedOccasions.every((o) => (f.occasion || []).includes(o))
       );
 
-    if (selectedPriceRanges.length)
-      items = items.filter((f) => selectedPriceRanges.includes(f.priceRange));
+    if (selectedGenders.length)
+      items = items.filter((f) =>
+        selectedGenders.includes(
+          (f.genderProfile || "").toLowerCase().replace(/\s+/g, "")
+        )
+      );
 
     // --- SORTING HELPERS ---
     const longevityRank = { short: 0, moderate: 1, long: 2 };
@@ -75,11 +91,18 @@ const FragrancesPage = () => {
       longevityRank[f.longevity?.toLowerCase?.()] ?? 0;
     const getIntensity = (f) =>
       intensityRank[f.intensity?.toLowerCase?.()] ?? 0;
-    const getRating = (f) => f.rating ?? 0;
-    const getPopularity = (f) => f.ratingCount ?? 0;
+    const getRating = (f) => Number(f.rating) || 0;
+    const getPopularity = (f) => Number(f.ratingCount) || 0;
 
     // --- SORTING ---
     switch (sortBy) {
+      case "relevance":
+        items.sort((a, b) => {
+          const aScore = getRating(a) * Math.log(1 + getPopularity(a));
+          const bScore = getRating(b) * Math.log(1 + getPopularity(b));
+          return bScore - aScore;
+        });
+        break;
       case "name-asc":
         items.sort((a, b) => a.name.localeCompare(b.name));
         break;
@@ -117,28 +140,76 @@ const FragrancesPage = () => {
     return items;
   }, [baseResults, filters]);
 
+  // 🔹 Handlers
   const handleCardClick = (f) => setSelected(f);
   const handleClose = () => setSelected(null);
+  const clearSearch = () => setSearchTerm("");
+
+  const headerText = useMemo(() => {
+    if (searchTerm) return `Searched for “${searchTerm}”`;
+    const activeFilters = [
+      ...filters.selectedSeasons,
+      ...filters.selectedOccasions,
+      ...filters.selectedGenders,
+    ];
+    if (activeFilters.length)
+      return `Filtered by: ${activeFilters
+        .map((x) => x.charAt(0).toUpperCase() + x.slice(1))
+        .join(", ")}`;
+    return "All Fragrances";
+  }, [searchTerm, filters]);
 
   return (
     <Box sx={{ px: { xs: 2, sm: 4 }, py: 6 }}>
+      {/* 🔹 Header */}
       <Typography
         variant="h4"
         sx={{ mb: 3, fontWeight: 600, textAlign: "center" }}
       >
-        {query ? `Searched for “${query}”` : "All Fragrances"}
+        {headerText}
       </Typography>
 
-      {/* Filter Component */}
+      {/* 🔹 Search Bar */}
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+        <TextField
+          variant="outlined"
+          placeholder="Search fragrances..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          size="small"
+          sx={{ width: { xs: "100%", sm: 400 } }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: "text.primary" }} />{" "}
+                {/* 👈 fixed color */}
+              </InputAdornment>
+            ),
+            endAdornment: searchTerm && (
+              <InputAdornment position="end">
+                <IconButton onClick={clearSearch} edge="end" size="small">
+                  <CloseIcon sx={{ color: "text.primary" }} />{" "}
+                  {/* 👈 fixed color */}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+
+      {/* 🔹 Filters */}
       <FragranceFilter
         onFilterChange={setFilters}
         seasons={allSeasons}
         occasions={allOccasions}
-        priceRanges={allPriceRanges}
+        genders={allGenders}
       />
 
+      {/* 🔹 Results */}
       {filteredResults.length === 0 ? (
-        <Typography color="text.secondary">No fragrances found.</Typography>
+        <Typography color="text.secondary" textAlign="center" sx={{ mt: 4 }}>
+          No fragrances found.
+        </Typography>
       ) : (
         <>
           <Box
@@ -168,7 +239,7 @@ const FragrancesPage = () => {
                 variant="outlined"
                 onClick={() =>
                   setVisibleCount((prev) =>
-                    Math.min(prev + 5, filteredResults.length)
+                    Math.min(prev + 10, filteredResults.length)
                   )
                 }
               >

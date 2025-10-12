@@ -1,14 +1,23 @@
+const normalize = (str) =>
+  str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[-_]/g, " ") // replace hyphens/underscores with spaces
+    .replace(/\s+/g, " ") // normalize multiple spaces
+    .trim();
+
 export const filterFragrances = (fragrances, term) => {
-  if (!term || !term.trim()) return fragrances; // empty -> all results (good for /fragrances)
-  const lower = term.toLowerCase();
+  if (!term?.trim()) return fragrances;
+  const lower = normalize(term);
 
   return fragrances.filter((f) => {
-    const name = (f.name || "").toLowerCase();
-    const brand = (f.brand || "").toLowerCase();
-    const scentFamily = (f.scentFamily || "").toLowerCase();
-    const notes = (f.notes || []).map((n) => n.toLowerCase());
-    const season = (f.season || []).map((s) => s.toLowerCase());
-    const occasion = (f.occasion || []).map((o) => o.toLowerCase());
+    const name = normalize(f.name || "");
+    const brand = normalize(f.brand || "");
+    const scentFamily = normalize(f.scentFamily || "");
+    const notes = (f.notes || []).map(normalize);
+    const season = (f.season || []).map(normalize);
+    const occasion = (f.occasion || []).map(normalize);
 
     return (
       name.includes(lower) ||

@@ -1,5 +1,6 @@
 import fs from "fs";
 import csv from "csv-parser";
+import pLimit from "p-limit"; // npm i p-limit
 import {
   inferOccasion,
   inferSeason,
@@ -9,65 +10,114 @@ import {
 
 const results = [];
 
-fs.createReadStream("fra_cleaned.csv")
-  .pipe(csv({ separator: ";" }))
-  .on("data", (data) => {
-    const notes = [
-      ...(data.Top ? data.Top.split(",").map((n) => n.trim()) : []),
-      ...(data.Middle ? data.Middle.split(",").map((n) => n.trim()) : []),
-      ...(data.Base ? data.Base.split(",").map((n) => n.trim()) : []),
-    ].slice(0, 5);
+// Limit concurrent processing (useful for large CSVs)
+const limit = pLimit(10);
 
-    const accords = [
-      data.mainaccord1,
-      data.mainaccord2,
-      data.mainaccord3,
-      data.mainaccord4,
-      data.mainaccord5,
-    ].filter(Boolean);
+async function processCsv() {
+  const rows = [];
 
-    // Clean perfumer info
-    const perfumer =
-      data.Perfumer1 &&
-      data.Perfumer1.trim().toLowerCase() !== "unknown" &&
-      data.Perfumer1.trim() !== ""
-        ? data.Perfumer1.trim()
-        : data.Perfumer2 && data.Perfumer2.trim() !== ""
-        ? data.Perfumer2.trim()
-        : "Unknown";
-
-    const perfume = {
-      id: results.length + 1,
-      name: data.Perfume?.trim() || "Unknown",
-      brand: data.Brand?.trim() || "Unknown",
-      type: "Eau de Parfum",
-      country: data.Country?.trim() || "Unknown",
-      scentFamily: data.mainaccord1?.trim() || "Unknown",
-      notes,
-      accords,
-      season: accords.length ? [inferSeason(accords)] : [],
-      occasion: accords.length ? [inferOccasion(accords)] : [],
-      intensity: accords.length ? inferIntensity(accords) : "Moderate",
-      longevity: accords.length ? inferLongevity(accords) : "Moderate",
-      priceRange: "Unknown",
-      description: `${data.Perfume} by ${data.Brand}, launched in ${
-        data.Year || "unknown"
-      }.`,
-      slug: data.Perfume
-        ? data.Perfume.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-        : `perfume-${results.length + 1}`,
-      image: "/images/default.jpg",
-      genderProfile: data.Gender || "Unisex",
-      rating: data["Rating Value"] || "Unknown",
-      year: data.Year || "Unknown",
-      perfumer,
-    };
-
-    results.push(perfume);
-  })
-  .on("end", () => {
-    fs.writeFileSync("fragranceData.json", JSON.stringify(results, null, 2));
-    console.log(
-      `✅ Done! Created fragranceData.json with ${results.length} perfumes.`
+  const inputFile = "fra_cleaned.csv";
+  if (!fs.existsSync(inputFile)) {
+    console.error(
+      `Input file "${inputFile}" not found. Put your CSV in the data-tools folder.`
     );
-  });
+    process.exit(1);
+  }
+
+  fs.createReadStream(inputFile)
+    .pipe(csv({ separator: ";" }))
+    .on("data", (data) => rows.push(data))
+    .on("end", async () => {
+      console.log(`📦 Loaded ${rows.length} rows. Processing...`);
+
+      const promises = rows.map((data, index) =>
+        limit(async () => {
+          const top = data.Top || data.top || "";
+          const middle = data.Middle || data.middle || "";
+          const base = data.Base || data.base || "";
+
+          const notes = [
+            ...(top ? top.split(",").map((n) => n.trim()) : []),
+            ...(middle ? middle.split(",").map((n) => n.trim()) : []),
+            ...(base ? base.split(",").map((n) => n.trim()) : []),
+          ].slice(0, 5);
+
+          const accords = [
+            data.mainaccord1,
+            data.mainaccord2,
+            data.mainaccord3,
+            data.mainaccord4,
+            data.mainaccord5,
+          ]
+            .filter(Boolean)
+            .map((a) => (typeof a === "string" ? a.trim() : a));
+
+          const perfumer =
+            data.Perfumer1 &&
+            String(data.Perfumer1).trim().toLowerCase() !== "unknown" &&
+            String(data.Perfumer1).trim() !== ""
+              ? String(data.Perfumer1).trim()
+              : data.Perfumer2 && String(data.Perfumer2).trim() !== ""
+              ? String(data.Perfumer2).trim()
+              : "Unknown";
+
+          const url = data.url || data.URL || data.Url || "";
+
+          // 🖼 Build Fragrantica image link automatically
+          const match = url?.match(/-(\d+)\.html$/);
+          const image = match
+            ? `https://fimgs.net/images/perfume/375x500.${match[1]}.jpg`
+            : "/images/default.jpg";
+
+          const perfume = {
+            id: index + 1,
+            name: data.Perfume?.trim() || "Unknown",
+            brand: data.Brand?.trim() || "Unknown",
+            type: data.Type?.trim() || "Eau de Parfum",
+            country: data.Country?.trim() || "Unknown",
+            scentFamily: data.mainaccord1?.trim() || "Unknown",
+            notes,
+            accords,
+            season: accords.length ? [inferSeason(accords)] : [],
+            occasion: accords.length ? [inferOccasion(accords)] : [],
+            intensity: accords.length ? inferIntensity(accords) : "Moderate",
+            longevity: accords.length ? inferLongevity(accords) : "Moderate",
+            priceRange: data.priceRange || "Unknown",
+            description: `${data.Perfume || "Unknown"} by ${
+              data.Brand || "Unknown"
+            }, launched in ${data.Year || "unknown"}.`,
+            slug: data.Perfume
+              ? String(data.Perfume)
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+              : `perfume-${index + 1}`,
+            image,
+            genderProfile: data.Gender || "Unisex",
+            rating: parseFloat(
+              String(data["Rating Value"] || "0").replace(",", ".")
+            ),
+            ratingCount: parseInt(data["Rating Count"] || "0", 10),
+            year: data.Year || "Unknown",
+            perfumer,
+            sourceUrl: url,
+          };
+
+          results.push(perfume);
+
+          if ((index + 1) % 100 === 0) {
+            console.log(`✅ Processed ${index + 1} perfumes`);
+          }
+        })
+      );
+
+      await Promise.all(promises);
+
+      const outFile = "fragranceData.json";
+      fs.writeFileSync(outFile, JSON.stringify(results, null, 2));
+      console.log(
+        `🎉 Done! Created ${outFile} with ${results.length} perfumes.`
+      );
+    });
+}
+
+processCsv();

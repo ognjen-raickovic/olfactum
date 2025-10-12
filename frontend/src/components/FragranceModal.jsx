@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Modal,
   Box,
@@ -14,10 +15,16 @@ import { humanizeName } from "../utils/humanizeName";
 
 const FragranceModal = ({ fragrance, open, onClose }) => {
   if (!fragrance) return null;
+  const ratingNumber =
+    fragrance.rating != null
+      ? Number(String(fragrance.rating).replace(",", "."))
+      : null;
 
-  const imageUrl = fragrance.image || `/images/${fragrance.slug}.jpg`;
+  const imageUrl =
+    fragrance.image && fragrance.image !== "/images/default.jpg"
+      ? fragrance.image
+      : "/images/no-image.png";
 
-  // Build gender display
   const genderIcon =
     fragrance.genderProfile === "Masculine"
       ? "♂️"
@@ -25,7 +32,6 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
       ? "♀️"
       : "⚧";
 
-  // Pins row
   const pins = [
     fragrance.scentFamily,
     fragrance.intensity,
@@ -154,27 +160,51 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
             <Typography variant="h6" gutterBottom>
               Community Reviews
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <Rating value={4.5} precision={0.5} readOnly />
-              <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                4.5/5 (128 reviews)
-              </Typography>
-            </Box>
-            <Typography variant="body2" color="text.secondary">
-              "This fragrance is absolutely stunning! Perfect for evening wear."
-            </Typography>
+
+            {ratingNumber != null && !isNaN(ratingNumber) && (
+              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                <Rating
+                  value={ratingNumber}
+                  precision={0.1}
+                  readOnly
+                  sx={{ mr: 1 }}
+                />
+                <Typography variant="body2" color="text.secondary">
+                  {ratingNumber.toFixed(1)}/5
+                  {fragrance.ratingCount
+                    ? ` (${fragrance.ratingCount} reviews)`
+                    : ""}
+                </Typography>
+              </Box>
+            )}
           </Box>
 
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             <Button variant="contained" size="large">
               Add to Favorites
             </Button>
-            <Button variant="outlined" size="large">
-              Read Reviews
+            <Button
+              variant="outlined"
+              size="large"
+              href={fragrance.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Read Reviews on Fragrantica
             </Button>
-            <Button variant="text" size="large">
+            <Button
+              variant="text"
+              size="large"
+              href={`https://www.google.com/search?q=where to buy+${encodeURIComponent(
+                humanizeName(fragrance.brand) +
+                  " " +
+                  humanizeName(fragrance.name)
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Where to Buy
-            </Button>
+            </Button>{" "}
           </Box>
         </Box>
       </Box>

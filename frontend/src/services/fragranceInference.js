@@ -1,59 +1,79 @@
-// fragranceInference.js
-
 /**
- * Infer occasion based on main accords.
- * Respects existing occasion if present.
- * Uses weighted keyword scoring.
+ * Realistic fragrance inference utilities.
+ * Designed using perfumery logic and examples from real fragrances.
  */
-export function inferOccasion(accords = [], existingOccasion) {
-  if (existingOccasion) return existingOccasion;
 
-  if (!accords?.length) return "Everyday";
+function has(accords, list) {
   const joined = accords.join(" ").toLowerCase();
-
-  const categories = {
-    "Date Night": [
-      "sweet",
-      "vanilla",
-      "amber",
-      "tonka",
-      "chocolate",
-      "caramel",
-      "honey",
-    ],
-    "Office / Daytime": [
-      "fresh",
-      "citrus",
-      "aquatic",
-      "green",
-      "ozonic",
-      "mint",
-    ],
-    "Evening / Special": ["woody", "spicy", "oriental", "leather", "tobacco"],
-    "Everyday / Casual": ["floral", "powdery", "fruity", "herbal"],
-  };
-
-  let bestMatch = "Everyday / Casual";
-  let bestScore = 0;
-
-  for (const [category, keywords] of Object.entries(categories)) {
-    const score = keywords.reduce(
-      (acc, word) => acc + (joined.includes(word) ? 1 : 0),
-      0
-    );
-    if (score > bestScore) {
-      bestScore = score;
-      bestMatch = category;
-    }
-  }
-
-  return bestMatch;
+  return list.some((word) => joined.includes(word));
 }
 
 /**
- * Infer season based on main accords.
- * Respects existing season if present.
- * Uses “All Year” as a more natural fallback.
+ * Infer OCCASION
+ */
+export function inferOccasion(accords = [], existingOccasion) {
+  if (existingOccasion) return existingOccasion;
+  if (!accords?.length) return "Everyday / Casual";
+
+  const joined = accords.join(" ").toLowerCase();
+
+  const romantic = [
+    "sweet",
+    "vanilla",
+    "tonka",
+    "amber",
+    "chocolate",
+    "caramel",
+    "honey",
+    "boozy",
+  ];
+  const fresh = [
+    "fresh",
+    "citrus",
+    "aquatic",
+    "green",
+    "ozonic",
+    "mint",
+    "soapy",
+  ];
+  const formal = [
+    "iris",
+    "leather",
+    "tobacco",
+    "spicy",
+    "woody",
+    "oud",
+    "resin",
+  ];
+  const casual = ["floral", "powdery", "fruity", "herbal", "aromatic"];
+
+  const score = {
+    romantic: romantic.filter((n) => joined.includes(n)).length,
+    fresh: fresh.filter((n) => joined.includes(n)).length,
+    formal: formal.filter((n) => joined.includes(n)).length,
+    casual: casual.filter((n) => joined.includes(n)).length,
+  };
+
+  // Warm + sweet → Date Night
+  if (score.romantic >= 2) return "Date Night";
+  // Rich / spicy / leather → Evening
+  if (score.formal >= 2) return "Evening / Special";
+  // Clean / fresh → Office
+  if (score.fresh >= 2) return "Office / Daytime";
+  // Light / floral → Everyday
+  if (score.casual >= 2) return "Everyday / Casual";
+
+  // Mixed but balanced → versatile scent
+  if ((score.fresh && score.formal) || (score.romantic && score.formal)) {
+    return "Evening / Special";
+  }
+  if (score.fresh && score.romantic) return "Everyday / Casual";
+
+  return "Everyday / Casual";
+}
+
+/**
+ * Infer SEASON
  */
 export function inferSeason(accords = [], existingSeason) {
   if (existingSeason) return existingSeason;
@@ -61,17 +81,37 @@ export function inferSeason(accords = [], existingSeason) {
 
   const joined = accords.join(" ").toLowerCase();
 
-  if (/citrus|green|aquatic|ozonic|fresh|mint/.test(joined)) return "Summer";
-  if (/spicy|amber|woody|tobacco|leather|resin/.test(joined)) return "Fall";
-  if (/vanilla|amber|resin|balsamic|oud|musk/.test(joined)) return "Winter";
-  if (/floral|powdery|fruity|herbal/.test(joined)) return "Spring";
+  const warm = [
+    "amber",
+    "oud",
+    "leather",
+    "tobacco",
+    "vanilla",
+    "tonka",
+    "resin",
+    "balsamic",
+    "musk",
+    "spicy",
+    "cardamom",
+  ];
+  const fresh = ["citrus", "green", "aquatic", "ozonic", "mint", "fresh"];
+  const floral = ["floral", "powdery", "fruity", "herbal"];
+
+  const warmScore = warm.filter((n) => joined.includes(n)).length;
+  const freshScore = fresh.filter((n) => joined.includes(n)).length;
+  const floralScore = floral.filter((n) => joined.includes(n)).length;
+
+  // Balanced warm + fresh → All Year (e.g. Bleu, Aventus, Terre d’Hermès)
+  if (warmScore && freshScore) return "All Year";
+  if (warmScore >= 2) return "Fall / Winter";
+  if (freshScore >= 2) return "Spring / Summer";
+  if (floralScore >= 2) return "Spring";
 
   return "All Year";
 }
 
 /**
- * Infer intensity (projection) based on accords.
- * Respects existing intensity if present.
+ * Infer INTENSITY (projection)
  */
 export function inferIntensity(accords = [], existingIntensity) {
   if (existingIntensity) return existingIntensity;
@@ -79,27 +119,64 @@ export function inferIntensity(accords = [], existingIntensity) {
 
   const joined = accords.join(" ").toLowerCase();
 
-  if (/oud|amber|leather|spicy|resin|tobacco/.test(joined)) return "Strong";
-  if (/fresh|green|citrus|aquatic|ozonic|mint/.test(joined)) return "Light";
-  if (/floral|powdery|fruity|vanilla/.test(joined)) return "Moderate";
+  const strong = [
+    "oud",
+    "amber",
+    "leather",
+    "spicy",
+    "resin",
+    "tobacco",
+    "patchouli",
+    "vanilla",
+  ];
+  const light = [
+    "fresh",
+    "green",
+    "citrus",
+    "aquatic",
+    "ozonic",
+    "mint",
+    "herbal",
+  ];
+  const moderate = ["floral", "powdery", "fruity", "musk", "iris"];
 
+  const strongScore = strong.filter((n) => joined.includes(n)).length;
+  const lightScore = light.filter((n) => joined.includes(n)).length;
+
+  if (strongScore >= 2 && strongScore > lightScore) return "Strong";
+  if (lightScore >= 2 && lightScore > strongScore) return "Light";
+  if (strongScore && lightScore) return "Moderate";
   return "Moderate";
 }
 
 /**
- * Infer longevity based on accords.
- * Respects existing longevity if present.
+ * Infer LONGEVITY
  */
 export function inferLongevity(accords = [], existingLongevity) {
   if (existingLongevity) return existingLongevity;
-  if (!accords?.length) return "Moderate";
+  if (!accords?.length) return "Moderate Lasting";
 
   const joined = accords.join(" ").toLowerCase();
 
-  if (/amber|oud|leather|tobacco|resin|balsamic|musk/.test(joined))
-    return "Long Lasting";
-  if (/fresh|citrus|green|aquatic|ozonic|mint/.test(joined)) return "Short";
-  if (/vanilla|floral|fruity|powdery/.test(joined)) return "Moderate";
+  const long = [
+    "amber",
+    "oud",
+    "leather",
+    "tobacco",
+    "resin",
+    "balsamic",
+    "musk",
+    "patchouli",
+    "tonka",
+  ];
+  const short = ["fresh", "citrus", "green", "aquatic", "ozonic", "mint"];
+  const moderate = ["vanilla", "floral", "fruity", "powdery", "iris"];
 
-  return "Moderate";
+  const longScore = long.filter((n) => joined.includes(n)).length;
+  const shortScore = short.filter((n) => joined.includes(n)).length;
+
+  if (longScore >= 2 && longScore > shortScore) return "Long Lasting";
+  if (shortScore >= 2 && shortScore > longScore) return "Short Lasting";
+  if (longScore && shortScore) return "Moderate Lasting";
+  return "Moderate Lasting";
 }

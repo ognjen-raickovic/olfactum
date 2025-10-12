@@ -20,12 +20,12 @@ const FragranceFilter = ({
   onFilterChange,
   seasons = [],
   occasions = [],
-  priceRanges = [],
+  genders = ["male", "female", "unisex"], // new gender prop
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSeasons, setSelectedSeasons] = useState([]);
   const [selectedOccasions, setSelectedOccasions] = useState([]);
-  const [selectedPriceRanges, setSelectedPriceRanges] = useState([]);
+  const [selectedGenders, setSelectedGenders] = useState([]);
   const [sortBy, setSortBy] = useState("relevance");
 
   const toggleArrayValue = (array, setFn, value) => {
@@ -36,7 +36,7 @@ const FragranceFilter = ({
   const handleClearFilters = () => {
     setSelectedSeasons([]);
     setSelectedOccasions([]);
-    setSelectedPriceRanges([]);
+    setSelectedGenders([]);
     setSortBy("relevance");
   };
 
@@ -44,7 +44,7 @@ const FragranceFilter = ({
     onFilterChange({
       selectedSeasons,
       selectedOccasions,
-      selectedPriceRanges,
+      selectedGenders,
       sortBy,
     });
     setDrawerOpen(false);
@@ -137,27 +137,23 @@ const FragranceFilter = ({
             ))}
           </FormGroup>
 
-          {/* Price Ranges */}
+          {/* Genders */}
           <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Price Range
+            Gender
           </Typography>
           <FormGroup sx={{ mb: 2 }}>
-            {priceRanges.map((p) => (
+            {genders.map((g) => (
               <FormControlLabel
-                key={p}
+                key={g}
                 control={
                   <Checkbox
-                    checked={selectedPriceRanges.includes(p)}
+                    checked={selectedGenders.includes(g)}
                     onChange={() =>
-                      toggleArrayValue(
-                        selectedPriceRanges,
-                        setSelectedPriceRanges,
-                        p
-                      )
+                      toggleArrayValue(selectedGenders, setSelectedGenders, g)
                     }
                   />
                 }
-                label={p}
+                label={g.charAt(0).toUpperCase() + g.slice(1)}
               />
             ))}
           </FormGroup>

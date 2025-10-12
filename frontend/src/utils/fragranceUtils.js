@@ -1,4 +1,4 @@
-import { fragranceData } from "../services/fragranceData";
+import fragranceData from "../services/fragranceData.json";
 
 // Safe comparison helper
 const includesIgnoreCase = (str, value) => {

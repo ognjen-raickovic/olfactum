@@ -1,34 +1,62 @@
+import React from "react";
 import {
   Card,
   CardContent,
-  CardMedia,
   Typography,
   Box,
   Chip,
   Rating,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 import { humanizeName } from "../utils/humanizeName";
+import MaleIcon from "@mui/icons-material/Male";
+import FemaleIcon from "@mui/icons-material/Female";
+import TransgenderIcon from "@mui/icons-material/Transgender";
 
 const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
   const ratingNumber =
     fragrance.rating != null
       ? Number(String(fragrance.rating).replace(",", "."))
       : null;
+
   const handleOpen = (f) => {
     if (onClick) return onClick(f);
     if (onViewDetails) return onViewDetails(f);
   };
-  // Split occasions by "/" and trim them
+
   const splitOccasions =
     fragrance.occasion
-      ?.flatMap((o) => o.split("/").map((x) => x.trim()))
+      ?.flatMap((o) =>
+        String(o)
+          .split("/")
+          .map((x) => x.trim())
+      )
       .filter(Boolean) || [];
 
-  // Optionally, you can also split seasons if you ever have multiple in a string
   const splitSeasons =
     fragrance.season
-      ?.flatMap((s) => s.split("/").map((x) => x.trim()))
+      ?.flatMap((s) =>
+        String(s)
+          .split("/")
+          .map((x) => x.trim())
+      )
       .filter(Boolean) || [];
+
+  const imageSrc =
+    fragrance.image && fragrance.image !== "/images/default.jpg"
+      ? fragrance.image
+      : "/images/no-image.png";
+
+  const gender = fragrance.genderProfile?.toLowerCase();
+  const GenderIcon =
+    gender === "masculine"
+      ? MaleIcon
+      : gender === "feminine"
+      ? FemaleIcon
+      : TransgenderIcon;
 
   return (
     <Card
@@ -43,45 +71,68 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
         display: "flex",
         flexDirection: "column",
         cursor: "pointer",
-        transition: "all 0.2s ease-in-out",
+        transition: "all 0.25s ease-in-out",
         "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: 4,
+          transform: "translateY(-5px)",
+          boxShadow: 6,
         },
       }}
     >
-      {/* Image */}
+      {/* --- IMAGE --- */}
       <Box
         sx={{
+          position: "relative",
           width: "100%",
-          flexShrink: 0,
-          height: 250,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          aspectRatio: "4 / 5",
+          overflow: "hidden",
           bgcolor: (theme) =>
             theme.palette.mode === "dark" ? "#20160F" : "grey.100",
           borderBottom: "1px solid",
           borderColor: "divider",
         }}
       >
-        <CardMedia
-          component="img"
-          image={fragrance.image || `/images/${fragrance.slug}.jpg`}
+        <LazyLoadImage
+          src={imageSrc}
           alt={humanizeName(fragrance.name)}
-          sx={{
+          effect="blur"
+          onError={(e) => (e.target.src = "/images/no-image.png")}
+          style={{
+            width: "100%",
+            height: "100%",
             objectFit: "contain",
-            maxHeight: "100%",
-            maxWidth: "100%",
-            width: "auto",
-          }}
-          onError={(e) => {
-            e.target.src = "/images/no-image.png";
           }}
         />
+
+        {/* Gender Icon Overlay */}
+        {gender && (
+          <Tooltip title={humanizeName(gender)} placement="top" arrow>
+            <IconButton
+              sx={{
+                position: "absolute",
+                top: 6,
+                right: 6,
+                bgcolor: "rgba(255,255,255,0.8)",
+                "&:hover": { bgcolor: "rgba(255,255,255,1)" },
+                p: 0.6,
+              }}
+            >
+              <GenderIcon
+                fontSize="small"
+                sx={{
+                  color:
+                    gender === "men"
+                      ? "#1976d2" // blue for male
+                      : gender === "women"
+                      ? "#e91e63" // pink for female
+                      : "#4caf50", // green for unisex
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
 
-      {/* Info */}
+      {/* --- INFO SECTION --- */}
       <CardContent
         sx={{
           textAlign: "center",
@@ -92,15 +143,16 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
           p: 2,
         }}
       >
+        {/* Main info */}
         <Box>
           <Typography
             variant="h6"
             component="h3"
             sx={{
-              fontWeight: 600,
-              fontSize: "1.05rem",
-              lineHeight: 1.2,
-              mb: 0.5,
+              fontWeight: 700,
+              fontSize: "1.2rem",
+              lineHeight: 1.25,
+              mb: 0.6,
             }}
           >
             {humanizeName(fragrance.name)}
@@ -108,17 +160,16 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
 
           <Typography
             color="text.secondary"
-            sx={{ fontSize: 13, display: "block" }}
+            sx={{ fontSize: 14, mb: 0.3, display: "block" }}
           >
             {humanizeName(fragrance.brand)}
           </Typography>
 
-          <Typography
-            color="text.secondary"
-            sx={{ fontSize: 13, display: "block" }}
-          >
-            {humanizeName(fragrance.type)}
-          </Typography>
+          {/* {fragrance.type && (
+            <Typography color="text.secondary" sx={{ fontSize: 13 }}>
+              {humanizeName(fragrance.type)}
+            </Typography>
+          )} */}
 
           {/* Rating */}
           {ratingNumber != null && !isNaN(ratingNumber) && (
@@ -128,7 +179,7 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 0.5,
-                mt: 0.5,
+                mt: 0.8,
               }}
             >
               <Rating
@@ -143,20 +194,10 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
             </Box>
           )}
 
-          {/* Price + Gender Chips */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 0.8,
-              mt: 0.8,
-              flexWrap: "wrap",
-            }}
-          >
-            {/* Only show price chip if it exists and isn’t “Unknown” */}
-            {fragrance.priceRange &&
-              fragrance.priceRange.toLowerCase() !== "unknown" && (
+          {/* Price Chip */}
+          {fragrance.priceRange &&
+            String(fragrance.priceRange).toLowerCase() !== "unknown" && (
+              <Box sx={{ mt: 0.8 }}>
                 <Chip
                   label={humanizeName(fragrance.priceRange)}
                   size="small"
@@ -167,25 +208,10 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
                       : "default"
                   }
                 />
-              )}
-
-            {/* Gender chip, capitalize and style */}
-            {fragrance.genderProfile && (
-              <Chip
-                label={humanizeName(fragrance.genderProfile)}
-                size="small"
-                color={
-                  fragrance.genderProfile.toLowerCase() === "masculine"
-                    ? "primary"
-                    : fragrance.genderProfile.toLowerCase() === "feminine"
-                    ? "secondary"
-                    : "default"
-                }
-                variant="outlined"
-              />
+              </Box>
             )}
-          </Box>
         </Box>
+
         {/* Season + Occasion Chips */}
         <Box
           sx={{
@@ -193,7 +219,7 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
             gap: 0.5,
             flexWrap: "wrap",
             justifyContent: "center",
-            mt: 1.3,
+            mt: 1.5,
           }}
         >
           {splitSeasons.slice(0, 2).map((s) => (
