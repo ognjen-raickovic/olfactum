@@ -1,17 +1,35 @@
-import { Box, Typography, Button } from "@mui/material";
-import { useState } from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
+import { useState, useEffect } from "react";
 import { getRecommendedFragrances } from "../utils/fragranceUtils";
 import FragranceModal from "./FragranceModal";
 import FragranceCard from "./FragranceCard";
+import { motion, AnimatePresence } from "framer-motion";
 
 const QuizResults = ({ answers, onRestart }) => {
   const [selectedFragrance, setSelectedFragrance] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(6);
+  const [sortMode, setSortMode] = useState("balanced");
+  const [recommendations, setRecommendations] = useState([]);
 
-  // --- Generate recommendations based on quiz answers ---
-  const recommendations = getRecommendedFragrances(answers);
+  // --- Generate recommendations dynamically when sort changes ---
+  useEffect(() => {
+    const recs = getRecommendedFragrances(answers, sortMode);
+    setRecommendations(recs);
+    setVisibleCount(6); // reset so first 6 are shown
+  }, [answers, sortMode]);
 
-  // --- Human-friendly scent type label ---
+  const visibleFragrances = recommendations.slice(0, visibleCount);
+
+  // --- Human-readable scent family label ---
   const getScentFamilyDescription = () => {
     const mapping = {
       fresh: "Fresh & Clean",
@@ -23,9 +41,9 @@ const QuizResults = ({ answers, onRestart }) => {
     return mapping[answers.scentType] || "Perfectly Matched";
   };
 
-  // --- Build a personalized description for user ---
+  // --- Personalized user description ---
   const getDescription = () => {
-    const { scentType, season, occasion, intensity, notes } = answers;
+    const { scentType, season, occasion, intensity, notes, mood } = answers;
     let desc = "";
 
     switch (scentType) {
@@ -85,7 +103,18 @@ const QuizResults = ({ answers, onRestart }) => {
     }
 
     if (notes) {
-      desc += `Your chosen note, ${notes}, adds a distinctive touch to your scent personality.`;
+      desc += `Your chosen note, ${notes}, adds a distinctive touch to your scent personality. `;
+    }
+
+    if (mood) {
+      const moodDesc = {
+        romantic: "You want to express warmth and affection. ",
+        confident: "You exude power and self-assurance. ",
+        relaxed: "You prefer calm, easy-going vibes. ",
+        luxurious: "You appreciate refinement and class. ",
+        sporty: "You love energy and freshness. ",
+      };
+      desc += moodDesc[mood] || "";
     }
 
     return desc.trim();
@@ -123,34 +152,80 @@ const QuizResults = ({ answers, onRestart }) => {
         </Box>
       </Box>
 
-      {/* Recommendations */}
+      {/* --- Sort Dropdown --- */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          mb: 4,
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel>Sort by</InputLabel>
+          <Select
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value)}
+            label="Sort by"
+          >
+            <MenuItem value="balanced">Balanced mix</MenuItem>
+            <MenuItem value="accuracy">Best personal match</MenuItem>
+            <MenuItem value="proven">Proven popular picks</MenuItem>
+          </Select>
+        </FormControl>
+
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          💡 “Best match” = more tailored to your answers. “Proven” =
+          higher-rated, popular picks.
+        </Typography>
+      </Box>
+
+      {/* Recommendations Grid */}
       <Typography variant="h4" gutterBottom sx={{ mb: 4, textAlign: "center" }}>
         Recommended For You ({recommendations.length} matches)
       </Typography>
 
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "repeat(1, 1fr)",
-            sm: "repeat(2, 1fr)",
-            md: "repeat(3, 1fr)",
-          },
-          gap: 3,
-          mb: 6,
-          justifyItems: "center",
-        }}
-      >
-        {recommendations.map((fragrance) => (
-          <FragranceCard
-            key={fragrance.id}
-            fragrance={fragrance}
-            onViewDetails={handleFragranceClick}
-          />
-        ))}
-      </Box>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={sortMode} // triggers animation on sort change
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+            gap: "24px",
+            justifyItems: "center",
+            marginBottom: "32px",
+          }}
+        >
+          {visibleFragrances.map((fragrance) => (
+            <FragranceCard
+              key={fragrance.id}
+              fragrance={fragrance}
+              onViewDetails={handleFragranceClick}
+            />
+          ))}
+        </motion.div>
+      </AnimatePresence>
 
-      {/* Buttons */}
+      {/* Show More Button */}
+      {recommendations.length > visibleCount && (
+        <Box sx={{ textAlign: "center", mb: 6 }}>
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={() => setVisibleCount((prev) => prev + 6)}
+          >
+            Show More
+          </Button>
+        </Box>
+      )}
+
+      {/* Action Buttons */}
       <Box
         sx={{
           display: "flex",
@@ -167,7 +242,7 @@ const QuizResults = ({ answers, onRestart }) => {
         </Button>
       </Box>
 
-      {/* Modal */}
+      {/* Fragrance Modal */}
       <FragranceModal
         fragrance={selectedFragrance}
         open={modalOpen}

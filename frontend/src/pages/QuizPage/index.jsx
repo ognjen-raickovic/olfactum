@@ -20,6 +20,7 @@ const QuizPage = () => {
     "Intensity",
     "Favorite Notes",
     "Personality",
+    "Mood & Personality",
     "Your Results",
   ];
 

@@ -1,36 +1,22 @@
 import fragranceData from "../services/fragranceData.json";
 
-// Safe comparison helper
+// --- Helper: Safe string matching ---
 const includesIgnoreCase = (str, value) => {
   if (!str || !value) return false;
   return str.toLowerCase().includes(value.toLowerCase());
 };
 
-// --- CATEGORY FILTERS ---
-export const getFragrancesByFamily = (family) => {
-  return fragranceData.filter((f) =>
-    includesIgnoreCase(f?.scentFamily, family)
-  );
-};
-
-export const getFragrancesBySeason = (season) => {
-  return fragranceData.filter((f) => f?.season?.includes(season));
-};
-
-export const getFragrancesByOccasion = (occasion) => {
-  return fragranceData.filter((f) => f?.occasion?.includes(occasion));
-};
-
 // --- MAIN RECOMMENDER ---
-export const getRecommendedFragrances = (quizAnswers) => {
-  let recommendations = [...fragranceData];
+export const getRecommendedFragrances = (answers, sortMode = "balanced") => {
+  const { gender, scentType, season, occasion, intensity, notes, mood } =
+    answers;
 
   const scentTypeMapping = {
     fresh: ["Fresh", "Aquatic", "Citrus", "Aromatic"],
     sweet: ["Gourmand", "Vanilla", "Sweet", "Oriental"],
-    dark: ["Woody", "Leather", "Oriental", "Spicy"],
-    elegant: ["Floral", "Chypre", "Classic", "Amber"],
-    bold: ["Spicy", "Aromatic", "Powerful", "Leather"],
+    dark: ["Woody", "Leather", "Amber", "Spicy"],
+    elegant: ["Floral", "Chypre", "Classic", "Powdery"],
+    bold: ["Spicy", "Oriental", "Leather", "Strong"],
   };
 
   const seasonMapping = {
@@ -55,64 +41,96 @@ export const getRecommendedFragrances = (quizAnswers) => {
     strong: "Strong",
   };
 
-  // --- FILTERS ---
+  // Start with all fragrances
+  let results = fragranceData.map((f) => ({ ...f, matchScore: 0 }));
 
-  // Gender
-  if (quizAnswers.gender) {
-    const genderMap = {
-      masculine: "Masculine",
-      feminine: "Feminine",
-      unisex: "Unisex",
-    };
-    const preferredGender = genderMap[quizAnswers.gender];
-    recommendations = recommendations.filter(
-      (f) =>
-        includesIgnoreCase(f?.genderProfile, preferredGender) ||
-        includesIgnoreCase(f?.genderProfile, "Unisex")
-    );
+  // --- Gender filtering ---
+  if (gender) {
+    if (gender === "male") {
+      results = results.filter(
+        (f) =>
+          includesIgnoreCase(f.genderProfile, "Male") ||
+          includesIgnoreCase(f.genderProfile, "Unisex")
+      );
+    } else if (gender === "female") {
+      results = results.filter(
+        (f) =>
+          includesIgnoreCase(f.genderProfile, "Female") ||
+          includesIgnoreCase(f.genderProfile, "Unisex")
+      );
+    } else if (gender === "unisex") {
+      results = results.filter((f) =>
+        includesIgnoreCase(f.genderProfile, "Unisex")
+      );
+    }
   }
 
-  // Scent Family
-  if (quizAnswers.scentType && scentTypeMapping[quizAnswers.scentType]) {
-    const families = scentTypeMapping[quizAnswers.scentType];
-    recommendations = recommendations.filter((f) =>
-      families.some((family) => includesIgnoreCase(f?.scentFamily, family))
-    );
-  }
+  // --- Scoring system ---
+  results.forEach((f) => {
+    if (scentTypeMapping[scentType]) {
+      if (
+        scentTypeMapping[scentType].some((s) =>
+          includesIgnoreCase(f.scentFamily, s)
+        )
+      )
+        f.matchScore += 2;
+    }
 
-  // Season
-  if (quizAnswers.season && seasonMapping[quizAnswers.season]) {
-    const preferred = seasonMapping[quizAnswers.season];
-    recommendations = recommendations.filter((f) =>
-      f?.season?.some((s) => includesIgnoreCase(s, preferred))
-    );
-  }
+    if (seasonMapping[season]) {
+      if (f.season?.some((s) => includesIgnoreCase(s, seasonMapping[season])))
+        f.matchScore += 1;
+    }
 
-  // Occasion
-  if (quizAnswers.occasion && occasionMapping[quizAnswers.occasion]) {
-    const preferred = occasionMapping[quizAnswers.occasion];
-    recommendations = recommendations.filter((f) =>
-      f?.occasion?.some((o) => includesIgnoreCase(o, preferred))
-    );
-  }
+    if (occasionMapping[occasion]) {
+      if (
+        f.occasion?.some((o) =>
+          includesIgnoreCase(o, occasionMapping[occasion])
+        )
+      )
+        f.matchScore += 1;
+    }
 
-  // Intensity
-  if (quizAnswers.intensity && intensityMapping[quizAnswers.intensity]) {
-    const preferred = intensityMapping[quizAnswers.intensity];
-    recommendations = recommendations.filter((f) =>
-      includesIgnoreCase(f?.intensity, preferred)
-    );
-  }
+    if (intensityMapping[intensity]) {
+      if (includesIgnoreCase(f.intensity, intensityMapping[intensity]))
+        f.matchScore += 1;
+    }
 
-  // Notes
-  if (quizAnswers.notes) {
-    recommendations = recommendations.filter((f) =>
-      f?.notes?.some((note) => includesIgnoreCase(note, quizAnswers.notes))
-    );
-  }
+    if (notes) {
+      if (f.notes?.some((n) => includesIgnoreCase(n, notes))) f.matchScore += 2;
+    }
 
-  // --- FALLBACK ---
-  if (recommendations.length === 0) return fragranceData.slice(0, 5);
+    if (mood) {
+      if (includesIgnoreCase(f.mood, mood)) f.matchScore += 1;
+    }
+  });
 
-  return recommendations.slice(0, 5);
+  // --- Filter out totally irrelevant fragrances ---
+  results = results.filter((f) => f.matchScore > 0);
+
+  // --- SORT BY RELEVANCE ---
+  results.sort((a, b) => {
+    const popA = (a.rating || 0) * Math.log10(1 + (a.reviewCount || 1));
+    const popB = (b.rating || 0) * Math.log10(1 + (b.reviewCount || 1));
+
+    let relevanceA, relevanceB;
+
+    switch (sortMode) {
+      case "accuracy": // user wants best match
+        relevanceA = a.matchScore * 4 + popA * 0.5;
+        relevanceB = b.matchScore * 4 + popB * 0.5;
+        break;
+      case "proven": // sort by relevance of a fragrance
+        relevanceA = a.matchScore * 2 + popA * 1.5;
+        relevanceB = b.matchScore * 2 + popB * 1.5;
+        break;
+      default: // balanced
+        relevanceA = a.matchScore * 3 + popA * 0.7;
+        relevanceB = b.matchScore * 3 + popB * 0.7;
+    }
+
+    return relevanceB - relevanceA;
+  });
+
+  // --- Limit results (default 12) ---
+  return results.slice(0, 12);
 };

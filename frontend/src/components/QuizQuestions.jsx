@@ -206,6 +206,42 @@ const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
         },
       ],
     },
+    {
+      id: "mood",
+      question: "What kind of vibe do you want your fragrance to give off?",
+      answers: [
+        {
+          id: "romantic",
+          text: "Romantic",
+          emoji: "💞",
+          description: "Soft and alluring",
+        },
+        {
+          id: "confident",
+          text: "Confident",
+          emoji: "💪",
+          description: "Bold and assertive",
+        },
+        {
+          id: "relaxed",
+          text: "Relaxed",
+          emoji: "😌",
+          description: "Casual and easy-going",
+        },
+        {
+          id: "luxurious",
+          text: "Luxurious",
+          emoji: "👑",
+          description: "Elegant and high-end",
+        },
+        {
+          id: "sporty",
+          text: "Sporty",
+          emoji: "🏃‍♂️",
+          description: "Energetic and refreshing",
+        },
+      ],
+    },
   ];
 
   const currentQuestion = questions[step];
