@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -17,6 +17,7 @@ import { filterFragrances } from "../../utils/fragranceUtils";
 
 const FragrancesPage = () => {
   const location = useLocation();
+  const { slug } = useParams(); // allow opening modal by slug (/fragrances/:slug)
   const params = new URLSearchParams(location.search);
   const queryParam = params.get("query") || params.get("search") || "";
 
@@ -42,14 +43,23 @@ const FragrancesPage = () => {
   const [visibleCount, setVisibleCount] = useState(15);
   const [selected, setSelected] = useState(null);
 
-  /**
-   * ✅ When URL query param changes, update searchTerm state
-   */
+  // Update search term if query in URL changes
   useEffect(() => {
     setSearchTerm(queryParam);
   }, [queryParam]);
 
-  // 🔹 Base results using loose search matching
+  // Open modal automatically when a slug is present in the URL
+  useEffect(() => {
+    if (!slug) return;
+    const match = allFragrances.find(
+      (f) => f.slug === slug || `id-${f.id}` === slug
+    );
+    if (match) {
+      setSelected(match);
+    }
+  }, [slug, allFragrances]);
+
+  // Base results (filtered by search)
   const baseResults = useMemo(() => {
     return filterFragrances(allFragrances, searchTerm);
   }, [allFragrances, searchTerm]);
