@@ -76,10 +76,11 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
           transform: "translateY(-5px)",
           boxShadow: 6,
         },
+        height: "100%", // Ensure card takes full height
         ...sx,
       }}
     >
-      {/* --- IMAGE --- */}
+      {/* --- IMAGE SECTION - Fixed white space issue --- */}
       <Box
         sx={{
           position: "relative",
@@ -90,20 +91,29 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
             theme.palette.mode === "dark" ? "#20160F" : "grey.50",
           borderBottom: "1px solid",
           borderColor: "divider",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          flexShrink: 0, // Prevent image from shrinking
         }}
       >
         <LazyLoadImage
           src={imageSrc}
           alt={humanizeName(fragrance.name)}
           effect="blur"
-          onError={(e) => (e.target.src = "/images/no-image.png")}
+          onError={(e) => {
+            e.target.src = "/images/no-image.png";
+          }}
+          wrapperProps={{
+            style: {
+              display: "block",
+              width: "100%",
+              height: "100%",
+              lineHeight: 0, // Remove any line height spacing
+            },
+          }}
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "cover", // Changed from "contain" to "cover" to eliminate black space
+            objectFit: "cover",
+            display: "block",
           }}
         />
 
@@ -115,18 +125,25 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
                 position: "absolute",
                 top: 6,
                 right: 6,
-                bgcolor: "rgba(255,255,255,0.8)",
-                "&:hover": { bgcolor: "rgba(255,255,255,1)" },
+                bgcolor: "background.paper",
+                boxShadow: 1,
+                "&:hover": {
+                  bgcolor: "background.paper",
+                  boxShadow: 2,
+                },
                 p: 0.6,
+                width: 32,
+                height: 32,
               }}
+              size="small"
             >
               <GenderIcon
                 fontSize="small"
                 sx={{
                   color:
-                    gender === "men" || gender === "masculine"
+                    gender === "men"
                       ? "#1976d2" // blue for male
-                      : gender === "women" || gender === "feminine"
+                      : gender === "women"
                       ? "#e91e63" // pink for female
                       : "#4caf50", // green for unisex
                 }}
@@ -136,79 +153,77 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
         )}
       </Box>
 
-      {/* --- INFO SECTION --- */}
+      {/* --- CONTENT SECTION - Improved spacing and layout --- */}
       <CardContent
         sx={{
-          textAlign: "center",
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
           p: 2,
+          pb: 2,
+          "&:last-child": { pb: 2 }, // Remove Material-UI default extra padding
         }}
       >
-        {/* Main info */}
-        <Box>
-          <Typography
-            variant="h6"
-            component="h3"
+        {/* Brand Name */}
+        <Typography
+          color="text.secondary"
+          sx={{
+            fontSize: 14,
+            mb: 0.5,
+            display: "block",
+            fontWeight: 500,
+          }}
+        >
+          {humanizeName(fragrance.brand)}
+        </Typography>
+
+        {/* Fragrance Name */}
+        <Typography
+          variant="h6"
+          component="h3"
+          sx={{
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            lineHeight: 1.3,
+            mb: 1,
+            minHeight: "2.6em", // Ensure consistent height for 2 lines
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {humanizeName(fragrance.name)}
+        </Typography>
+
+        {/* Rating Section */}
+        {ratingNumber != null && !isNaN(ratingNumber) && (
+          <Box
             sx={{
-              fontWeight: 700,
-              fontSize: "1.2rem",
-              lineHeight: 1.25,
-              mb: 0.6,
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              mb: 1,
             }}
           >
-            {humanizeName(fragrance.name)}
-          </Typography>
-
-          <Typography
-            color="text.secondary"
-            sx={{ fontSize: 14, mb: 0.3, display: "block" }}
-          >
-            {humanizeName(fragrance.brand)}
-          </Typography>
-
-          {/* Rating */}
-          {ratingNumber != null && !isNaN(ratingNumber) && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 0.5,
-                mt: 0.8,
-              }}
+            <Rating
+              value={ratingNumber}
+              precision={0.1}
+              readOnly
+              size="small"
+            />
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 500 }}
             >
-              <Rating
-                value={ratingNumber}
-                precision={0.1}
-                readOnly
-                size="small"
-              />
-              <Typography variant="caption" color="text.secondary">
-                {ratingNumber.toFixed(1)}
-              </Typography>
-            </Box>
-          )}
+              {ratingNumber.toFixed(1)}
+            </Typography>
+          </Box>
+        )}
 
-          {/* Price Chip */}
-          {fragrance.priceRange &&
-            String(fragrance.priceRange).toLowerCase() !== "unknown" && (
-              <Box sx={{ mt: 0.8 }}>
-                <Chip
-                  label={humanizeName(fragrance.priceRange)}
-                  size="small"
-                  color={
-                    fragrance.priceRange === "Luxury" ||
-                    fragrance.priceRange === "Premium"
-                      ? "secondary"
-                      : "default"
-                  }
-                />
-              </Box>
-            )}
-        </Box>
+        {/* Spacer to push chips to bottom */}
+        <Box sx={{ flexGrow: 1 }} />
 
         {/* Season + Occasion Chips */}
         <Box
@@ -220,20 +235,28 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
             mt: 1.5,
           }}
         >
-          {splitSeasons.slice(0, 2).map((s) => (
+          {splitSeasons.slice(0, 2).map((season) => (
             <Chip
-              key={s}
-              label={humanizeName(s)}
+              key={season}
+              label={humanizeName(season)}
               size="small"
               variant="outlined"
+              sx={{
+                fontSize: "0.7rem",
+                height: 22,
+              }}
             />
           ))}
-          {splitOccasions.slice(0, 2).map((o) => (
+          {splitOccasions.slice(0, 2).map((occasion) => (
             <Chip
-              key={o}
-              label={humanizeName(o)}
+              key={occasion}
+              label={humanizeName(occasion)}
               size="small"
               variant="outlined"
+              sx={{
+                fontSize: "0.7rem",
+                height: 22,
+              }}
             />
           ))}
         </Box>

@@ -13,6 +13,8 @@ import {
   Stack,
   IconButton,
   CircularProgress,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -38,124 +40,47 @@ const FragranceModal = ({
   const [isLoading, setIsLoading] = useState(true);
   const isQuizContext = disableRouting || useIsQuizContext();
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const f = fragrance;
+
+  // ✅ Define derived variables safely
+  const ratingValue = useMemo(() => {
+    if (!f) return null;
+    return typeof f.rating === "number" ? f.rating : f.ratingValue || 4.2;
+  }, [f]);
+
+  const imageUrl = useMemo(() => {
+    if (!f) return "/images/no-image.png";
+    return f.imageUrl || f.image || "/images/no-image.png";
+  }, [f]);
+
+  const description = useMemo(() => {
+    if (!f) return "No description available.";
+    return f.description || "No detailed description for this fragrance.";
+  }, [f]);
+
+  const quickDetails = useMemo(() => {
+    if (!f) return [];
+    return [
+      { label: "Brand", value: humanizeName(f.brand) },
+      { label: "Launched", value: f.year || "N/A" },
+      { label: "Gender", value: humanizeName(f.genderProfile || "Unisex") },
+      { label: "Type", value: f.type || "EDP" },
+    ];
+  }, [f]);
 
   // Reset loading when fragrance changes
   useEffect(() => {
     if (fragrance) {
       setIsLoading(true);
-      // Simulate loading time for better UX
       const timer = setTimeout(() => setIsLoading(false), 300);
       return () => clearTimeout(timer);
     }
   }, [fragrance]);
 
-  const ratingNumber = f?.rating
-    ? Number(String(f.rating).replace(",", "."))
-    : null;
-  const ratingValue =
-    ratingNumber != null && !isNaN(ratingNumber)
-      ? Math.min(5, ratingNumber)
-      : null;
-
-  const imageUrl =
-    f?.image && f.image !== "/images/default.jpg"
-      ? f.image
-      : "/images/no-image.png";
-
-  // Build overview only when needed
-  const description = useMemo(() => {
-    if (!f) return "";
-
-    const brand = humanizeName(f.brand);
-    const name = humanizeName(f.name);
-    const country = f.country || "Unknown country";
-    const year = f.year || "Unknown year";
-    const gender = f.genderProfile || "unisex";
-    const perfumer = f.perfumer
-      ? humanizeName(f.perfumer)
-      : "an unknown perfumer";
-    const scentFamily = f.scentFamily ? humanizeName(f.scentFamily) : null;
-
-    const toList = (val) => {
-      if (!val) return [];
-      if (Array.isArray(val)) return val.map(humanizeName);
-      return String(val)
-        .split(",")
-        .map((s) => humanizeName(s.trim()))
-        .filter(Boolean);
-    };
-
-    const top = toList(f.top || f.topNotes);
-    const mid = toList(f.middle || f.middleNotes);
-    const base = toList(f.base || f.baseNotes);
-
-    let overview = `${name} by ${brand} is${
-      scentFamily ? ` a ${scentFamily.toLowerCase()}` : ""
-    } fragrance for ${gender}, created in ${country} in ${year} by perfumer ${perfumer}.`;
-
-    if (top.length || mid.length || base.length) {
-      const topText = top.length ? `It opens with ${top.join(", ")}.` : "";
-      const midText = mid.length ? ` It evolves with ${mid.join(", ")}.` : "";
-      const baseText = base.length
-        ? ` Finally, it settles into a base of ${base.join(", ")}.`
-        : "";
-      overview += `\n\n${topText}${midText}${baseText}`;
-    }
-
-    const accords = (f.accords || []).map(humanizeName);
-    if (accords.length) {
-      overview += `\n\nIt carries ${accords.slice(0, 2).join(" and ")} tones.`;
-    }
-
-    if (f.occasion || f.season) {
-      const occ = (f.occasion || []).join(", ");
-      const sea = (f.season || []).join(", ");
-      overview += `\n\nIdeal for ${
-        occ || "various occasions"
-      } and suitable for ${sea || "year-round wear"}.`;
-    }
-
-    return overview;
-  }, [f]);
-
-  // Quick details with memoization
-  const quickDetails = useMemo(() => {
-    if (!f) return [];
-
-    const details = [
-      { label: "Country", value: f.country || "Unknown" },
-      { label: "Year", value: f.year || "Unknown" },
-      {
-        label: "Perfumer",
-        value: f.perfumer ? humanizeName(f.perfumer) : "Unknown",
-      },
-    ];
-
-    if (f.scentFamily) {
-      details.push({ label: "Family", value: humanizeName(f.scentFamily) });
-    }
-    if (f.intensity) {
-      details.push({ label: "Intensity", value: humanizeName(f.intensity) });
-    }
-    if (f.longevity) {
-      details.push({ label: "Longevity", value: humanizeName(f.longevity) });
-    }
-
-    return details;
-  }, [f]);
-
-  // Handle URL updates - ONLY if not in quiz context
-  useEffect(() => {
-    if (!open || !f || isQuizContext) return;
-
-    prevRef.current = location.pathname + location.search;
-    const slug = f.slug || `id-${f.id}`;
-    navigate(`/fragrances/${slug}`, { replace: false });
-  }, [open, f, location, navigate, isQuizContext]);
-
   const handleClose = () => {
-    // Only navigate back if we're not in quiz context and we have a previous location
     if (!isQuizContext) {
       const prev = prevRef.current;
       const fallback = "/fragrances";
@@ -165,11 +90,10 @@ const FragranceModal = ({
       );
     }
 
-    setIsLoading(true); // Reset loading state
+    setIsLoading(true);
     onClose?.();
   };
 
-  // Prevent modal close on backdrop click in quiz context to avoid accidental closes
   const handleBackdropClick = (event) => {
     if (isQuizContext) {
       event.stopPropagation();
@@ -180,7 +104,7 @@ const FragranceModal = ({
   return (
     <Modal
       open={open}
-      onClose={isQuizContext ? undefined : handleClose} // Prevent close on backdrop click in quiz
+      onClose={isQuizContext ? undefined : handleClose}
       closeAfterTransition
       disableScrollLock
       slots={{ backdrop: Backdrop }}
@@ -190,11 +114,19 @@ const FragranceModal = ({
           onClick: handleBackdropClick,
         },
       }}
+      sx={{
+        // This ensures the modal backdrop covers the entire screen
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
     >
       <Fade in={open} timeout={300}>
         <Box
           sx={{
-            position: "absolute",
+            position: "fixed",
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
@@ -203,11 +135,47 @@ const FragranceModal = ({
             bgcolor: "background.paper",
             borderRadius: 2,
             boxShadow: 24,
-            overflow: "auto",
+            overflowY: "auto",
+            overflowX: "hidden",
             outline: "none",
             p: 0,
           }}
         >
+          {/* FIXED CLOSE BUTTON - Now properly positioned outside scrollable content */}
+          {/* STICKY CLOSE BUTTON - Always visible while scrolling inside modal */}
+          <Box
+            sx={{
+              position: "sticky",
+              top: 0,
+              display: "flex",
+              justifyContent: "flex-end",
+              zIndex: 10,
+              bgcolor: "background.paper",
+              p: isMobile ? 1 : 2,
+              borderBottom: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <IconButton
+              onClick={handleClose}
+              sx={{
+                bgcolor: "background.paper",
+                boxShadow: 2,
+                "&:hover": {
+                  bgcolor: "action.hover",
+                  transform: "scale(1.1)",
+                },
+                width: isMobile ? 36 : 40,
+                height: isMobile ? 36 : 40,
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+              aria-label="Close"
+            >
+              <Close />
+            </IconButton>
+          </Box>
+
           {isLoading ? (
             <Box
               sx={{
@@ -222,26 +190,7 @@ const FragranceModal = ({
           ) : f ? (
             <>
               {/* HEADER */}
-              <Box
-                sx={{
-                  p: 3,
-                  pb: 2,
-                  textAlign: "center",
-                  position: "relative",
-                }}
-              >
-                <IconButton
-                  onClick={handleClose}
-                  sx={{
-                    position: "absolute",
-                    top: 12,
-                    right: 12,
-                  }}
-                  aria-label="Close"
-                >
-                  <Close />
-                </IconButton>
-
+              <Box sx={{ p: 3, pb: 2, textAlign: "center" }}>
                 <Typography variant="h4" component="h2">
                   {humanizeName(f.brand)} — {humanizeName(f.name)}
                 </Typography>
@@ -302,7 +251,7 @@ const FragranceModal = ({
                     }}
                   />
 
-                  {/* RIGHT - OVERVIEW + NOTES */}
+                  {/* RIGHT - OVERVIEW */}
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="h6" gutterBottom>
                       Overview
@@ -317,56 +266,6 @@ const FragranceModal = ({
                     >
                       {description}
                     </Typography>
-
-                    <Typography variant="subtitle1" gutterBottom>
-                      Fragrance Notes
-                    </Typography>
-
-                    {(() => {
-                      const toList = (val) => {
-                        if (!val) return [];
-                        if (Array.isArray(val)) return val.map(humanizeName);
-                        return String(val)
-                          .split(",")
-                          .map((s) => humanizeName(s.trim()))
-                          .filter(Boolean);
-                      };
-
-                      const top = toList(f.top || f.topNotes);
-                      const heart = toList(f.middle || f.middleNotes);
-                      const base = toList(f.base || f.baseNotes);
-                      const fallbackNotes = (f.notes || []).map(humanizeName);
-
-                      if (
-                        !top.length &&
-                        !heart.length &&
-                        !base.length &&
-                        fallbackNotes.length
-                      ) {
-                        return (
-                          <Typography variant="body2" color="text.secondary">
-                            {fallbackNotes.join(", ")}
-                          </Typography>
-                        );
-                      }
-
-                      return (
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ lineHeight: 1.6 }}
-                        >
-                          <strong>Top:</strong>{" "}
-                          {top.length ? top.join(", ") : "—"}
-                          <br />
-                          <strong>Heart:</strong>{" "}
-                          {heart.length ? heart.join(", ") : "—"}
-                          <br />
-                          <strong>Base:</strong>{" "}
-                          {base.length ? base.join(", ") : "—"}
-                        </Typography>
-                      );
-                    })()}
                   </Box>
                 </Box>
               </Box>
