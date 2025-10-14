@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecommendedFragrances } from "../utils/fragranceUtils";
+import fragranceData from "../services/fragranceData.json";
+import { humanizeName } from "../utils/humanizeName";
+import { matchesQuery, normalizeString } from "../utils/fragranceUtils";
 
 const SearchBar = () => {
   const [query, setQuery] = useState("");
@@ -12,17 +14,19 @@ const SearchBar = () => {
     setQuery(value);
 
     if (value.trim()) {
+      const normalizedQuery = normalizeString(value);
       const filtered = fragranceData.filter((f) =>
-        f.name.toLowerCase().includes(value.toLowerCase())
+        matchesQuery(f, normalizedQuery)
       );
-      setSuggestions(filtered.slice(0, 5)); // show 5 suggestions max
+      setSuggestions(filtered.slice(0, 5));
     } else {
       setSuggestions([]);
     }
   };
 
   const handleSearch = () => {
-    navigate(`/fragrances?query=${query}`);
+    if (query.trim())
+      navigate(`/fragrances?query=${encodeURIComponent(query)}`);
   };
 
   const handleSelect = (fragrance) => {
@@ -36,7 +40,7 @@ const SearchBar = () => {
           value={query}
           onChange={handleChange}
           placeholder="Search fragrances..."
-          className="w-full p-3 rounded-l-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900"
+          className="w-full p-3 rounded-l-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-base"
         />
         <button
           onClick={handleSearch}
@@ -60,8 +64,8 @@ const SearchBar = () => {
                 className="w-10 h-10 object-cover rounded-md"
               />
               <div>
-                <p className="font-semibold">{f.name}</p>
-                <p className="text-sm text-gray-500">{f.brand}</p>
+                <p className="font-semibold">{humanizeName(f.name)}</p>
+                <p className="text-sm text-gray-500">{humanizeName(f.brand)}</p>
               </div>
             </div>
           ))}

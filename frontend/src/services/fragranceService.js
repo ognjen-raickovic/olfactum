@@ -5,6 +5,7 @@ import {
   inferIntensity,
   inferLongevity,
 } from "./fragranceInference";
+import { normalizeString, matchesQuery } from "../utils/fragranceUtils";
 
 /**
  * Adds inferred fields (occasion, season, intensity, longevity)
@@ -42,15 +43,13 @@ export const getFragranceById = (id) => enrichedData.find((f) => f.id === id);
 
 /**
  * Returns fragrances filtered by a search term (name, brand, or scent family).
+ * Uses advanced normalization & matching.
  */
 export const searchFragrances = (query) => {
-  const lowerQuery = query.toLowerCase();
-  return enrichedData.filter(
-    (f) =>
-      f.name.toLowerCase().includes(lowerQuery) ||
-      f.brand.toLowerCase().includes(lowerQuery) ||
-      f.scentFamily?.toLowerCase().includes(lowerQuery)
-  );
+  if (!query?.trim()) return [];
+  const normalizedQuery = normalizeString(query);
+
+  return enrichedData.filter((f) => matchesQuery(f, normalizedQuery));
 };
 
 /**

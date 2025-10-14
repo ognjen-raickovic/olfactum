@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import {
   Box,
@@ -12,18 +12,16 @@ import { Close as CloseIcon, Search as SearchIcon } from "@mui/icons-material";
 import FragranceCard from "../../components/FragranceCard";
 import FragranceModal from "../../components/FragranceModal";
 import FragranceFilter from "../../components/FragranceFilter";
-import { filterFragrances } from "../../utils/filterFragrances";
 import { getAllFragrances } from "../../services/fragranceService";
+import { filterFragrances } from "../../utils/fragranceUtils";
 
 const FragrancesPage = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const initialQuery = params.get("query") || params.get("search") || "";
+  const queryParam = params.get("query") || params.get("search") || "";
 
-  // 🔹 All fragrances loaded once
   const allFragrances = useMemo(() => getAllFragrances(), []);
 
-  // 🔹 Extract options dynamically
   const allSeasons = useMemo(
     () => Array.from(new Set(allFragrances.flatMap((f) => f.season || []))),
     [allFragrances]
@@ -34,7 +32,7 @@ const FragrancesPage = () => {
   );
   const allGenders = ["male", "female", "unisex"];
 
-  const [searchTerm, setSearchTerm] = useState(initialQuery);
+  const [searchTerm, setSearchTerm] = useState(queryParam);
   const [filters, setFilters] = useState({
     selectedSeasons: [],
     selectedOccasions: [],
@@ -44,28 +42,23 @@ const FragrancesPage = () => {
   const [visibleCount, setVisibleCount] = useState(15);
   const [selected, setSelected] = useState(null);
 
-  // 🔹 Normalize search term safely
-  const normalizedSearch = useMemo(() => {
-    return searchTerm
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, " ")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-  }, [searchTerm]);
+  /**
+   * ✅ When URL query param changes, update searchTerm state
+   */
+  useEffect(() => {
+    setSearchTerm(queryParam);
+  }, [queryParam]);
 
-  // 🔹 Base search results
+  // 🔹 Base results using loose search matching
   const baseResults = useMemo(() => {
-    return filterFragrances(allFragrances, normalizedSearch);
-  }, [allFragrances, normalizedSearch]);
+    return filterFragrances(allFragrances, searchTerm);
+  }, [allFragrances, searchTerm]);
 
-  // 🔹 Apply filters and sorting
   const filteredResults = useMemo(() => {
     let items = baseResults.slice();
     const { selectedSeasons, selectedOccasions, selectedGenders, sortBy } =
       filters;
 
-    // --- FILTERS ---
     if (selectedSeasons.length)
       items = items.filter((f) =>
         selectedSeasons.every((s) => (f.season || []).includes(s))
@@ -83,7 +76,6 @@ const FragrancesPage = () => {
         )
       );
 
-    // --- SORTING HELPERS ---
     const longevityRank = { short: 0, moderate: 1, long: 2 };
     const intensityRank = { light: 0, moderate: 1, strong: 2 };
 
@@ -94,7 +86,6 @@ const FragrancesPage = () => {
     const getRating = (f) => Number(f.rating) || 0;
     const getPopularity = (f) => Number(f.ratingCount) || 0;
 
-    // --- SORTING ---
     switch (sortBy) {
       case "relevance":
         items.sort((a, b) => {
@@ -140,7 +131,6 @@ const FragrancesPage = () => {
     return items;
   }, [baseResults, filters]);
 
-  // 🔹 Handlers
   const handleCardClick = (f) => setSelected(f);
   const handleClose = () => setSelected(null);
   const clearSearch = () => setSearchTerm("");
@@ -161,7 +151,6 @@ const FragrancesPage = () => {
 
   return (
     <Box sx={{ px: { xs: 2, sm: 4 }, py: 6 }}>
-      {/* 🔹 Header */}
       <Typography
         variant="h4"
         sx={{ mb: 3, fontWeight: 600, textAlign: "center" }}
@@ -169,7 +158,6 @@ const FragrancesPage = () => {
         {headerText}
       </Typography>
 
-      {/* 🔹 Search Bar */}
       <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
         <TextField
           variant="outlined"
@@ -181,15 +169,13 @@ const FragrancesPage = () => {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: "text.primary" }} />{" "}
-                {/* 👈 fixed color */}
+                <SearchIcon sx={{ color: "text.primary" }} />
               </InputAdornment>
             ),
             endAdornment: searchTerm && (
               <InputAdornment position="end">
                 <IconButton onClick={clearSearch} edge="end" size="small">
-                  <CloseIcon sx={{ color: "text.primary" }} />{" "}
-                  {/* 👈 fixed color */}
+                  <CloseIcon sx={{ color: "text.primary" }} />
                 </IconButton>
               </InputAdornment>
             ),
@@ -197,7 +183,6 @@ const FragrancesPage = () => {
         />
       </Box>
 
-      {/* 🔹 Filters */}
       <FragranceFilter
         onFilterChange={setFilters}
         seasons={allSeasons}
@@ -205,7 +190,6 @@ const FragrancesPage = () => {
         genders={allGenders}
       />
 
-      {/* 🔹 Results */}
       {filteredResults.length === 0 ? (
         <Typography color="text.secondary" textAlign="center" sx={{ mt: 4 }}>
           No fragrances found.

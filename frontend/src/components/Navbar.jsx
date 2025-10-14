@@ -1,3 +1,4 @@
+// src/components/Navbar.jsx
 import React, { useState } from "react";
 import {
   AppBar,
@@ -14,6 +15,7 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  Divider,
 } from "@mui/material";
 import {
   Search,
@@ -21,14 +23,13 @@ import {
   Brightness7,
   Menu as MenuIcon,
   Close as CloseIcon,
+  AccountCircle,
 } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
 import { useThemeContext } from "../contexts/ThemeContext";
-import {
-  getAllFragrances,
-  searchFragrances,
-} from "../services/fragranceService";
+import { searchFragrances } from "../services/fragranceService";
 import FragranceModal from "./FragranceModal";
+import { humanizeName } from "../utils/humanizeName"; // <-- use humanizeName here
 
 const Navbar = () => {
   const theme = useTheme();
@@ -39,19 +40,34 @@ const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
-  // --- helper for dropdown label ---
+  // NAV LINKS in requested order
+  const navLinks = [
+    { label: "Home", path: "/" },
+    { label: "Fragrances", path: "/fragrances" },
+    { label: "Find Your Fragrance", path: "/find-your-fragrance" },
+    { label: "Wishlist", path: "/wishlist" },
+    { label: "Favorites", path: "/favorites" },
+    { label: "About", path: "/about" },
+    { label: "FAQ", path: "/faq" },
+  ];
+
+  // helper — returns nicely formatted display label using humanizeName
   const getDisplayLabel = (f) => {
-    const name = (f.name || "").trim();
-    const brand = (f.brand || "").trim();
-    const ln = name.toLowerCase();
-    const lb = brand.toLowerCase();
+    if (!f) return "Unknown";
+    const name = humanizeName(f.name);
+    const brand = humanizeName(f.brand);
+    // if the brand prefix is already in the name (e.g., "lattafa ...") try to make it nicer:
+    const ln = (name || "").toLowerCase();
+    const lb = (brand || "").toLowerCase();
     if (brand && ln.startsWith(lb)) {
+      // try to remove brand from name (if duplicated)
       const without = name.substring(brand.length).trim();
       if (without) return `${without} – ${brand}`;
     }
     return name;
   };
 
+  // search handlers
   const handleChange = (e) => {
     const val = e.target.value;
     setQuery(val);
@@ -61,7 +77,9 @@ const Navbar = () => {
       return;
     }
 
-    const filtered = searchFragrances(val); // returns filtered fragrances
+    // searchFragrances should return an array of fragrance objects
+    // keep it synchronous (like earlier) — or adapt if your service is async
+    const filtered = searchFragrances(val);
     setResults(filtered.slice(0, 6));
   };
 
@@ -76,94 +94,92 @@ const Navbar = () => {
   };
 
   const handleResultClick = (f) => {
+    // open modal instead of navigating immediately
     setSelectedFragrance(f);
     setResults([]);
     setQuery("");
   };
 
-  const navLinks = [
-    { label: "Home", path: "/" },
-    { label: "Fragrances", path: "/fragrances" },
-    { label: "Find Your Fragrance", path: "/find-your-fragrance" },
-    { label: "About", path: "/about" },
-    { label: "FAQ", path: "/faq" },
-  ];
-
   return (
     <>
       <AppBar
-        position="static"
-        elevation={1}
+        position="sticky"
+        elevation={0}
         sx={{
-          bgcolor: "background.paper",
+          backdropFilter: "blur(10px)",
+          bgcolor:
+            theme.palette.mode === "light"
+              ? "rgba(255,255,255,0.92)"
+              : "rgba(12,12,12,0.78)",
           color: "text.primary",
           borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
-        <Toolbar sx={{ justifyContent: "space-between", position: "relative" }}>
-          {/* Logo */}
-          <Typography
-            variant="h4"
-            component={Link}
-            to="/"
-            sx={{
-              fontFamily: '"Playfair Display", serif',
-              fontWeight: 600,
-              color: "primary.main",
-              textDecoration: "none",
-              textTransform: "lowercase",
-              "&:hover": { opacity: 0.8 },
-            }}
-          >
-            olfactum
-          </Typography>
-
-          {/* Desktop Links */}
-          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3 }}>
-            {navLinks.map((link) => (
-              <Typography
-                key={link.path}
-                variant="body1"
-                component={Link}
-                to={link.path}
-                sx={{
-                  textDecoration: "none",
-                  color: "text.primary",
-                  "&:hover": { color: "primary.main" },
-                }}
-              >
-                {link.label}
-              </Typography>
-            ))}
+        {/* Taller toolbar and bigger fonts */}
+        <Toolbar
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            minHeight: { xs: 64, md: 78 }, // bigger toolbar
+            px: { xs: 1.5, sm: 3, md: 6 },
+            gap: 2,
+          }}
+        >
+          {/* Left: Logo */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography
+              variant="h3"
+              component={Link}
+              to="/"
+              sx={{
+                fontFamily: '"Playfair Display", serif',
+                fontWeight: 700,
+                color: "primary.main",
+                textDecoration: "none",
+                textTransform: "lowercase",
+                letterSpacing: "-0.6px",
+                fontSize: { xs: "1.4rem", sm: "1.7rem", md: "2rem" },
+                "&:hover": { opacity: 0.95 },
+              }}
+            >
+              olfactum
+            </Typography>
           </Box>
 
-          {/* Mobile Menu Icon */}
-          <Box
-            sx={{ display: { xs: "flex", md: "none" }, alignItems: "center" }}
-          >
-            <IconButton onClick={() => setDrawerOpen(true)}>
-              <MenuIcon />
-            </IconButton>
-          </Box>
-
-          {/* Search + Theme Toggle */}
+          {/* CENTER: Search + Links */}
           <Box
             sx={{
-              display: { xs: "none", sm: "flex" },
+              display: "flex",
               alignItems: "center",
-              gap: 1,
-              position: "relative",
+              gap: 3.5, // bigger gap between major blocks
+              flexGrow: 1,
+              justifyContent: "center",
             }}
           >
-            <Box sx={{ position: "relative", width: 280 }}>
+            {/* Search box */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                width: { xs: 180, sm: 260, md: 360 },
+                maxWidth: "46vw",
+                position: "relative",
+              }}
+            >
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   bgcolor: "background.default",
-                  borderRadius: 2,
-                  px: 2,
-                  py: 0.5,
+                  borderRadius: 3,
+                  px: 1.5,
+                  py: { xs: 0.5, md: 0.8 }, // taller on desktop
+                  width: "100%",
+                  boxShadow:
+                    theme.palette.mode === "light"
+                      ? "0 2px 6px rgba(0,0,0,0.06)"
+                      : "0 2px 6px rgba(255,255,255,0.03)",
                 }}
               >
                 <InputBase
@@ -171,13 +187,25 @@ const Navbar = () => {
                   value={query}
                   onChange={handleChange}
                   onKeyDown={onKeyDown}
-                  sx={{ color: "text.primary", width: "100%" }}
+                  sx={{
+                    color: "text.primary",
+                    width: "100%",
+                    fontSize: { xs: "0.95rem", md: "1.02rem" }, // slightly bigger
+                    px: 0.5,
+                  }}
                 />
-                <IconButton onClick={handleSearchSubmit} aria-label="Search">
-                  <Search sx={{ color: "text.secondary" }} />
+                <IconButton
+                  onClick={handleSearchSubmit}
+                  aria-label="Search"
+                  sx={{ p: { xs: 0.5, md: 0.7 } }}
+                >
+                  <Search
+                    sx={{ color: "text.secondary", fontSize: "1.3rem" }}
+                  />
                 </IconButton>
               </Box>
 
+              {/* suggestions dropdown */}
               {results.length > 0 && (
                 <Paper
                   sx={{
@@ -186,8 +214,8 @@ const Navbar = () => {
                     right: 0,
                     width: "100%",
                     borderRadius: 2,
-                    boxShadow: 3,
-                    zIndex: 1300,
+                    boxShadow: 4,
+                    zIndex: 1400,
                     overflow: "hidden",
                   }}
                 >
@@ -200,7 +228,7 @@ const Navbar = () => {
                         alignItems: "center",
                         gap: 2,
                         px: 2,
-                        py: 1.25,
+                        py: 1,
                         cursor: "pointer",
                         "&:hover": { bgcolor: "action.hover" },
                       }}
@@ -209,22 +237,22 @@ const Navbar = () => {
                         src={r.image}
                         alt={r.name}
                         style={{
-                          width: 48,
-                          height: 48,
+                          width: 44,
+                          height: 44,
                           objectFit: "cover",
                           borderRadius: 6,
                         }}
                       />
                       <Box>
                         <MuiTypography
-                          sx={{ fontWeight: 600, fontSize: "0.95rem" }}
+                          sx={{ fontWeight: 700, fontSize: "0.98rem" }}
                         >
                           {getDisplayLabel(r)}
                         </MuiTypography>
                         <MuiTypography
                           sx={{ fontSize: "0.78rem", color: "text.secondary" }}
                         >
-                          {r.brand}
+                          {humanizeName(r.brand)}
                         </MuiTypography>
                       </Box>
                     </Box>
@@ -233,14 +261,77 @@ const Navbar = () => {
               )}
             </Box>
 
-            <IconButton onClick={toggleTheme} color="inherit">
-              {mode === "dark" ? <Brightness7 /> : <Brightness4 />}
+            {/* Desktop nav links (bigger spacing & font) */}
+            <Box
+              sx={{
+                display: { xs: "none", md: "flex" },
+                alignItems: "center",
+                gap: 4.25, // bigger gap so it fills the navbar
+                ml: 1,
+              }}
+            >
+              {navLinks.map((link) => (
+                <Typography
+                  key={link.path}
+                  variant="body1"
+                  component={Link}
+                  to={link.path}
+                  sx={{
+                    textDecoration: "none",
+                    color: "text.primary",
+                    fontWeight: 600,
+                    fontSize: "1.03rem",
+                    position: "relative",
+                    px: 0.25,
+                    py: 0.25,
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      width: 0,
+                      height: "2px",
+                      bottom: -8,
+                      left: 0,
+                      bgcolor: "primary.main",
+                      transition: "width 0.22s ease",
+                    },
+                    "&:hover::after": { width: "100%" },
+                    "&:hover": { color: "primary.main" },
+                  }}
+                >
+                  {link.label}
+                </Typography>
+              ))}
+            </Box>
+          </Box>
+
+          {/* Right side: theme + profile (profile only shows on md+) + mobile menu */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <IconButton onClick={toggleTheme} color="inherit" sx={{ ml: 0.5 }}>
+              {mode === "dark" ? (
+                <Brightness7 sx={{ fontSize: "1.55rem" }} />
+              ) : (
+                <Brightness4 sx={{ fontSize: "1.55rem" }} />
+              )}
             </IconButton>
+
+            {/* PROFILE: visible on md+ only (hidden on mobile) */}
+            <Box sx={{ display: { xs: "none", md: "flex" } }}>
+              <IconButton component={Link} to="/profile" sx={{ ml: 0.25 }}>
+                <AccountCircle sx={{ fontSize: "1.85rem" }} />
+              </IconButton>
+            </Box>
+
+            {/* Mobile menu icon */}
+            <Box sx={{ display: { xs: "flex", md: "none" } }}>
+              <IconButton onClick={() => setDrawerOpen(true)}>
+                <MenuIcon sx={{ fontSize: "1.6rem" }} />
+              </IconButton>
+            </Box>
           </Box>
         </Toolbar>
       </AppBar>
 
-      {/* Drawer (Mobile Menu) */}
+      {/* Drawer (mobile) */}
       <Drawer
         anchor="right"
         open={drawerOpen}
@@ -248,18 +339,18 @@ const Navbar = () => {
       >
         <Box
           sx={{
-            width: 250,
+            width: 300,
+            height: "100%",
             display: "flex",
             flexDirection: "column",
-            height: "100%",
             bgcolor: "background.paper",
           }}
         >
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
+              justifyContent: "space-between",
               px: 2,
               py: 1.5,
               borderBottom: `1px solid ${theme.palette.divider}`,
@@ -271,7 +362,7 @@ const Navbar = () => {
             </IconButton>
           </Box>
 
-          <List>
+          <List sx={{ flexGrow: 1 }}>
             {navLinks.map((link) => (
               <ListItem key={link.path} disablePadding>
                 <ListItemButton
@@ -285,15 +376,43 @@ const Navbar = () => {
             ))}
           </List>
 
-          <Box sx={{ mt: "auto", px: 2, pb: 2 }}>
-            <IconButton onClick={toggleTheme} color="inherit">
-              {mode === "dark" ? <Brightness7 /> : <Brightness4 />}
-            </IconButton>
+          <Divider />
+
+          {/* Profile pinned to bottom (mobile drawer) */}
+          <Box sx={{ px: 2, py: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <IconButton
+                component={Link}
+                to="/profile"
+                onClick={() => setDrawerOpen(false)}
+              >
+                <AccountCircle />
+              </IconButton>
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <Typography
+                  component={Link}
+                  to="/profile"
+                  sx={{
+                    textDecoration: "none",
+                    color: "text.primary",
+                    fontWeight: 700,
+                  }}
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  Profile
+                </Typography>
+                <Typography
+                  sx={{ fontSize: "0.85rem", color: "text.secondary" }}
+                >
+                  Manage account
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </Box>
       </Drawer>
 
-      {/* Fragrance modal opens when a dropdown item is clicked */}
+      {/* Fragrance modal */}
       {selectedFragrance && (
         <FragranceModal
           fragrance={selectedFragrance}
