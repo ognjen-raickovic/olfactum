@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo, useState } from "react";
 import {
   Modal,
   Backdrop,
@@ -12,74 +12,43 @@ import {
   CardMedia,
   Stack,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { humanizeName } from "../utils/humanizeName";
 
-// --- Helper function to build fragrance overview ---
-const buildOverview = (f) => {
-  if (!f) return "";
-
-  const brand = humanizeName(f.brand);
-  const name = humanizeName(f.name);
-  const country = f.country || "Unknown country";
-  const year = f.year || "Unknown year";
-  const gender = f.genderProfile || "unisex";
-  const perfumer = f.perfumer
-    ? humanizeName(f.perfumer)
-    : "an unknown perfumer";
-  const scentFamily = f.scentFamily ? humanizeName(f.scentFamily) : null;
-
-  const toList = (val) => {
-    if (!val) return [];
-    if (Array.isArray(val)) return val.map(humanizeName);
-    return String(val)
-      .split(",")
-      .map((s) => humanizeName(s.trim()))
-      .filter(Boolean);
-  };
-
-  const top = toList(f.top || f.topNotes);
-  const mid = toList(f.middle || f.middleNotes);
-  const base = toList(f.base || f.baseNotes);
-
-  let overview = `${name} by ${brand} is${
-    scentFamily ? ` a ${scentFamily.toLowerCase()}` : ""
-  } fragrance for ${gender}, created in ${country} in ${year} by perfumer ${perfumer}.`;
-
-  if (top.length || mid.length || base.length) {
-    const topText = top.length ? `It opens with ${top.join(", ")}.` : "";
-    const midText = mid.length ? ` It evolves with ${mid.join(", ")}.` : "";
-    const baseText = base.length
-      ? ` Finally, it settles into a base of ${base.join(", ")}.`
-      : "";
-    overview += `\n\n${topText}${midText}${baseText}`;
-  }
-
-  const accords = (f.accords || []).map(humanizeName);
-  if (accords.length) {
-    overview += `\n\nIt carries ${accords.slice(0, 2).join(" and ")} tones.`;
-  }
-
-  if (f.occasion || f.season) {
-    const occ = (f.occasion || []).join(", ");
-    const sea = (f.season || []).join(", ");
-    overview += `\n\nIdeal for ${occ || "various occasions"} and suitable for ${
-      sea || "year-round wear"
-    }.`;
-  }
-
-  // Return with proper newlines for rendering
-  return overview;
+// Helper to check if we're in quiz context
+const useIsQuizContext = () => {
+  const location = useLocation();
+  return (
+    location.pathname.includes("quiz") || location.search.includes("quiz=true")
+  );
 };
 
-const FragranceModal = ({ fragrance, open, onClose }) => {
+const FragranceModal = ({
+  fragrance,
+  open,
+  onClose,
+  disableRouting = false,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const prevRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const isQuizContext = disableRouting || useIsQuizContext();
+
   const f = fragrance;
-  const isReady = open && !!f;
+
+  // Reset loading when fragrance changes
+  useEffect(() => {
+    if (fragrance) {
+      setIsLoading(true);
+      // Simulate loading time for better UX
+      const timer = setTimeout(() => setIsLoading(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [fragrance]);
 
   const ratingNumber = f?.rating
     ? Number(String(f.rating).replace(",", "."))
@@ -94,53 +63,135 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
       ? f.image
       : "/images/no-image.png";
 
-  const quickDetails = [
-    { label: "Country", value: f?.country || "Unknown" },
-    { label: "Year", value: f?.year || "Unknown" },
-    {
-      label: "Perfumer",
-      value: f?.perfumer ? humanizeName(f.perfumer) : "Unknown",
-    },
-    ...(f?.scentFamily
-      ? [{ label: "Family", value: humanizeName(f.scentFamily) }]
-      : []),
-    ...(f?.intensity
-      ? [{ label: "Intensity", value: humanizeName(f.intensity) }]
-      : []),
-    ...(f?.longevity
-      ? [{ label: "Longevity", value: humanizeName(f.longevity) }]
-      : []),
-  ];
+  // Build overview only when needed
+  const description = useMemo(() => {
+    if (!f) return "";
 
-  const description = useMemo(() => (f ? buildOverview(f) : ""), [f]);
+    const brand = humanizeName(f.brand);
+    const name = humanizeName(f.name);
+    const country = f.country || "Unknown country";
+    const year = f.year || "Unknown year";
+    const gender = f.genderProfile || "unisex";
+    const perfumer = f.perfumer
+      ? humanizeName(f.perfumer)
+      : "an unknown perfumer";
+    const scentFamily = f.scentFamily ? humanizeName(f.scentFamily) : null;
 
+    const toList = (val) => {
+      if (!val) return [];
+      if (Array.isArray(val)) return val.map(humanizeName);
+      return String(val)
+        .split(",")
+        .map((s) => humanizeName(s.trim()))
+        .filter(Boolean);
+    };
+
+    const top = toList(f.top || f.topNotes);
+    const mid = toList(f.middle || f.middleNotes);
+    const base = toList(f.base || f.baseNotes);
+
+    let overview = `${name} by ${brand} is${
+      scentFamily ? ` a ${scentFamily.toLowerCase()}` : ""
+    } fragrance for ${gender}, created in ${country} in ${year} by perfumer ${perfumer}.`;
+
+    if (top.length || mid.length || base.length) {
+      const topText = top.length ? `It opens with ${top.join(", ")}.` : "";
+      const midText = mid.length ? ` It evolves with ${mid.join(", ")}.` : "";
+      const baseText = base.length
+        ? ` Finally, it settles into a base of ${base.join(", ")}.`
+        : "";
+      overview += `\n\n${topText}${midText}${baseText}`;
+    }
+
+    const accords = (f.accords || []).map(humanizeName);
+    if (accords.length) {
+      overview += `\n\nIt carries ${accords.slice(0, 2).join(" and ")} tones.`;
+    }
+
+    if (f.occasion || f.season) {
+      const occ = (f.occasion || []).join(", ");
+      const sea = (f.season || []).join(", ");
+      overview += `\n\nIdeal for ${
+        occ || "various occasions"
+      } and suitable for ${sea || "year-round wear"}.`;
+    }
+
+    return overview;
+  }, [f]);
+
+  // Quick details with memoization
+  const quickDetails = useMemo(() => {
+    if (!f) return [];
+
+    const details = [
+      { label: "Country", value: f.country || "Unknown" },
+      { label: "Year", value: f.year || "Unknown" },
+      {
+        label: "Perfumer",
+        value: f.perfumer ? humanizeName(f.perfumer) : "Unknown",
+      },
+    ];
+
+    if (f.scentFamily) {
+      details.push({ label: "Family", value: humanizeName(f.scentFamily) });
+    }
+    if (f.intensity) {
+      details.push({ label: "Intensity", value: humanizeName(f.intensity) });
+    }
+    if (f.longevity) {
+      details.push({ label: "Longevity", value: humanizeName(f.longevity) });
+    }
+
+    return details;
+  }, [f]);
+
+  // Handle URL updates - ONLY if not in quiz context
   useEffect(() => {
-    if (!open || !f) return;
+    if (!open || !f || isQuizContext) return;
+
     prevRef.current = location.pathname + location.search;
     const slug = f.slug || `id-${f.id}`;
     navigate(`/fragrances/${slug}`, { replace: false });
-  }, [open, f, location, navigate]);
+  }, [open, f, location, navigate, isQuizContext]);
 
   const handleClose = () => {
-    const prev = prevRef.current;
-    const fallback = "/fragrances";
-    navigate(
-      prev && prev !== location.pathname + location.search ? prev : fallback,
-      { replace: true }
-    );
+    // Only navigate back if we're not in quiz context and we have a previous location
+    if (!isQuizContext) {
+      const prev = prevRef.current;
+      const fallback = "/fragrances";
+      navigate(
+        prev && prev !== location.pathname + location.search ? prev : fallback,
+        { replace: true }
+      );
+    }
+
+    setIsLoading(true); // Reset loading state
     onClose?.();
+  };
+
+  // Prevent modal close on backdrop click in quiz context to avoid accidental closes
+  const handleBackdropClick = (event) => {
+    if (isQuizContext) {
+      event.stopPropagation();
+      return;
+    }
   };
 
   return (
     <Modal
       open={open}
-      onClose={handleClose}
+      onClose={isQuizContext ? undefined : handleClose} // Prevent close on backdrop click in quiz
       closeAfterTransition
       disableScrollLock
       slots={{ backdrop: Backdrop }}
-      slotProps={{ backdrop: { timeout: 300 } }}
+      slotProps={{
+        backdrop: {
+          timeout: 300,
+          onClick: handleBackdropClick,
+        },
+      }}
     >
-      <Fade in={isReady} timeout={300}>
+      <Fade in={open} timeout={300}>
         <Box
           sx={{
             position: "absolute",
@@ -157,7 +208,18 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
             p: 0,
           }}
         >
-          {f ? (
+          {isLoading ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: 200,
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : f ? (
             <>
               {/* HEADER */}
               <Box
@@ -213,7 +275,7 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
 
               <Divider />
 
-              {/* MAIN CONTENT: IMAGE LEFT, OVERVIEW + NOTES RIGHT */}
+              {/* MAIN CONTENT */}
               <Box sx={{ p: 3 }}>
                 <Box
                   sx={{
@@ -372,7 +434,7 @@ const FragranceModal = ({ fragrance, open, onClose }) => {
             </>
           ) : (
             <Box sx={{ p: 4, textAlign: "center" }}>
-              <Typography>Loading fragrance data...</Typography>
+              <Typography>Fragrance data not available.</Typography>
             </Box>
           )}
         </Box>

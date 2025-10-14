@@ -6,8 +6,13 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Chip,
+  Stack,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom"; // ADD THIS IMPORT
 import { getRecommendedFragrances } from "../utils/fragranceUtils";
 import FragranceModal from "./FragranceModal";
 import FragranceCard from "./FragranceCard";
@@ -16,108 +21,153 @@ import { motion, AnimatePresence } from "framer-motion";
 const QuizResults = ({ answers, onRestart }) => {
   const [selectedFragrance, setSelectedFragrance] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(6);
+  const [visibleCount, setVisibleCount] = useState(12);
   const [sortMode, setSortMode] = useState("balanced");
-  const [recommendations, setRecommendations] = useState([]);
 
-  // --- Generate recommendations dynamically when sort changes ---
-  useEffect(() => {
-    const recs = getRecommendedFragrances(answers, sortMode);
-    setRecommendations(recs);
-    setVisibleCount(6); // reset so first 6 are shown
+  // ADD NAVIGATION HOOK
+  const navigate = useNavigate();
+
+  // Use MUI's responsive breakpoints
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "lg"));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+
+  // Memoize recommendations to prevent unnecessary recalculations
+  const recommendations = useMemo(() => {
+    return getRecommendedFragrances(answers, sortMode, 48);
   }, [answers, sortMode]);
 
   const visibleFragrances = recommendations.slice(0, visibleCount);
 
-  // --- Human-readable scent family label ---
-  const getScentFamilyDescription = () => {
-    const mapping = {
-      fresh: "Fresh & Clean",
-      sweet: "Warm & Sweet",
-      dark: "Dark & Mysterious",
-      elegant: "Elegant & Classic",
-      bold: "Bold & Energetic",
-    };
-    return mapping[answers.scentType] || "Perfectly Matched";
+  // Calculate grid columns based on screen size
+  const getGridColumns = () => {
+    if (isMobile) return 2; // 2 columns on mobile
+    if (isTablet) return 3; // 3 columns on tablet
+    return 4; // 4 columns on desktop
   };
 
-  // --- Personalized user description ---
-  const getDescription = () => {
-    const { scentType, season, occasion, intensity, notes, mood } = answers;
-    let desc = "";
+  // Calculate card width based on screen size
+  const getCardWidth = () => {
+    if (isMobile) return "100%"; // Full width on mobile
+    return "100%"; // Let grid handle the width
+  };
 
-    switch (scentType) {
-      case "fresh":
-        desc +=
-          "You enjoy bright, refreshing scents that feel effortlessly clean. ";
-        break;
-      case "sweet":
-        desc +=
-          "You’re drawn to warm, cozy fragrances with a touch of sweetness. ";
-        break;
-      case "dark":
-        desc +=
-          "You love deep, mysterious notes that exude confidence and class. ";
-        break;
-      case "elegant":
-        desc +=
-          "You appreciate timeless sophistication and refined compositions. ";
-        break;
-      case "bold":
-        desc +=
-          "You’re all about strong, charismatic scents that stand out in a crowd. ";
-        break;
-      default:
-        desc += "You have a balanced taste in fragrances. ";
+  const gridColumns = getGridColumns();
+
+  // Improved scent family description with more specificity
+  const getScentFamilyDescription = () => {
+    const mapping = {
+      fresh: "Fresh & Clean Scents",
+      sweet: "Warm & Sweet Gourmands",
+      dark: "Dark & Mysterious Orientals",
+      elegant: "Elegant & Classic Florals",
+      bold: "Bold & Energetic Spices",
+    };
+    return mapping[answers.scentType] || "Perfectly Matched Scents";
+  };
+
+  // Get matched criteria for transparency
+  const getMatchedCriteria = () => {
+    const criteria = [];
+    const { scentType, season, occasion, intensity, notes, mood } = answers;
+
+    if (scentType) {
+      const typeMap = {
+        fresh: "Fresh scents",
+        sweet: "Sweet gourmands",
+        dark: "Dark orientals",
+        elegant: "Elegant florals",
+        bold: "Bold spices",
+      };
+      criteria.push(typeMap[scentType]);
     }
 
-    if (season) {
-      const seasonDesc = {
-        spring: "Perfect for the lively freshness of spring days. ",
-        summer: "Ideal for hot summer weather with a refreshing vibe. ",
-        autumn: "Great for the cozy, spicy warmth of autumn. ",
-        winter: "Rich and long-lasting—great for cold winter nights. ",
-        all: "Versatile for any time of year. ",
+    if (season && season !== "all") {
+      criteria.push(`${season} season`);
+    }
+
+    if (occasion) {
+      criteria.push(`${occasion.replace("everyday", "daily")} wear`);
+    }
+
+    if (intensity) {
+      criteria.push(`${intensity} intensity`);
+    }
+
+    if (notes) {
+      criteria.push(`${notes} notes`);
+    }
+
+    if (mood) {
+      criteria.push(`${mood} vibe`);
+    }
+
+    return criteria;
+  };
+
+  // Enhanced personalized description
+  const getDescription = () => {
+    const { scentType, season, occasion, intensity, notes, mood } = answers;
+    let desc = "Based on your preferences, we've found fragrances that match ";
+
+    const criteriaParts = [];
+
+    if (scentType) {
+      const typeDesc = {
+        fresh: "bright, refreshing scents with clean notes",
+        sweet: "warm, comforting fragrances with sweet accords",
+        dark: "deep, sophisticated scents with mysterious character",
+        elegant: "timeless, refined compositions with classic appeal",
+        bold: "confident, attention-grabbing fragrances with strong presence",
       };
-      desc += seasonDesc[season] || "";
+      criteriaParts.push(typeDesc[scentType]);
+    }
+
+    if (season && season !== "all") {
+      const seasonDesc = {
+        spring: `perfect for ${season}'s fresh florals`,
+        summer: `ideal for ${season}'s warm days`,
+        autumn: `great for ${season}'s cozy atmosphere`,
+        winter: `suited for ${season}'s rich evenings`,
+      };
+      criteriaParts.push(seasonDesc[season]);
     }
 
     if (occasion) {
       const occasionDesc = {
-        everyday: "Suited for daily wear and casual settings. ",
-        office: "Refined enough for the office or college. ",
-        date: "Perfect choice for romantic moments. ",
-        party: "Bold and attention-grabbing for nights out. ",
-        special: "Sophisticated and memorable for special occasions. ",
+        everyday: "versatile enough for daily wear",
+        office: "professional and office-appropriate",
+        date: "romantic and sensual for special moments",
+        party: "bold and perfect for social events",
+        special: "sophisticated for memorable occasions",
       };
-      desc += occasionDesc[occasion] || "";
+      criteriaParts.push(occasionDesc[occasion]);
     }
 
     if (intensity === "strong") {
-      desc += "You like your scent to last and make a statement. ";
+      criteriaParts.push("with long-lasting projection");
     } else if (intensity === "noticeable") {
-      desc +=
-        "You prefer a balanced projection that’s noticeable but not too heavy. ";
+      criteriaParts.push("with balanced presence");
     } else if (intensity === "subtle") {
-      desc += "You enjoy fragrances that stay close to the skin. ";
+      criteriaParts.push("with subtle, skin-close intimacy");
     }
 
     if (notes) {
-      desc += `Your chosen note, ${notes}, adds a distinctive touch to your scent personality. `;
+      criteriaParts.push(`featuring ${notes} accords`);
     }
 
     if (mood) {
-      const moodDesc = {
-        romantic: "You want to express warmth and affection. ",
-        confident: "You exude power and self-assurance. ",
-        relaxed: "You prefer calm, easy-going vibes. ",
-        luxurious: "You appreciate refinement and class. ",
-        sporty: "You love energy and freshness. ",
-      };
-      desc += moodDesc[mood] || "";
+      criteriaParts.push(`creating a ${mood} atmosphere`);
     }
 
-    return desc.trim();
+    desc += criteriaParts.slice(0, 3).join(", ") + ". ";
+
+    if (recommendations.length > 0) {
+      desc += `We found ${recommendations.length} fragrances that match your style.`;
+    }
+
+    return desc;
   };
 
   const handleFragranceClick = (fragrance) => {
@@ -125,10 +175,17 @@ const QuizResults = ({ answers, onRestart }) => {
     setModalOpen(true);
   };
 
+  // ADD THIS FUNCTION TO HANDLE BROWSING ALL FRAGRANCES
+  const handleBrowseAllFragrances = () => {
+    navigate("/fragrances");
+  };
+
+  const matchedCriteria = getMatchedCriteria();
+
   return (
-    <Box sx={{ py: 6 }}>
+    <Box sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ textAlign: "center", mb: 6 }}>
+      <Box sx={{ textAlign: "center", mb: 4 }}>
         <Typography variant="h3" component="h1" gutterBottom>
           Your Perfect Scent Matches! 🎉
         </Typography>
@@ -137,22 +194,48 @@ const QuizResults = ({ answers, onRestart }) => {
           sx={{
             bgcolor: "primary.main",
             color: "white",
-            py: 4,
+            py: 3,
             px: 3,
             borderRadius: 2,
-            mb: 4,
-            maxWidth: 800,
+            mb: 3,
+            maxWidth: 900,
             mx: "auto",
           }}
         >
           <Typography variant="h5" gutterBottom>
             Your Scent Profile: {getScentFamilyDescription()}
           </Typography>
-          <Typography variant="body1">{getDescription()}</Typography>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            {getDescription()}
+          </Typography>
+
+          {/* Matched Criteria Chips */}
+          {matchedCriteria.length > 0 && (
+            <Stack
+              direction="row"
+              gap={1}
+              flexWrap="wrap"
+              justifyContent="center"
+            >
+              {matchedCriteria.map((criterion, index) => (
+                <Chip
+                  key={index}
+                  label={criterion}
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    color: "white",
+                    borderColor: "rgba(255,255,255,0.3)",
+                    bgcolor: "rgba(255,255,255,0.1)",
+                  }}
+                />
+              ))}
+            </Stack>
+          )}
         </Box>
       </Box>
 
-      {/* --- Sort Dropdown --- */}
+      {/* Sort Controls */}
       <Box
         sx={{
           display: "flex",
@@ -176,51 +259,76 @@ const QuizResults = ({ answers, onRestart }) => {
           </Select>
         </FormControl>
 
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          💡 “Best match” = more tailored to your answers. “Proven” =
-          higher-rated, popular picks.
+        <Typography
+          variant="body2"
+          sx={{ color: "text.secondary", maxWidth: 400 }}
+        >
+          💡 <strong>Best match</strong> = more tailored to your answers.
+          <strong> Proven</strong> = higher-rated, popular picks.
+          <strong> Balanced</strong> = mix of both.
         </Typography>
       </Box>
 
       {/* Recommendations Grid */}
-      <Typography variant="h4" gutterBottom sx={{ mb: 4, textAlign: "center" }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 3, textAlign: "center" }}>
         Recommended For You ({recommendations.length} matches)
       </Typography>
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={sortMode} // triggers animation on sort change
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          key={sortMode}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.4 }}
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: "24px",
-            justifyItems: "center",
+            gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+            gap: isMobile ? "12px" : "16px",
+            justifyItems: "stretch",
+            alignItems: "stretch",
             marginBottom: "32px",
           }}
         >
           {visibleFragrances.map((fragrance) => (
-            <FragranceCard
+            <Box
               key={fragrance.id}
-              fragrance={fragrance}
-              onViewDetails={handleFragranceClick}
-            />
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                minHeight: "100%",
+              }}
+            >
+              <FragranceCard
+                fragrance={fragrance}
+                onViewDetails={handleFragranceClick}
+                showMatchScore={sortMode === "accuracy"}
+                sx={{
+                  width: getCardWidth(),
+                  height: "100%",
+                  maxWidth: isMobile ? "none" : "320px",
+                  minHeight: isMobile ? "280px" : "320px",
+                  transition: "all 0.2s ease-in-out",
+                  "&:hover": {
+                    transform: isMobile ? "none" : "translateY(-4px)",
+                    boxShadow: isMobile ? 1 : 3,
+                  },
+                }}
+              />
+            </Box>
           ))}
         </motion.div>
       </AnimatePresence>
 
       {/* Show More Button */}
       {recommendations.length > visibleCount && (
-        <Box sx={{ textAlign: "center", mb: 6 }}>
+        <Box sx={{ textAlign: "center", mb: 4 }}>
           <Button
             variant="outlined"
             size="large"
-            onClick={() => setVisibleCount((prev) => prev + 6)}
+            onClick={() => setVisibleCount((prev) => prev + 12)}
           >
-            Show More
+            Show More ({recommendations.length - visibleCount} remaining)
           </Button>
         </Box>
       )}
@@ -237,7 +345,13 @@ const QuizResults = ({ answers, onRestart }) => {
         <Button variant="outlined" onClick={onRestart} size="large">
           Retake Quiz
         </Button>
-        <Button variant="contained" size="large">
+
+        {/* UPDATED BUTTON WITH NAVIGATION */}
+        <Button
+          variant="contained"
+          size="large"
+          onClick={handleBrowseAllFragrances}
+        >
           Browse All Fragrances
         </Button>
       </Box>
@@ -247,6 +361,7 @@ const QuizResults = ({ answers, onRestart }) => {
         fragrance={selectedFragrance}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        disableRouting={true}
       />
     </Box>
   );
