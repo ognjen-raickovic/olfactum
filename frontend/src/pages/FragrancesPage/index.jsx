@@ -7,6 +7,12 @@ import {
   TextField,
   IconButton,
   InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { Close as CloseIcon, Search as SearchIcon } from "@mui/icons-material";
 import FragranceCard from "../../components/FragranceCard";
@@ -16,31 +22,26 @@ import { getAllFragrances } from "../../services/fragranceService";
 import { filterFragrances } from "../../utils/fragranceUtils";
 
 const FragrancesPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
+
   const location = useLocation();
-  const { slug } = useParams(); // allow opening modal by slug (/fragrances/:slug)
+  const { slug } = useParams();
   const params = new URLSearchParams(location.search);
   const queryParam = params.get("query") || params.get("search") || "";
 
   const allFragrances = useMemo(() => getAllFragrances(), []);
 
-  const allSeasons = useMemo(
-    () => Array.from(new Set(allFragrances.flatMap((f) => f.season || []))),
-    [allFragrances]
-  );
-  const allOccasions = useMemo(
-    () => Array.from(new Set(allFragrances.flatMap((f) => f.occasion || []))),
-    [allFragrances]
-  );
-  const allGenders = ["male", "female", "unisex"];
-
   const [searchTerm, setSearchTerm] = useState(queryParam);
   const [filters, setFilters] = useState({
-    selectedSeasons: [],
-    selectedOccasions: [],
-    selectedGenders: [],
+    seasons: [],
+    occasions: [],
+    genders: [],
+    performance: [],
     sortBy: "relevance",
   });
-  const [visibleCount, setVisibleCount] = useState(15);
+  const [visibleCount, setVisibleCount] = useState(20);
   const [selected, setSelected] = useState(null);
 
   // Update search term if query in URL changes
@@ -59,40 +60,62 @@ const FragrancesPage = () => {
     }
   }, [slug, allFragrances]);
 
-  // Base results (filtered by search)
-  const baseResults = useMemo(() => {
-    return filterFragrances(allFragrances, searchTerm);
-  }, [allFragrances, searchTerm]);
-
+  // Enhanced filtering logic with combined performance filter
   const filteredResults = useMemo(() => {
-    let items = baseResults.slice();
-    const { selectedSeasons, selectedOccasions, selectedGenders, sortBy } =
-      filters;
+    let items = filterFragrances(allFragrances, searchTerm);
 
-    if (selectedSeasons.length)
-      items = items.filter((f) =>
-        selectedSeasons.every((s) => (f.season || []).includes(s))
-      );
+    const { seasons, occasions, genders, performance, sortBy } = filters;
 
-    if (selectedOccasions.length)
+    // Season filtering (OR logic within category)
+    if (seasons.length > 0) {
       items = items.filter((f) =>
-        selectedOccasions.every((o) => (f.occasion || []).includes(o))
-      );
-
-    if (selectedGenders.length)
-      items = items.filter((f) =>
-        selectedGenders.includes(
-          (f.genderProfile || "").toLowerCase().replace(/\s+/g, "")
+        seasons.some((season) =>
+          (f.season || []).some((fSeason) =>
+            fSeason.toLowerCase().includes(season.toLowerCase())
+          )
         )
       );
+    }
 
-    const longevityRank = { short: 0, moderate: 1, long: 2 };
-    const intensityRank = { light: 0, moderate: 1, strong: 2 };
+    // Occasion filtering (OR logic within category)
+    if (occasions.length > 0) {
+      items = items.filter((f) =>
+        occasions.some((occasion) =>
+          (f.occasion || []).some((fOccasion) =>
+            fOccasion.toLowerCase().includes(occasion.toLowerCase())
+          )
+        )
+      );
+    }
 
-    const getLongevity = (f) =>
-      longevityRank[f.longevity?.toLowerCase?.()] ?? 0;
-    const getIntensity = (f) =>
-      intensityRank[f.intensity?.toLowerCase?.()] ?? 0;
+    // Gender filtering (OR logic)
+    if (genders.length > 0) {
+      items = items.filter((f) => {
+        const fragranceGender = (f.genderProfile || "").toLowerCase();
+        return genders.some((gender) =>
+          fragranceGender.includes(gender.toLowerCase())
+        );
+      });
+    }
+
+    // Performance filtering (OR logic between longevity AND projection)
+    if (performance.length > 0) {
+      items = items.filter((f) => {
+        const fragranceLongevity = (f.longevity || "").toLowerCase();
+        const fragranceProjection = (f.intensity || "").toLowerCase();
+
+        return performance.some((perf) => {
+          const perfLower = perf.toLowerCase();
+          // Check both longevity AND projection fields with OR logic
+          return (
+            fragranceLongevity.includes(perfLower) ||
+            fragranceProjection.includes(perfLower)
+          );
+        });
+      });
+    }
+
+    // Enhanced sorting
     const getRating = (f) => Number(f.rating) || 0;
     const getPopularity = (f) => Number(f.ratingCount) || 0;
 
@@ -109,18 +132,6 @@ const FragrancesPage = () => {
         break;
       case "name-desc":
         items.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-      case "longevity-desc":
-        items.sort((a, b) => getLongevity(b) - getLongevity(a));
-        break;
-      case "longevity-asc":
-        items.sort((a, b) => getLongevity(a) - getLongevity(b));
-        break;
-      case "intensity-desc":
-        items.sort((a, b) => getIntensity(b) - getIntensity(a));
-        break;
-      case "intensity-asc":
-        items.sort((a, b) => getIntensity(a) - getIntensity(b));
         break;
       case "rating-desc":
         items.sort((a, b) => getRating(b) - getRating(a));
@@ -139,116 +150,218 @@ const FragrancesPage = () => {
     }
 
     return items;
-  }, [baseResults, filters]);
+  }, [allFragrances, searchTerm, filters]);
 
   const handleCardClick = (f) => setSelected(f);
   const handleClose = () => setSelected(null);
   const clearSearch = () => setSearchTerm("");
 
   const headerText = useMemo(() => {
-    if (searchTerm) return `Searched for “${searchTerm}”`;
-    const activeFilters = [
-      ...filters.selectedSeasons,
-      ...filters.selectedOccasions,
-      ...filters.selectedGenders,
-    ];
-    if (activeFilters.length)
-      return `Filtered by: ${activeFilters
-        .map((x) => x.charAt(0).toUpperCase() + x.slice(1))
-        .join(", ")}`;
+    if (searchTerm) return `Searched for "${searchTerm}"`;
+
+    const activeFilters = Object.entries(filters)
+      .filter(([key, value]) => key !== "sortBy" && value.length > 0)
+      .flatMap(([key, value]) => value);
+
+    if (activeFilters.length) {
+      return `Filtered by: ${activeFilters.slice(0, 3).join(", ")}${
+        activeFilters.length > 3 ? "..." : ""
+      }`;
+    }
+
     return "All Fragrances";
   }, [searchTerm, filters]);
 
+  // Calculate grid columns based on screen size and sidebar
+  const getGridColumns = () => {
+    if (isMobile) return 2; // 2 columns on mobile
+    if (isTablet) return 3; // 3 columns on tablet
+    return 4; // 4 columns on desktop with sidebar
+  };
+
+  const gridColumns = getGridColumns();
+
   return (
-    <Box sx={{ px: { xs: 2, sm: 4 }, py: 6 }}>
-      <Typography
-        variant="h4"
-        sx={{ mb: 3, fontWeight: 600, textAlign: "center" }}
-      >
-        {headerText}
-      </Typography>
-
-      <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-        <TextField
-          variant="outlined"
-          placeholder="Search fragrances..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          size="small"
-          sx={{ width: { xs: "100%", sm: 400 } }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: "text.primary" }} />
-              </InputAdornment>
-            ),
-            endAdornment: searchTerm && (
-              <InputAdornment position="end">
-                <IconButton onClick={clearSearch} edge="end" size="small">
-                  <CloseIcon sx={{ color: "text.primary" }} />
-                </IconButton>
-              </InputAdornment>
-            ),
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        flexDirection: isMobile ? "column" : "row-reverse", // Changed to row-reverse for right sidebar
+      }}
+    >
+      {/* Desktop Sidebar - Now on the RIGHT */}
+      {!isMobile && (
+        <Box
+          sx={{
+            width: 280,
+            flexShrink: 0,
+            borderLeft: `1px solid ${theme.palette.divider}`, // Changed to borderLeft
+            bgcolor: "background.paper",
           }}
-        />
-      </Box>
-
-      <FragranceFilter
-        onFilterChange={setFilters}
-        seasons={allSeasons}
-        occasions={allOccasions}
-        genders={allGenders}
-      />
-
-      {filteredResults.length === 0 ? (
-        <Typography color="text.secondary" textAlign="center" sx={{ mt: 4 }}>
-          No fragrances found.
-        </Typography>
-      ) : (
-        <>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "repeat(2, 1fr)",
-                sm: "repeat(3, 1fr)",
-                md: "repeat(4, 1fr)",
-                lg: "repeat(5, 1fr)",
-              },
-              gap: 3,
-            }}
-          >
-            {filteredResults.slice(0, visibleCount).map((f) => (
-              <FragranceCard
-                key={f.id}
-                fragrance={f}
-                onClick={handleCardClick}
-              />
-            ))}
-          </Box>
-
-          {visibleCount < filteredResults.length && (
-            <Box sx={{ textAlign: "center", mt: 4 }}>
-              <Button
-                variant="outlined"
-                onClick={() =>
-                  setVisibleCount((prev) =>
-                    Math.min(prev + 10, filteredResults.length)
-                  )
-                }
-              >
-                Load More
-              </Button>
-            </Box>
-          )}
-        </>
+        >
+          <FragranceFilter
+            onFilterChange={setFilters}
+            seasons={[]}
+            occasions={[]}
+            genders={[]}
+          />
+        </Box>
       )}
 
-      <FragranceModal
-        fragrance={selected}
-        open={!!selected}
-        onClose={handleClose}
-      />
+      {/* Main Content */}
+      <Box
+        sx={{
+          flex: 1,
+          px: { xs: 2, sm: 3, md: 4 },
+          py: 4,
+          pb: isMobile ? 10 : 4, // Extra padding for mobile filter button
+        }}
+      >
+        {/* Header */}
+        <Typography
+          variant="h4"
+          sx={{
+            mb: 3,
+            fontWeight: 600,
+            textAlign: { xs: "center", md: "left" },
+            fontSize: { xs: "1.75rem", md: "2.125rem" },
+          }}
+        >
+          {headerText}
+        </Typography>
+
+        {/* Search Bar */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            mb: 4,
+            flexDirection: { xs: "column", sm: "row" },
+            gap: { xs: 2, sm: 0 },
+            alignItems: { sm: "center" },
+          }}
+        >
+          <TextField
+            variant="outlined"
+            placeholder="Search fragrances..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            size="small"
+            sx={{
+              width: { xs: "100%", sm: 400 },
+              mr: { sm: 2 },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "text.primary" }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchTerm && (
+                <InputAdornment position="end">
+                  <IconButton onClick={clearSearch} edge="end" size="small">
+                    <CloseIcon sx={{ color: "text.primary" }} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          {/* Desktop Sort Dropdown */}
+          {!isMobile && (
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel>Sort by</InputLabel>
+              <Select
+                value={filters.sortBy}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    sortBy: e.target.value,
+                  }))
+                }
+                label="Sort by"
+              >
+                <MenuItem value="relevance">Relevance</MenuItem>
+                <MenuItem value="name-asc">Name (A → Z)</MenuItem>
+                <MenuItem value="name-desc">Name (Z → A)</MenuItem>
+                <MenuItem value="rating-desc">Rating (high → low)</MenuItem>
+                <MenuItem value="rating-asc">Rating (low → high)</MenuItem>
+                <MenuItem value="popularity-desc">
+                  Popularity (most → least)
+                </MenuItem>
+                <MenuItem value="popularity-asc">
+                  Popularity (least → most)
+                </MenuItem>
+              </Select>
+            </FormControl>
+          )}
+        </Box>
+
+        {/* Mobile Filter Component (renders floating button) */}
+        {isMobile && <FragranceFilter onFilterChange={setFilters} />}
+
+        {/* Results Grid */}
+        {filteredResults.length === 0 ? (
+          <Typography color="text.secondary" textAlign="center" sx={{ mt: 8 }}>
+            No fragrances found. Try adjusting your filters or search terms.
+          </Typography>
+        ) : (
+          <>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mb: 2, textAlign: { xs: "center", md: "left" } }}
+            >
+              Showing {Math.min(visibleCount, filteredResults.length)} of{" "}
+              {filteredResults.length} fragrances
+            </Typography>
+
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+                gap: { xs: 2, md: 3 },
+                justifyItems: "stretch",
+              }}
+            >
+              {filteredResults.slice(0, visibleCount).map((f) => (
+                <FragranceCard
+                  key={f.id}
+                  fragrance={f}
+                  onClick={handleCardClick}
+                  sx={{
+                    transition: "all 0.2s ease-in-out",
+                    "&:hover": {
+                      transform: isMobile ? "none" : "translateY(-4px)",
+                      boxShadow: isMobile ? 1 : 3,
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+
+            {/* Load More Button */}
+            {visibleCount < filteredResults.length && (
+              <Box sx={{ textAlign: "center", mt: 4 }}>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  onClick={() => setVisibleCount((prev) => prev + 20)}
+                >
+                  Load More ({filteredResults.length - visibleCount} remaining)
+                </Button>
+              </Box>
+            )}
+          </>
+        )}
+
+        {/* Fragrance Modal */}
+        <FragranceModal
+          fragrance={selected}
+          open={!!selected}
+          onClose={handleClose}
+        />
+      </Box>
     </Box>
   );
 };

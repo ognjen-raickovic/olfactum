@@ -16,7 +16,7 @@ import MaleIcon from "@mui/icons-material/Male";
 import FemaleIcon from "@mui/icons-material/Female";
 import TransgenderIcon from "@mui/icons-material/Transgender";
 
-const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
+const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
   const ratingNumber =
     fragrance.rating != null
       ? Number(String(fragrance.rating).replace(",", "."))
@@ -76,6 +76,7 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
           transform: "translateY(-5px)",
           boxShadow: 6,
         },
+        ...sx,
       }}
     >
       {/* --- IMAGE --- */}
@@ -86,9 +87,12 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
           aspectRatio: "4 / 5",
           overflow: "hidden",
           bgcolor: (theme) =>
-            theme.palette.mode === "dark" ? "#20160F" : "grey.100",
+            theme.palette.mode === "dark" ? "#20160F" : "grey.50",
           borderBottom: "1px solid",
           borderColor: "divider",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         <LazyLoadImage
@@ -99,7 +103,7 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "contain",
+            objectFit: "cover", // Changed from "contain" to "cover" to eliminate black space
           }}
         />
 
@@ -120,9 +124,9 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
                 fontSize="small"
                 sx={{
                   color:
-                    gender === "men"
+                    gender === "men" || gender === "masculine"
                       ? "#1976d2" // blue for male
-                      : gender === "women"
+                      : gender === "women" || gender === "feminine"
                       ? "#e91e63" // pink for female
                       : "#4caf50", // green for unisex
                 }}
@@ -164,12 +168,6 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails }) => {
           >
             {humanizeName(fragrance.brand)}
           </Typography>
-
-          {/* {fragrance.type && (
-            <Typography color="text.secondary" sx={{ fontSize: 13 }}>
-              {humanizeName(fragrance.type)}
-            </Typography>
-          )} */}
 
           {/* Rating */}
           {ratingNumber != null && !isNaN(ratingNumber) && (

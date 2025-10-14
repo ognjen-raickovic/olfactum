@@ -12,206 +12,327 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Stack,
+  Chip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList";
+import { FilterList, ExpandMore, Close } from "@mui/icons-material";
 
-const FragranceFilter = ({
+// Simplified filter options
+const FILTER_CATEGORIES = {
+  seasons: {
+    label: "Seasons",
+    options: ["All Year", "Spring / Summer", "Fall / Winter"],
+  },
+  occasions: {
+    label: "Occasions",
+    options: [
+      "Everyday / Casual",
+      "Office / Daytime",
+      "Evening / Special",
+      "Date Night",
+    ],
+  },
+  genders: {
+    label: "Gender",
+    options: ["Men", "Women", "Unisex"],
+  },
+  performance: {
+    label: "Performance",
+    options: ["Very Strong", "Strong", "Moderate", "Light"],
+  },
+};
+
+const FilterSidebar = ({
+  filters,
   onFilterChange,
-  seasons = [],
-  occasions = [],
-  genders = ["male", "female", "unisex"], // new gender prop
+  onClearFilters,
+  isMobile = false,
+  onClose,
 }) => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedSeasons, setSelectedSeasons] = useState([]);
-  const [selectedOccasions, setSelectedOccasions] = useState([]);
-  const [selectedGenders, setSelectedGenders] = useState([]);
-  const [sortBy, setSortBy] = useState("relevance");
+  const theme = useTheme();
 
-  const toggleArrayValue = (array, setFn, value) => {
-    if (array.includes(value)) setFn(array.filter((v) => v !== value));
-    else setFn([...array, value]);
-  };
+  const toggleFilter = (category, value) => {
+    const currentFilters = filters[category] || [];
+    const newFilters = currentFilters.includes(value)
+      ? currentFilters.filter((item) => item !== value)
+      : [...currentFilters, value];
 
-  const handleClearFilters = () => {
-    setSelectedSeasons([]);
-    setSelectedOccasions([]);
-    setSelectedGenders([]);
-    setSortBy("relevance");
-  };
-
-  const applyFilters = () => {
     onFilterChange({
-      selectedSeasons,
-      selectedOccasions,
-      selectedGenders,
-      sortBy,
+      ...filters,
+      [category]: newFilters,
     });
-    setDrawerOpen(false);
+  };
+
+  const getActiveFilterCount = () => {
+    return Object.values(filters).reduce((count, categoryFilters) => {
+      return count + (categoryFilters?.length || 0);
+    }, 0);
   };
 
   return (
-    <>
-      {/* Button to open filter drawer */}
-      <Stack
-        direction="row"
-        spacing={1}
-        alignItems="center"
-        justifyContent="center"
-        sx={{ mb: 3 }}
+    <Box
+      sx={{
+        width: isMobile ? "100%" : 280,
+        height: isMobile ? "80vh" : "auto",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Fixed Header */}
+      <Box
+        sx={{
+          p: 2,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          flexShrink: 0, // Prevents header from shrinking
+        }}
       >
-        <Button
-          variant="outlined"
-          startIcon={<FilterListIcon />}
-          onClick={() => setDrawerOpen(true)}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
         >
-          Filters
-        </Button>
-      </Stack>
-
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        PaperProps={{ sx: { width: { xs: "100%", sm: 420 } } }}
-      >
-        <Box sx={{ p: 3 }}>
-          {/* Header */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 2,
-            }}
-          >
-            <Typography variant="h6">Filter & Sort</Typography>
-            <Button onClick={handleClearFilters}>Clear</Button>
-          </Box>
-
-          <Divider sx={{ mb: 2 }} />
-
-          {/* Seasons */}
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Seasons
+          <Typography variant="h6">
+            Filters{" "}
+            {getActiveFilterCount() > 0 && `(${getActiveFilterCount()})`}
           </Typography>
-          <FormGroup sx={{ mb: 2 }}>
-            {seasons.map((s) => (
-              <FormControlLabel
-                key={s}
-                control={
-                  <Checkbox
-                    checked={selectedSeasons.includes(s)}
-                    onChange={() =>
-                      toggleArrayValue(selectedSeasons, setSelectedSeasons, s)
-                    }
-                  />
-                }
-                label={s}
-              />
-            ))}
-          </FormGroup>
-
-          {/* Occasions */}
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Occasions
-          </Typography>
-          <FormGroup sx={{ mb: 2 }}>
-            {occasions.map((o) => (
-              <FormControlLabel
-                key={o}
-                control={
-                  <Checkbox
-                    checked={selectedOccasions.includes(o)}
-                    onChange={() =>
-                      toggleArrayValue(
-                        selectedOccasions,
-                        setSelectedOccasions,
-                        o
-                      )
-                    }
-                  />
-                }
-                label={o}
-              />
-            ))}
-          </FormGroup>
-
-          {/* Genders */}
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Gender
-          </Typography>
-          <FormGroup sx={{ mb: 2 }}>
-            {genders.map((g) => (
-              <FormControlLabel
-                key={g}
-                control={
-                  <Checkbox
-                    checked={selectedGenders.includes(g)}
-                    onChange={() =>
-                      toggleArrayValue(selectedGenders, setSelectedGenders, g)
-                    }
-                  />
-                }
-                label={g.charAt(0).toUpperCase() + g.slice(1)}
-              />
-            ))}
-          </FormGroup>
-
-          <Divider sx={{ mb: 2 }} />
-
-          {/* Sort */}
-          <FormControl fullWidth>
-            <InputLabel id="sort-by-label">Sort by</InputLabel>
-            <Select
-              labelId="sort-by-label"
-              value={sortBy}
-              label="Sort by"
-              onChange={(e) => setSortBy(e.target.value)}
-            >
-              <MenuItem value="relevance">Relevance</MenuItem>
-              <MenuItem value="name-asc">Name (A → Z)</MenuItem>
-              <MenuItem value="name-desc">Name (Z → A)</MenuItem>
-              <MenuItem value="rating-desc">Rating (high → low)</MenuItem>
-              <MenuItem value="rating-asc">Rating (low → high)</MenuItem>
-              <MenuItem value="popularity-desc">
-                Popularity (most → least rated)
-              </MenuItem>
-              <MenuItem value="popularity-asc">
-                Popularity (least → most rated)
-              </MenuItem>
-              <MenuItem value="longevity-desc">
-                Longevity (long → short)
-              </MenuItem>
-              <MenuItem value="longevity-asc">
-                Longevity (short → long)
-              </MenuItem>
-              <MenuItem value="intensity-desc">
-                Intensity (strong → light)
-              </MenuItem>
-              <MenuItem value="intensity-asc">
-                Intensity (light → strong)
-              </MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Buttons */}
-          <Box sx={{ mt: 3, display: "flex", gap: 1 }}>
-            <Button variant="contained" fullWidth onClick={applyFilters}>
-              Apply
+          {isMobile && (
+            <Button onClick={onClose} size="small">
+              <Close />
             </Button>
-            <Button
-              variant="outlined"
-              fullWidth
-              onClick={() => {
-                handleClearFilters();
-                setDrawerOpen(false);
+          )}
+        </Box>
+      </Box>
+
+      {/* Scrollable Content Area */}
+      <Box
+        sx={{
+          flex: 1,
+          overflow: "auto",
+          p: 2,
+          // Add padding at the bottom to ensure content isn't hidden behind actions
+          pb: isMobile ? 8 : 2,
+        }}
+      >
+        {/* Sort - Only show in mobile */}
+        {isMobile && (
+          <>
+            <FormControl fullWidth size="small" sx={{ mb: 3 }}>
+              <InputLabel>Sort by</InputLabel>
+              <Select
+                value={filters.sortBy || "relevance"}
+                label="Sort by"
+                onChange={(e) =>
+                  onFilterChange({
+                    ...filters,
+                    sortBy: e.target.value,
+                  })
+                }
+              >
+                <MenuItem value="relevance">Relevance</MenuItem>
+                <MenuItem value="name-asc">Name (A → Z)</MenuItem>
+                <MenuItem value="name-desc">Name (Z → A)</MenuItem>
+                <MenuItem value="rating-desc">Rating (high → low)</MenuItem>
+                <MenuItem value="rating-asc">Rating (low → high)</MenuItem>
+                <MenuItem value="popularity-desc">
+                  Popularity (most → least)
+                </MenuItem>
+                <MenuItem value="popularity-asc">
+                  Popularity (least → most)
+                </MenuItem>
+              </Select>
+            </FormControl>
+            <Divider sx={{ mb: 2 }} />
+          </>
+        )}
+
+        {/* Filter Categories */}
+        {Object.entries(FILTER_CATEGORIES).map(
+          ([category, { label, options }]) => (
+            <Accordion
+              key={category}
+              defaultExpanded={!isMobile}
+              sx={{
+                mb: 1,
+                "&:before": { display: "none" },
+                boxShadow: "none",
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 1,
               }}
             >
-              Reset
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  {label}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <FormGroup>
+                  {options.map((option) => (
+                    <FormControlLabel
+                      key={option}
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={(filters[category] || []).includes(option)}
+                          onChange={() => toggleFilter(category, option)}
+                        />
+                      }
+                      label={option}
+                    />
+                  ))}
+                </FormGroup>
+              </AccordionDetails>
+            </Accordion>
+          )
+        )}
+      </Box>
+
+      {/* Fixed Action Buttons */}
+      <Box
+        sx={{
+          p: 2,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          flexShrink: 0, // Prevents actions from shrinking
+          bgcolor: "background.paper",
+        }}
+      >
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={onClearFilters}
+            disabled={getActiveFilterCount() === 0}
+          >
+            Clear All
+          </Button>
+          {isMobile && (
+            <Button variant="contained" fullWidth onClick={onClose}>
+              Apply
             </Button>
-          </Box>
+          )}
         </Box>
+      </Box>
+    </Box>
+  );
+};
+
+const FragranceFilter = ({ onFilterChange, seasons, occasions, genders }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    seasons: [],
+    occasions: [],
+    genders: [],
+    performance: [],
+    sortBy: "relevance",
+  });
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    const clearedFilters = {
+      seasons: [],
+      occasions: [],
+      genders: [],
+      performance: [],
+      sortBy: "relevance",
+    };
+    setFilters(clearedFilters);
+    onFilterChange(clearedFilters);
+  };
+
+  const getActiveFilterCount = () => {
+    return Object.values(filters).reduce((count, categoryFilters) => {
+      return (
+        count + (Array.isArray(categoryFilters) ? categoryFilters.length : 0)
+      );
+    }, 0);
+  };
+
+  // Desktop: Permanent sidebar
+  if (!isMobile) {
+    return (
+      <FilterSidebar
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        isMobile={false}
+      />
+    );
+  }
+
+  // Mobile: Bottom sheet drawer
+  return (
+    <>
+      {/* Mobile Filter Button with Badge */}
+      <Box
+        sx={{
+          position: "fixed",
+          bottom: 16,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 1000,
+        }}
+      >
+        <Button
+          variant="contained"
+          startIcon={<FilterList />}
+          onClick={() => setMobileOpen(true)}
+          sx={{
+            borderRadius: 8,
+            px: 3,
+            py: 1.5,
+            boxShadow: 3,
+            minWidth: 140,
+            position: "relative",
+          }}
+        >
+          Filters
+          {getActiveFilterCount() > 0 && (
+            <Chip
+              label={getActiveFilterCount()}
+              size="small"
+              sx={{
+                position: "absolute",
+                top: -8,
+                right: -8,
+                height: 20,
+                minWidth: 20,
+                fontSize: "0.75rem",
+              }}
+            />
+          )}
+        </Button>
+      </Box>
+
+      <Drawer
+        anchor="bottom"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            maxHeight: "80vh",
+          },
+        }}
+      >
+        <FilterSidebar
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+          isMobile={true}
+          onClose={() => setMobileOpen(false)}
+        />
       </Drawer>
     </>
   );
