@@ -4,36 +4,77 @@ export const lightTheme = createTheme({
   palette: {
     mode: "light",
     background: {
-      default: "#FDFDFD",
+      default: "#F8F7F4", // Warmer, softer off-white
       paper: "#FFFFFF",
     },
     text: {
-      primary: "#2C2C2C",
-      secondary: "#5D5D5D",
+      primary: "#2A2A2A", // Softer black
+      secondary: "#6B6B6B", // Warmer gray
     },
     primary: {
-      main: "#8B7355",
-      light: "#A88C6D",
-      dark: "#6D5A3E",
+      main: "#9C7C5C", // Rich, warm bronze/amber
+      light: "#B59676",
+      dark: "#7D6145",
+      contrastText: "#FFFFFF",
     },
     secondary: {
-      main: "#2C2C2C",
+      main: "#5D4037", // Warm brown
+      light: "#8B6B61",
+      dark: "#3E2723",
+      contrastText: "#FFFFFF",
+    },
+    grey: {
+      50: "#FAF9F7",
+      100: "#F5F3F0",
+      200: "#E8E6E1",
     },
   },
   typography: {
     fontFamily: '"Inter", "Arial", sans-serif',
     h1: {
-      fontWeight: 600,
+      fontWeight: 700,
+      fontSize: "3.5rem",
     },
     h2: {
       fontWeight: 600,
+      fontSize: "2.75rem",
     },
     h3: {
+      fontWeight: 600,
+      fontSize: "2.25rem",
+    },
+    h4: {
       fontWeight: 500,
+      fontSize: "2rem",
+    },
+    h5: {
+      fontWeight: 500,
+      fontSize: "1.5rem",
+    },
+    h6: {
+      fontWeight: 500,
+      fontSize: "1.25rem",
     },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 12, // Slightly more rounded for modern look
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none", // More modern - no uppercase
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+        },
+      },
+    },
   },
 });
 
@@ -41,29 +82,77 @@ export const darkTheme = createTheme({
   palette: {
     mode: "dark",
     background: {
-      default: "#1C140E", // deep roasted brown (coffee bean base)
-      paper: "#2A1E14", // lighter brown for cards
+      default: "#1A1816", // Deep charcoal with warm undertones
+      paper: "#26221E", // Rich dark brown
     },
     text: {
-      primary: "#EDE0D4", // warm cream for readability
-      secondary: "#C7B6A1", // muted beige accent
+      primary: "#F0EDE9", // Warm off-white
+      secondary: "#C4BDB5", // Muted warm gray
     },
     primary: {
-      main: "#C19A6B", // caramel/golden brown
-      light: "#D4B592",
-      dark: "#8B6A45",
+      main: "#C8A97E", // Warm golden beige
+      light: "#DBC4A4",
+      dark: "#A88B61",
+      contrastText: "#1A1816",
     },
     secondary: {
-      main: "#EDE0D4", // matches text.primary tone
+      main: "#8B7355", // Muted bronze
+      light: "#A89277",
+      dark: "#6D5A3E",
+      contrastText: "#F0EDE9",
+    },
+    grey: {
+      50: "#2A2622",
+      100: "#36312B",
+      200: "#453F38",
     },
   },
   typography: {
     fontFamily: '"Inter", "Arial", sans-serif',
-    h1: { fontWeight: 600 },
-    h2: { fontWeight: 600 },
-    h3: { fontWeight: 500 },
+    h1: {
+      fontWeight: 700,
+      fontSize: "3.5rem",
+    },
+    h2: {
+      fontWeight: 600,
+      fontSize: "2.75rem",
+    },
+    h3: {
+      fontWeight: 600,
+      fontSize: "2.25rem",
+    },
+    h4: {
+      fontWeight: 500,
+      fontSize: "2rem",
+    },
+    h5: {
+      fontWeight: 500,
+      fontSize: "1.5rem",
+    },
+    h6: {
+      fontWeight: 500,
+      fontSize: "1.25rem",
+    },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 12,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          backgroundImage: "none", // Remove default gradient
+        },
+      },
+    },
   },
 });

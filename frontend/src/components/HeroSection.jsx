@@ -1,16 +1,29 @@
-import { Container, Typography, Box, Button } from "@mui/material";
+import { Container, Typography, Box, Button, alpha } from "@mui/material";
 import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   return (
     <Box
       sx={{
-        bgcolor: "primary.main",
+        background: (theme) =>
+          `linear-gradient(135deg, ${alpha(
+            theme.palette.primary.main,
+            0.9
+          )} 0%, ${alpha(theme.palette.primary.dark, 0.95)} 100%)`,
         color: "white",
-        py: 12,
-        width: "100%",
-        maxWidth: "100vw",
-        overflowX: "hidden",
+        py: { xs: 8, md: 12 },
+        position: "relative",
+        overflow: "hidden",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background:
+            "radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)",
+        },
       }}
     >
       <Container
@@ -18,7 +31,8 @@ const HeroSection = () => {
         sx={{
           textAlign: "center",
           px: { xs: 2, sm: 3 },
-          overflowX: "hidden",
+          position: "relative",
+          zIndex: 1,
         }}
       >
         <Typography
@@ -27,7 +41,12 @@ const HeroSection = () => {
           gutterBottom
           sx={{
             fontWeight: 700,
-            fontSize: { xs: "2.5rem", md: "4rem" },
+            fontSize: { xs: "2.5rem", md: "3.5rem", lg: "4rem" },
+            background: "linear-gradient(45deg, #FFFFFF 30%, #F0F0F0 90%)",
+            backgroundClip: "text",
+            WebkitBackgroundClip: "text",
+            color: "transparent",
+            textShadow: "0 4px 8px rgba(0,0,0,0.1)",
           }}
         >
           Discover Your Signature Scent
@@ -39,7 +58,9 @@ const HeroSection = () => {
             maxWidth: 600,
             mx: "auto",
             mb: 4,
-            opacity: 0.9,
+            opacity: 0.95,
+            fontWeight: 300,
+            lineHeight: 1.6,
           }}
         >
           Explore thousands of fragrances, read authentic reviews, and find your
@@ -57,20 +78,52 @@ const HeroSection = () => {
             fontWeight: "bold",
             px: 4,
             py: 1.5,
-            mb: 3,
-            "&:hover": { bgcolor: "grey.100" },
+            mb: 4, // Increased margin bottom
+            borderRadius: 2,
+            fontSize: "1.1rem",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            "&:hover": {
+              bgcolor: "grey.50",
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+            },
+            transition: "all 0.3s ease",
           }}
         >
-          All Fragrances
+          Explore All Fragrances
         </Button>
 
-        <Box sx={{ maxWidth: 500, mx: "auto" }}>
-          <Typography variant="body1" sx={{ mb: 2, opacity: 0.9 }}>
-            Not sure where to start?
+        {/* Larger Quiz Box */}
+        <Box
+          sx={{
+            maxWidth: 550, // Increased width
+            mx: "auto",
+            bgcolor: "rgba(255,255,255,0.15)",
+            p: 4, // Increased padding
+            borderRadius: 2,
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255,255,255,0.2)",
+          }}
+        >
+          <Typography
+            variant="h6" // Larger text
+            sx={{
+              mb: 2,
+              opacity: 0.95,
+              fontWeight: 600,
+              fontSize: "1.2rem", // Explicit font size
+            }}
+          >
+            🎯 Not sure where to start?
           </Typography>
           <Typography
-            variant="body2"
-            sx={{ opacity: 0.8, fontStyle: "italic", mb: 2 }}
+            variant="body1" // Larger body text
+            sx={{
+              opacity: 0.9,
+              lineHeight: 1.6,
+              mb: 3, // Increased margin
+              fontSize: "1.05rem", // Slightly larger
+            }}
           >
             Take our 2-minute quiz to find your perfect fragrance match based on
             your preferences, personality, and occasion.
@@ -85,13 +138,19 @@ const HeroSection = () => {
               borderColor: "white",
               color: "white",
               fontWeight: "bold",
+              borderWidth: 2,
+              fontSize: "1rem",
+              px: 3,
               "&:hover": {
-                bgcolor: "rgba(255,255,255,0.1)",
+                bgcolor: "rgba(255,255,255,0.15)",
                 borderColor: "white",
+                transform: "translateY(-2px)",
+                boxShadow: "0 4px 12px rgba(255,255,255,0.2)",
               },
+              transition: "all 0.3s ease",
             }}
           >
-            Take Our Scent Quiz
+            Take Scent Quiz
           </Button>
         </Box>
       </Container>

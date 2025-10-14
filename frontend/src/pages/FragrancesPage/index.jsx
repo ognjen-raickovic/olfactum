@@ -186,7 +186,7 @@ const FragrancesPage = () => {
       sx={{
         display: "flex",
         minHeight: "100vh",
-        flexDirection: isMobile ? "column" : "row-reverse", // Changed to row-reverse for right sidebar
+        flexDirection: isMobile ? "column" : "row-reverse",
       }}
     >
       {/* Desktop Sidebar - Now on the RIGHT */}
@@ -195,7 +195,7 @@ const FragrancesPage = () => {
           sx={{
             width: 280,
             flexShrink: 0,
-            borderLeft: `1px solid ${theme.palette.divider}`, // Changed to borderLeft
+            borderLeft: `1px solid ${theme.palette.divider}`,
             bgcolor: "background.paper",
           }}
         >
@@ -214,16 +214,16 @@ const FragrancesPage = () => {
           flex: 1,
           px: { xs: 2, sm: 3, md: 4 },
           py: 4,
-          pb: isMobile ? 10 : 4, // Extra padding for mobile filter button
+          pb: isMobile ? 10 : 4,
         }}
       >
-        {/* Header */}
+        {/* Header - Centered on both mobile and desktop */}
         <Typography
           variant="h4"
           sx={{
             mb: 3,
             fontWeight: 600,
-            textAlign: { xs: "center", md: "left" },
+            textAlign: "center", // Always centered
             fontSize: { xs: "1.75rem", md: "2.125rem" },
           }}
         >
@@ -307,10 +307,11 @@ const FragrancesPage = () => {
           </Typography>
         ) : (
           <>
+            {/* Showing text - Centered on both mobile and desktop */}
             <Typography
               variant="body2"
               color="text.secondary"
-              sx={{ mb: 2, textAlign: { xs: "center", md: "left" } }}
+              sx={{ mb: 2, textAlign: "center" }} // Always centered
             >
               Showing {Math.min(visibleCount, filteredResults.length)} of{" "}
               {filteredResults.length} fragrances
