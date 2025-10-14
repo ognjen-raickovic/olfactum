@@ -5,6 +5,8 @@ import {
   Step,
   StepLabel,
   Typography,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { useState } from "react";
 import QuizQuestions from "../../components/QuizQuestions";
@@ -13,6 +15,9 @@ import QuizResults from "../../components/QuizResults";
 const QuizPage = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const quizSteps = [
     "Scent Preferences",
@@ -42,33 +47,29 @@ const QuizPage = () => {
         flexDirection: "column",
         minHeight: "100vh",
         bgcolor: "background.default",
-        py: 6,
+        py: 4,
         px: 2,
-        overflowX: "hidden",
-        maxWidth: "100vw",
       }}
     >
       <Container
-        maxWidth="md"
+        maxWidth="lg" // Changed back to lg for better PC layout
         sx={{
           bgcolor: "background.paper",
-          p: { xs: 3, sm: 5 },
+          p: 4,
           borderRadius: 3,
           boxShadow: 4,
           mx: "auto",
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
-          overflowX: "hidden",
         }}
       >
         <Box sx={{ textAlign: "center", mb: 6 }}>
           <Typography
-            variant="h4"
+            variant="h3"
             sx={{
               fontWeight: 700,
-              mb: 3,
+              mb: 4,
               color: "text.primary",
             }}
           >
@@ -77,19 +78,40 @@ const QuizPage = () => {
               : "Find Your Perfect Scent"}
           </Typography>
 
+          {/* Simple Mobile Stepper - No connectors, clean circles */}
           <Stepper
             activeStep={currentStep}
             alternativeLabel
             sx={{
               mb: 4,
-              "& .MuiStepLabel-label": {
-                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              "& .MuiStepConnector-root": {
+                display: isMobile ? "none" : "block", // Hide connectors on mobile
+              },
+              "& .MuiStep-root": {
+                padding: isMobile ? "0 8px" : "0 12px",
               },
             }}
           >
             {quizSteps.map((label) => (
               <Step key={label}>
-                <StepLabel>{label}</StepLabel>
+                <StepLabel
+                  sx={{
+                    "& .MuiStepLabel-label": {
+                      fontSize: isMobile ? "0.75rem" : "0.875rem",
+                      fontWeight: 600,
+                      mt: 0.5,
+                    },
+                  }}
+                >
+                  {isMobile
+                    ? // Shortened labels for mobile
+                      label
+                        .split(" ")
+                        .map((word) => word[0])
+                        .join("") +
+                      (label.includes("Preferences") ? "Pref" : "")
+                    : label}
+                </StepLabel>
               </Step>
             ))}
           </Stepper>
