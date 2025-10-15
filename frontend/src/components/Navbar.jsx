@@ -30,6 +30,7 @@ import { useThemeContext } from "../contexts/ThemeContext";
 import { searchFragrances } from "../services/fragranceService";
 import FragranceModal from "./FragranceModal";
 import { humanizeName } from "../utils/humanizeName";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const theme = useTheme();
@@ -113,7 +114,7 @@ const Navbar = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            minHeight: { xs: 64, md: 78 },
+            minHeight: { xs: 70, md: 84 },
             px: { xs: 1.5, sm: 3, md: 6 },
             gap: 2,
           }}
@@ -130,7 +131,7 @@ const Navbar = () => {
               textDecoration: "none",
               textTransform: "lowercase",
               letterSpacing: "-0.6px",
-              fontSize: { xs: "1.4rem", sm: "1.7rem", md: "2rem" },
+              fontSize: { xs: "1.6rem", sm: "1.9rem", md: "2.25rem" },
               "&:hover": { opacity: 0.95 },
             }}
           >
@@ -164,7 +165,7 @@ const Navbar = () => {
                   bgcolor: "background.default",
                   borderRadius: 3,
                   px: 1.5,
-                  py: { xs: 0.5, md: 0.8 },
+                  py: { xs: 0.7, md: 1 },
                   width: "100%",
                   boxShadow:
                     theme.palette.mode === "light"
@@ -180,7 +181,7 @@ const Navbar = () => {
                   sx={{
                     color: "text.primary",
                     width: "100%",
-                    fontSize: { xs: "0.95rem", md: "1.02rem" },
+                    fontSize: { xs: "1rem", md: "1.1rem" },
                     px: 0.5,
                   }}
                 />
@@ -270,7 +271,7 @@ const Navbar = () => {
                     textDecoration: "none",
                     color: "text.primary",
                     fontWeight: 600,
-                    fontSize: "1.03rem",
+                    fontSize: { xs: "1.05rem", md: "1.15rem" },
                     position: "relative",
                     px: 0.25,
                     py: 0.25,
@@ -303,25 +304,35 @@ const Navbar = () => {
                 color="inherit"
                 sx={{ ml: 0.5 }}
               >
-                {mode === "dark" ? (
-                  <Brightness7 sx={{ fontSize: "1.55rem" }} />
-                ) : (
-                  <Brightness4 sx={{ fontSize: "1.55rem" }} />
-                )}
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={mode}
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                  >
+                    {mode === "dark" ? (
+                      <Brightness7 sx={{ fontSize: "1.75rem" }} />
+                    ) : (
+                      <Brightness4 sx={{ fontSize: "1.75rem" }} />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               </IconButton>
             </Box>
 
             {/* Profile */}
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <IconButton component={Link} to="/profile" sx={{ ml: 0.25 }}>
-                <AccountCircle sx={{ fontSize: "1.85rem" }} />
+                <AccountCircle sx={{ fontSize: "2rem" }} />
               </IconButton>
             </Box>
 
             {/* Mobile menu */}
             <Box sx={{ display: { xs: "flex", md: "none" } }}>
               <IconButton onClick={() => setDrawerOpen(true)}>
-                <MenuIcon sx={{ fontSize: "1.6rem" }} />
+                <MenuIcon sx={{ fontSize: "1.8rem" }} />
               </IconButton>
             </Box>
           </Box>
@@ -416,22 +427,34 @@ const Navbar = () => {
 
           {/* Theme toggle inside drawer (mobile only) */}
           <Box
+            onClick={toggleTheme}
             sx={{
               px: 2,
               py: 2,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
+              cursor: "pointer",
+              "&:active": { opacity: 0.7 },
             }}
           >
             <Typography sx={{ fontWeight: 600 }}>Theme</Typography>
-            <IconButton onClick={toggleTheme} color="inherit">
-              {mode === "dark" ? (
-                <Brightness7 sx={{ fontSize: "1.55rem" }} />
-              ) : (
-                <Brightness4 sx={{ fontSize: "1.55rem" }} />
-              )}
-            </IconButton>
+
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={mode} // triggers animation on mode change
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+              >
+                {mode === "dark" ? (
+                  <Brightness7 sx={{ fontSize: "1.55rem" }} />
+                ) : (
+                  <Brightness4 sx={{ fontSize: "1.55rem" }} />
+                )}
+              </motion.div>
+            </AnimatePresence>
           </Box>
         </Box>
       </Drawer>

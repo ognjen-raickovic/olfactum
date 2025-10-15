@@ -36,11 +36,33 @@ const QuizModal = ({ open, onClose }) => {
     setCurrentStep((prev) => prev - 1);
   };
 
-  const handleAnswer = (questionId, answer) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: answer,
-    }));
+  // FIXED: Multiple selection functionality
+  const handleAnswer = (questionId, answer, isMultiple = false) => {
+    setAnswers((prev) => {
+      // Check if this question allows multiple selections
+      if (isMultiple) {
+        const currentAnswers = prev[questionId] || [];
+
+        // Toggle selection
+        if (currentAnswers.includes(answer)) {
+          return {
+            ...prev,
+            [questionId]: currentAnswers.filter((a) => a !== answer),
+          };
+        } else {
+          return {
+            ...prev,
+            [questionId]: [...currentAnswers, answer],
+          };
+        }
+      } else {
+        // Single selection (original behavior)
+        return {
+          ...prev,
+          [questionId]: answer,
+        };
+      }
+    });
   };
 
   const handleClose = () => {

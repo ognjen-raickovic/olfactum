@@ -31,8 +31,32 @@ const QuizPage = () => {
 
   const handleNext = () => setCurrentStep((prev) => prev + 1);
   const handleBack = () => setCurrentStep((prev) => prev - 1);
-  const handleAnswer = (questionId, answer) =>
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+
+  // FIXED: Update handleAnswer to support multiple selection
+  const handleAnswer = (questionId, answer, isMultiple = false) => {
+    setAnswers((prev) => {
+      if (isMultiple) {
+        const currentAnswers = prev[questionId] || [];
+        if (currentAnswers.includes(answer)) {
+          return {
+            ...prev,
+            [questionId]: currentAnswers.filter((a) => a !== answer),
+          };
+        } else {
+          return {
+            ...prev,
+            [questionId]: [...currentAnswers, answer],
+          };
+        }
+      } else {
+        return {
+          ...prev,
+          [questionId]: answer,
+        };
+      }
+    });
+  };
+
   const handleRestart = () => {
     setCurrentStep(0);
     setAnswers({});
@@ -52,7 +76,7 @@ const QuizPage = () => {
       }}
     >
       <Container
-        maxWidth="lg" // Changed back to lg for better PC layout
+        maxWidth="lg"
         sx={{
           bgcolor: "background.paper",
           p: 4,
@@ -62,6 +86,7 @@ const QuizPage = () => {
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
+          width: "100%", // Ensure full width
         }}
       >
         <Box sx={{ textAlign: "center", mb: 6 }}>
@@ -71,6 +96,11 @@ const QuizPage = () => {
               fontWeight: 700,
               mb: 4,
               color: "text.primary",
+              fontSize: {
+                xs: "1.75rem",
+                sm: "2.5rem",
+                md: "3rem",
+              },
             }}
           >
             {isResultStep
@@ -85,7 +115,7 @@ const QuizPage = () => {
             sx={{
               mb: 4,
               "& .MuiStepConnector-root": {
-                display: isMobile ? "none" : "block", // Hide connectors on mobile
+                display: isMobile ? "none" : "block",
               },
               "& .MuiStep-root": {
                 padding: isMobile ? "0 8px" : "0 12px",
@@ -104,8 +134,7 @@ const QuizPage = () => {
                   }}
                 >
                   {isMobile
-                    ? // Shortened labels for mobile
-                      label
+                    ? label
                         .split(" ")
                         .map((word) => word[0])
                         .join("") +

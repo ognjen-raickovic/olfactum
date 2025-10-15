@@ -218,7 +218,7 @@ export const getRecommendedFragrances = (
       }
     }
 
-    // Notes matching (exact match preferred)
+    // Notes matching (exact match preferred) - FIXED FOR MULTIPLE NOTES
     if (notes) {
       const allNotes = [
         ...(fragrance.notes || []),
@@ -227,8 +227,22 @@ export const getRecommendedFragrances = (
         ...(fragrance.baseNotes || []),
       ].map((note) => note.toLowerCase());
 
-      if (allNotes.some((note) => note.includes(notes.toLowerCase()))) {
-        matchScore += 2.5; // Higher weight for specific note preference
+      // Handle both single note (string) and multiple notes (array)
+      if (Array.isArray(notes)) {
+        // Multiple notes selected - check if any of the selected notes match
+        const matchedNotes = notes.filter((selectedNote) =>
+          allNotes.some((note) => note.includes(selectedNote.toLowerCase()))
+        );
+
+        // Add score based on number of matched notes
+        if (matchedNotes.length > 0) {
+          matchScore += 2.0 + matchedNotes.length * 0.5; // Base 2.0 + 0.5 per additional note
+        }
+      } else {
+        // Single note selected (original behavior)
+        if (allNotes.some((note) => note.includes(notes.toLowerCase()))) {
+          matchScore += 2.5;
+        }
       }
     }
 

@@ -160,7 +160,8 @@ const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
     },
     {
       id: "notes",
-      question: "Which note sounds the most appealing to you?",
+      question: "Which notes sound appealing to you? (Select multiple)",
+      multiple: true, // Add this flag
       answers: [
         {
           id: "citrus",
@@ -260,7 +261,6 @@ const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
       >
         Choose the option that best describes your preference
       </Typography>
-
       {/* Options grid */}
       <Box
         sx={{
@@ -278,20 +278,34 @@ const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
         {currentQuestion.answers.map((answer) => (
           <Card
             key={answer.id}
-            onClick={() => onAnswer(currentQuestion.id, answer.id)}
+            onClick={() =>
+              onAnswer(currentQuestion.id, answer.id, currentQuestion.multiple)
+            }
             sx={{
               cursor: "pointer",
               width: "100%",
               maxWidth: 320,
-              border: answers[currentQuestion.id] === answer.id ? 2 : 1,
-              borderColor:
-                answers[currentQuestion.id] === answer.id
+              border: currentQuestion.multiple
+                ? answers[currentQuestion.id]?.includes(answer.id)
+                  ? 2
+                  : 1
+                : answers[currentQuestion.id] === answer.id
+                ? 2
+                : 1,
+              borderColor: currentQuestion.multiple
+                ? answers[currentQuestion.id]?.includes(answer.id)
                   ? "primary.main"
-                  : "divider",
-              bgcolor:
-                answers[currentQuestion.id] === answer.id
+                  : "divider"
+                : answers[currentQuestion.id] === answer.id
+                ? "primary.main"
+                : "divider",
+              bgcolor: currentQuestion.multiple
+                ? answers[currentQuestion.id]?.includes(answer.id)
                   ? "primary.light"
-                  : "background.paper",
+                  : "background.paper"
+                : answers[currentQuestion.id] === answer.id
+                ? "primary.light"
+                : "background.paper",
               transition: "all 0.2s",
               "&:hover": { transform: "translateY(-3px)", boxShadow: 2 },
             }}
@@ -302,6 +316,12 @@ const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
               </Typography>
               <Typography variant="h6" gutterBottom>
                 {answer.text}
+                {currentQuestion.multiple &&
+                  answers[currentQuestion.id]?.includes(answer.id) && (
+                    <Box component="span" sx={{ ml: 1 }}>
+                      ✓
+                    </Box>
+                  )}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.8 }}>
                 {answer.description}
@@ -311,13 +331,46 @@ const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
         ))}
       </Box>
 
-      {/* Navigation buttons */}
+      {/* Navigation buttons - Fixed on mobile */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           flexWrap: "wrap",
           gap: 2,
+          position: {
+            xs: "fixed", // Fixed on mobile
+            sm: "static", // Normal on larger screens
+          },
+          bottom: {
+            xs: 0, // Stick to bottom on mobile
+            sm: "auto",
+          },
+          left: {
+            xs: 0,
+            sm: "auto",
+          },
+          right: {
+            xs: 0,
+            sm: "auto",
+          },
+          bgcolor: {
+            xs: "background.paper", // Background for mobile
+            sm: "transparent",
+          },
+          p: {
+            xs: 2,
+            sm: 0,
+          },
+          borderTop: {
+            xs: 1, // Subtle border on mobile
+            sm: 0,
+          },
+          borderColor: {
+            xs: "divider",
+            sm: "transparent",
+          },
+          zIndex: 1000, // Ensure it's above other content
         }}
       >
         <Button
@@ -325,6 +378,12 @@ const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
           variant="outlined"
           disabled={step === 0}
           size="large"
+          sx={{
+            flex: {
+              xs: 1, // Equal width on mobile
+              sm: "none",
+            },
+          }}
         >
           Back
         </Button>
@@ -332,11 +391,25 @@ const QuizQuestions = ({ step, answers, onAnswer, onBack, onNext }) => {
           variant="contained"
           size="large"
           onClick={onNext}
-          disabled={!answers[currentQuestion.id]}
+          disabled={
+            currentQuestion.multiple
+              ? !answers[currentQuestion.id] ||
+                answers[currentQuestion.id].length === 0
+              : !answers[currentQuestion.id]
+          }
         >
-          Next Question
-        </Button>
+          {step === questions.length - 1 ? "See Results" : "Next Question"}
+        </Button>{" "}
       </Box>
+      {/* Spacer for mobile fixed buttons */}
+      <Box
+        sx={{
+          height: {
+            xs: 80, // Space for fixed buttons on mobile
+            sm: 0,
+          },
+        }}
+      />
     </Box>
   );
 };
