@@ -30,7 +30,7 @@ import { useThemeContext } from "../contexts/ThemeContext";
 import { searchFragrances } from "../services/fragranceService";
 import FragranceModal from "./FragranceModal";
 import { humanizeName } from "../utils/humanizeName";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const Navbar = () => {
   const theme = useTheme();
@@ -67,12 +67,10 @@ const Navbar = () => {
   const handleChange = (e) => {
     const val = e.target.value;
     setQuery(val);
-
     if (!val.trim()) {
       setResults([]);
       return;
     }
-
     const filtered = searchFragrances(val);
     setResults(filtered.slice(0, 6));
   };
@@ -95,7 +93,6 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Fixed navbar */}
       <AppBar
         position="fixed"
         elevation={0}
@@ -114,7 +111,7 @@ const Navbar = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            minHeight: { xs: 70, md: 84 },
+            minHeight: { xs: 68, md: 80 },
             px: { xs: 1.5, sm: 3, md: 6 },
             gap: 2,
           }}
@@ -131,29 +128,31 @@ const Navbar = () => {
               textDecoration: "none",
               textTransform: "lowercase",
               letterSpacing: "-0.6px",
-              fontSize: { xs: "1.6rem", sm: "1.9rem", md: "2.25rem" },
+              fontSize: { xs: "1.4rem", sm: "1.75rem", md: "2rem" },
               "&:hover": { opacity: 0.95 },
+              display: "flex",
+              alignItems: "center",
             }}
           >
             olfactum
           </Typography>
 
-          {/* Center section: search + links */}
+          {/* Center: search + links */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 3.5,
+              gap: 3,
               flexGrow: 1,
               justifyContent: "center",
             }}
           >
-            {/* Search box */}
+            {/* Search */}
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                width: { xs: 180, sm: 260, md: 360 },
+                width: { xs: 180, sm: 250, md: 340 },
                 maxWidth: "46vw",
                 position: "relative",
               }}
@@ -164,8 +163,8 @@ const Navbar = () => {
                   alignItems: "center",
                   bgcolor: "background.default",
                   borderRadius: 3,
-                  px: 1.5,
-                  py: { xs: 0.7, md: 1 },
+                  px: 1.25,
+                  py: { xs: 0.6, md: 0.9 },
                   width: "100%",
                   boxShadow:
                     theme.palette.mode === "light"
@@ -181,17 +180,17 @@ const Navbar = () => {
                   sx={{
                     color: "text.primary",
                     width: "100%",
-                    fontSize: { xs: "1rem", md: "1.1rem" },
+                    fontSize: { xs: "0.9rem", md: "1rem" },
                     px: 0.5,
                   }}
                 />
                 <IconButton
                   onClick={handleSearchSubmit}
                   aria-label="Search"
-                  sx={{ p: { xs: 0.5, md: 0.7 } }}
+                  sx={{ p: { xs: 0.4, md: 0.6 } }}
                 >
                   <Search
-                    sx={{ color: "text.secondary", fontSize: "1.3rem" }}
+                    sx={{ color: "text.secondary", fontSize: "1.2rem" }}
                   />
                 </IconButton>
               </Box>
@@ -228,20 +227,20 @@ const Navbar = () => {
                         src={r.image}
                         alt={r.name}
                         style={{
-                          width: 44,
-                          height: 44,
+                          width: 40,
+                          height: 40,
                           objectFit: "cover",
                           borderRadius: 6,
                         }}
                       />
                       <Box>
                         <MuiTypography
-                          sx={{ fontWeight: 700, fontSize: "0.98rem" }}
+                          sx={{ fontWeight: 700, fontSize: "0.92rem" }}
                         >
                           {getDisplayLabel(r)}
                         </MuiTypography>
                         <MuiTypography
-                          sx={{ fontSize: "0.78rem", color: "text.secondary" }}
+                          sx={{ fontSize: "0.75rem", color: "text.secondary" }}
                         >
                           {humanizeName(r.brand)}
                         </MuiTypography>
@@ -252,12 +251,12 @@ const Navbar = () => {
               )}
             </Box>
 
-            {/* Desktop nav links */}
+            {/* Nav links */}
             <Box
               sx={{
                 display: { xs: "none", md: "flex" },
                 alignItems: "center",
-                gap: 4.25,
+                gap: 3.5,
                 ml: 1,
               }}
             >
@@ -271,7 +270,7 @@ const Navbar = () => {
                     textDecoration: "none",
                     color: "text.primary",
                     fontWeight: 600,
-                    fontSize: { xs: "1.05rem", md: "1.15rem" },
+                    fontSize: { xs: "0.95rem", md: "1rem" },
                     position: "relative",
                     px: 0.25,
                     py: 0.25,
@@ -280,7 +279,7 @@ const Navbar = () => {
                       position: "absolute",
                       width: 0,
                       height: "2px",
-                      bottom: -8,
+                      bottom: -6,
                       left: 0,
                       bgcolor: "primary.main",
                       transition: "width 0.22s ease",
@@ -295,54 +294,71 @@ const Navbar = () => {
             </Box>
           </Box>
 
-          {/* Right side: theme (desktop only), profile, menu */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-            {/* Theme toggle: only visible on md+ */}
+          {/* Right: theme + profile + menu */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              transform: "translateY(1px)",
+            }}
+          >
+            {/* Theme toggle (desktop) */}
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <IconButton
                 onClick={toggleTheme}
                 color="inherit"
-                sx={{ ml: 0.5 }}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  ml: 0.75,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={mode}
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.35, ease: "easeOut" }}
-                  >
-                    {mode === "dark" ? (
-                      <Brightness7 sx={{ fontSize: "1.75rem" }} />
-                    ) : (
-                      <Brightness4 sx={{ fontSize: "1.75rem" }} />
-                    )}
-                  </motion.div>
-                </AnimatePresence>
+                <Box
+                  component={motion.div}
+                  key={mode}
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.35 }}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {mode === "dark" ? (
+                    <Brightness7 sx={{ fontSize: "1.75rem" }} />
+                  ) : (
+                    <Brightness4 sx={{ fontSize: "1.75rem" }} />
+                  )}
+                </Box>
               </IconButton>
             </Box>
 
-            {/* Profile */}
+            {/* Profile (desktop) */}
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <IconButton component={Link} to="/profile" sx={{ ml: 0.25 }}>
-                <AccountCircle sx={{ fontSize: "2rem" }} />
+                <AccountCircle sx={{ fontSize: "1.75rem" }} />
               </IconButton>
             </Box>
 
             {/* Mobile menu */}
             <Box sx={{ display: { xs: "flex", md: "none" } }}>
               <IconButton onClick={() => setDrawerOpen(true)}>
-                <MenuIcon sx={{ fontSize: "1.8rem" }} />
+                <MenuIcon sx={{ fontSize: "1.7rem" }} />
               </IconButton>
             </Box>
           </Box>
         </Toolbar>
       </AppBar>
 
-      {/* Spacer to prevent content jump (this is the trick) */}
       <Toolbar />
 
-      {/* Mobile drawer */}
+      {/* Mobile Drawer */}
       <Drawer
         anchor="right"
         open={drawerOpen}
@@ -357,7 +373,7 @@ const Navbar = () => {
             bgcolor: "background.paper",
           }}
         >
-          {/* Drawer header */}
+          {/* Header */}
           <Box
             sx={{
               display: "flex",
@@ -425,7 +441,7 @@ const Navbar = () => {
 
           <Divider />
 
-          {/* Theme toggle inside drawer (mobile only) */}
+          {/* Theme toggle (mobile) */}
           <Box
             onClick={toggleTheme}
             sx={{
@@ -439,27 +455,32 @@ const Navbar = () => {
             }}
           >
             <Typography sx={{ fontWeight: 600 }}>Theme</Typography>
-
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={mode} // triggers animation on mode change
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-              >
-                {mode === "dark" ? (
-                  <Brightness7 sx={{ fontSize: "1.55rem" }} />
-                ) : (
-                  <Brightness4 sx={{ fontSize: "1.55rem" }} />
-                )}
-              </motion.div>
-            </AnimatePresence>
+            <Box
+              component={motion.div}
+              key={mode}
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.35 }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 32,
+                height: 32,
+              }}
+            >
+              {mode === "dark" ? (
+                <Brightness7 sx={{ fontSize: "1.55rem" }} />
+              ) : (
+                <Brightness4 sx={{ fontSize: "1.55rem" }} />
+              )}
+            </Box>
           </Box>
         </Box>
       </Drawer>
 
-      {/* Fragrance modal */}
+      {/* Modal */}
       {selectedFragrance && (
         <FragranceModal
           fragrance={selectedFragrance}
