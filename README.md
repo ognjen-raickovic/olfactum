@@ -1,12 +1,10 @@
-# From olfactum folder, update the README
-@"
 # Olfactum 🌸
 
 A modern fragrance review and discovery platform.
 
 ## About
 
-Olfactum is a comprehensive fragrance database and review platform where users can explore, review, and discover new scents. Built with modern web technologies and a passion for perfumery.
+Olfactum is a fragrance discovery platform where users can explore scents and find their perfect fragrance through an interactive quiz. Built with modern web technologies and a passion for perfumery.
 
 ## Project Structure
 
@@ -38,9 +36,8 @@ Coming soon...
 
 - **Frontend**: React, Vite, Material UI, React Router
 - **Backend**: (Planned) FastAPI, SQLModel, MySQL
-- **Deployment**: (Planned) Vercel (frontend) + Render (backend)
+- **Deployment**: Vercel (frontend) + (Planned) Render (backend)
 
 ## License
 
 MIT
-"@ | Out-File -FilePath README.md -Encoding utf8
