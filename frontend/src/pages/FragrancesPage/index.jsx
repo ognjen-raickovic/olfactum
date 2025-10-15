@@ -88,13 +88,16 @@ const FragrancesPage = () => {
       );
     }
 
-    // Gender filtering (OR logic)
+    // Gender filtering (token-based OR logic)
     if (genders.length > 0) {
       items = items.filter((f) => {
-        const fragranceGender = (f.genderProfile || "").toLowerCase();
-        return genders.some((gender) =>
-          fragranceGender.includes(gender.toLowerCase())
-        );
+        const genderTokens = (f.genderProfile || "")
+          .toLowerCase()
+          .split(/[\s/,&]+/) // split by spaces, slashes, commas, ampersands
+          .map((t) => t.trim())
+          .filter(Boolean);
+
+        return genders.some((g) => genderTokens.includes(g.toLowerCase()));
       });
     }
 

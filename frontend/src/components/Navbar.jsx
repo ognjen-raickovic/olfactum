@@ -29,7 +29,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useThemeContext } from "../contexts/ThemeContext";
 import { searchFragrances } from "../services/fragranceService";
 import FragranceModal from "./FragranceModal";
-import { humanizeName } from "../utils/humanizeName"; // <-- use humanizeName here
+import { humanizeName } from "../utils/humanizeName";
 
 const Navbar = () => {
   const theme = useTheme();
@@ -40,7 +40,6 @@ const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
-  // NAV LINKS in requested order
   const navLinks = [
     { label: "Home", path: "/" },
     { label: "Fragrances", path: "/fragrances" },
@@ -51,23 +50,19 @@ const Navbar = () => {
     { label: "FAQ", path: "/faq" },
   ];
 
-  // helper — returns nicely formatted display label using humanizeName
   const getDisplayLabel = (f) => {
     if (!f) return "Unknown";
     const name = humanizeName(f.name);
     const brand = humanizeName(f.brand);
-    // if the brand prefix is already in the name (e.g., "lattafa ...") try to make it nicer:
     const ln = (name || "").toLowerCase();
     const lb = (brand || "").toLowerCase();
     if (brand && ln.startsWith(lb)) {
-      // try to remove brand from name (if duplicated)
       const without = name.substring(brand.length).trim();
       if (without) return `${without} – ${brand}`;
     }
     return name;
   };
 
-  // search handlers
   const handleChange = (e) => {
     const val = e.target.value;
     setQuery(val);
@@ -77,8 +72,6 @@ const Navbar = () => {
       return;
     }
 
-    // searchFragrances should return an array of fragrance objects
-    // keep it synchronous (like earlier) — or adapt if your service is async
     const filtered = searchFragrances(val);
     setResults(filtered.slice(0, 6));
   };
@@ -94,7 +87,6 @@ const Navbar = () => {
   };
 
   const handleResultClick = (f) => {
-    // open modal instead of navigating immediately
     setSelectedFragrance(f);
     setResults([]);
     setQuery("");
@@ -102,8 +94,9 @@ const Navbar = () => {
 
   return (
     <>
+      {/* Fixed navbar */}
       <AppBar
-        position="sticky"
+        position="fixed"
         elevation={0}
         sx={{
           backdropFilter: "blur(10px)",
@@ -115,44 +108,41 @@ const Navbar = () => {
           borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
-        {/* Taller toolbar and bigger fonts */}
         <Toolbar
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            minHeight: { xs: 64, md: 78 }, // bigger toolbar
+            minHeight: { xs: 64, md: 78 },
             px: { xs: 1.5, sm: 3, md: 6 },
             gap: 2,
           }}
         >
-          {/* Left: Logo */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Typography
-              variant="h3"
-              component={Link}
-              to="/"
-              sx={{
-                fontFamily: '"Playfair Display", serif',
-                fontWeight: 700,
-                color: "primary.main",
-                textDecoration: "none",
-                textTransform: "lowercase",
-                letterSpacing: "-0.6px",
-                fontSize: { xs: "1.4rem", sm: "1.7rem", md: "2rem" },
-                "&:hover": { opacity: 0.95 },
-              }}
-            >
-              olfactum
-            </Typography>
-          </Box>
+          {/* Logo */}
+          <Typography
+            variant="h3"
+            component={Link}
+            to="/"
+            sx={{
+              fontFamily: '"Playfair Display", serif',
+              fontWeight: 700,
+              color: "primary.main",
+              textDecoration: "none",
+              textTransform: "lowercase",
+              letterSpacing: "-0.6px",
+              fontSize: { xs: "1.4rem", sm: "1.7rem", md: "2rem" },
+              "&:hover": { opacity: 0.95 },
+            }}
+          >
+            olfactum
+          </Typography>
 
-          {/* CENTER: Search + Links */}
+          {/* Center section: search + links */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 3.5, // bigger gap between major blocks
+              gap: 3.5,
               flexGrow: 1,
               justifyContent: "center",
             }}
@@ -174,7 +164,7 @@ const Navbar = () => {
                   bgcolor: "background.default",
                   borderRadius: 3,
                   px: 1.5,
-                  py: { xs: 0.5, md: 0.8 }, // taller on desktop
+                  py: { xs: 0.5, md: 0.8 },
                   width: "100%",
                   boxShadow:
                     theme.palette.mode === "light"
@@ -190,7 +180,7 @@ const Navbar = () => {
                   sx={{
                     color: "text.primary",
                     width: "100%",
-                    fontSize: { xs: "0.95rem", md: "1.02rem" }, // slightly bigger
+                    fontSize: { xs: "0.95rem", md: "1.02rem" },
                     px: 0.5,
                   }}
                 />
@@ -205,7 +195,7 @@ const Navbar = () => {
                 </IconButton>
               </Box>
 
-              {/* suggestions dropdown */}
+              {/* Search results */}
               {results.length > 0 && (
                 <Paper
                   sx={{
@@ -261,12 +251,12 @@ const Navbar = () => {
               )}
             </Box>
 
-            {/* Desktop nav links (bigger spacing & font) */}
+            {/* Desktop nav links */}
             <Box
               sx={{
                 display: { xs: "none", md: "flex" },
                 alignItems: "center",
-                gap: 4.25, // bigger gap so it fills the navbar
+                gap: 4.25,
                 ml: 1,
               }}
             >
@@ -304,24 +294,31 @@ const Navbar = () => {
             </Box>
           </Box>
 
-          {/* Right side: theme + profile (profile only shows on md+) + mobile menu */}
+          {/* Right side: theme (desktop only), profile, menu */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-            <IconButton onClick={toggleTheme} color="inherit" sx={{ ml: 0.5 }}>
-              {mode === "dark" ? (
-                <Brightness7 sx={{ fontSize: "1.55rem" }} />
-              ) : (
-                <Brightness4 sx={{ fontSize: "1.55rem" }} />
-              )}
-            </IconButton>
+            {/* Theme toggle: only visible on md+ */}
+            <Box sx={{ display: { xs: "none", md: "flex" } }}>
+              <IconButton
+                onClick={toggleTheme}
+                color="inherit"
+                sx={{ ml: 0.5 }}
+              >
+                {mode === "dark" ? (
+                  <Brightness7 sx={{ fontSize: "1.55rem" }} />
+                ) : (
+                  <Brightness4 sx={{ fontSize: "1.55rem" }} />
+                )}
+              </IconButton>
+            </Box>
 
-            {/* PROFILE: visible on md+ only (hidden on mobile) */}
+            {/* Profile */}
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <IconButton component={Link} to="/profile" sx={{ ml: 0.25 }}>
                 <AccountCircle sx={{ fontSize: "1.85rem" }} />
               </IconButton>
             </Box>
 
-            {/* Mobile menu icon */}
+            {/* Mobile menu */}
             <Box sx={{ display: { xs: "flex", md: "none" } }}>
               <IconButton onClick={() => setDrawerOpen(true)}>
                 <MenuIcon sx={{ fontSize: "1.6rem" }} />
@@ -331,7 +328,10 @@ const Navbar = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Drawer (mobile) */}
+      {/* Spacer to prevent content jump (this is the trick) */}
+      <Toolbar />
+
+      {/* Mobile drawer */}
       <Drawer
         anchor="right"
         open={drawerOpen}
@@ -346,6 +346,7 @@ const Navbar = () => {
             bgcolor: "background.paper",
           }}
         >
+          {/* Drawer header */}
           <Box
             sx={{
               display: "flex",
@@ -362,6 +363,7 @@ const Navbar = () => {
             </IconButton>
           </Box>
 
+          {/* Links */}
           <List sx={{ flexGrow: 1 }}>
             {navLinks.map((link) => (
               <ListItem key={link.path} disablePadding>
@@ -378,7 +380,7 @@ const Navbar = () => {
 
           <Divider />
 
-          {/* Profile pinned to bottom (mobile drawer) */}
+          {/* Profile */}
           <Box sx={{ px: 2, py: 2 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <IconButton
@@ -408,6 +410,28 @@ const Navbar = () => {
                 </Typography>
               </Box>
             </Box>
+          </Box>
+
+          <Divider />
+
+          {/* Theme toggle inside drawer (mobile only) */}
+          <Box
+            sx={{
+              px: 2,
+              py: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography sx={{ fontWeight: 600 }}>Theme</Typography>
+            <IconButton onClick={toggleTheme} color="inherit">
+              {mode === "dark" ? (
+                <Brightness7 sx={{ fontSize: "1.55rem" }} />
+              ) : (
+                <Brightness4 sx={{ fontSize: "1.55rem" }} />
+              )}
+            </IconButton>
           </Box>
         </Box>
       </Drawer>
