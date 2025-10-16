@@ -45,8 +45,9 @@ const Navbar = () => {
     { label: "Home", path: "/" },
     { label: "Fragrances", path: "/fragrances" },
     { label: "Find Your Fragrance", path: "/find-your-fragrance" },
-    { label: "Wishlist", path: "/wishlist" },
-    { label: "Favorites", path: "/favorites" },
+    // { label: "Wishlist", path: "/wishlist" },
+    // { label: "Favorites", path: "/favorites" },
+    { label: "Library", path: "/library" },
     { label: "About", path: "/about" },
     { label: "FAQ", path: "/faq" },
   ];
