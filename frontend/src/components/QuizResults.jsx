@@ -30,145 +30,174 @@ const QuizResults = ({ answers, onRestart }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isSmallMobile = useMediaQuery("(max-width:400px)");
 
-  // Memoize recommendations
+  // Memoize recommendations with updated algorithm
   const recommendations = useMemo(() => {
     return getRecommendedFragrances(answers, sortMode, 48);
   }, [answers, sortMode]);
 
   const visibleFragrances = recommendations.slice(0, visibleCount);
 
-  // Handle multiple notes selection
-  const getNotesDisplay = () => {
-    if (!answers.notes) return "";
-    if (Array.isArray(answers.notes)) {
-      return answers.notes.join(", ");
-    }
-    return answers.notes;
-  };
+  // Get user-friendly description
+  const getUserProfileDescription = () => {
+    const {
+      scentStyle,
+      weatherClimate,
+      occasionTime,
+      strengthLongevity,
+      mood,
+    } = answers;
 
-  // Improved scent family description
-  const getScentFamilyDescription = () => {
-    const mapping = {
-      fresh: "Fresh & Clean Scents",
-      sweet: "Warm & Sweet Gourmands",
-      dark: "Dark & Mysterious Orientals",
-      elegant: "Elegant & Classic Florals",
-      bold: "Bold & Energetic Spices",
+    let profile = [];
+
+    // Scent style
+    const styleMap = {
+      fresh: "fresh & approachable",
+      sweet: "sweet & comforting",
+      dark: "dark & mysterious",
+      elegant: "elegant & classic",
+      bold: "bold & confident",
     };
-    return mapping[answers.scentType] || "Perfectly Matched Scents";
+    if (scentStyle && styleMap[scentStyle]) {
+      profile.push(styleMap[scentStyle]);
+    }
+
+    // Climate
+    const climateMap = {
+      warmClimate: "warm weather",
+      coolClimate: "cool weather",
+      variableClimate: "variable weather",
+      allWeather: "all-weather versatile",
+    };
+    if (weatherClimate && climateMap[weatherClimate]) {
+      profile.push(climateMap[weatherClimate]);
+    }
+
+    // Occasion
+    const occasionMap = {
+      dayCasual: "daytime casual",
+      nightOut: "night out",
+      professional: "professional settings",
+      specialEvents: "special occasions",
+      versatile: "versatile wear",
+    };
+    if (occasionTime && occasionMap[occasionTime]) {
+      profile.push(occasionMap[occasionTime]);
+    }
+
+    // Strength
+    const strengthMap = {
+      subtle: "subtle intimacy",
+      balanced: "balanced presence",
+      strong: "strong projection",
+    };
+    if (strengthLongevity && strengthMap[strengthLongevity]) {
+      profile.push(strengthMap[strengthLongevity]);
+    }
+
+    // Mood
+    const moodMap = {
+      romantic: "romantic vibe",
+      confident: "confident presence",
+      relaxed: "relaxed energy",
+      luxurious: "luxurious feel",
+      energetic: "energetic spirit",
+    };
+    if (mood && moodMap[mood]) {
+      profile.push(moodMap[mood]);
+    }
+
+    return profile.slice(0, 3).join(", ");
   };
 
-  // Get matched criteria for transparency
+  // Get matched criteria for display
   const getMatchedCriteria = () => {
     const criteria = [];
-    const { scentType, season, occasion, intensity, notes, mood } = answers;
+    const {
+      scentPreferences,
+      scentStyle,
+      weatherClimate,
+      occasionTime,
+      strengthLongevity,
+      notes,
+      mood,
+    } = answers;
 
-    if (scentType) {
-      const typeMap = {
-        fresh: "Fresh scents",
-        sweet: "Sweet gourmands",
-        dark: "Dark orientals",
-        elegant: "Elegant florals",
-        bold: "Bold spices",
+    // Scent Preferences
+    if (scentPreferences && Array.isArray(scentPreferences)) {
+      const prefMap = {
+        freshClean: "Fresh & Clean",
+        sweetGourmand: "Sweet & Gourmand",
+        woodyEarthy: "Woody & Earthy",
+        floralRomantic: "Floral & Romantic",
+        spicyWarm: "Spicy & Warm",
+        citrusBright: "Citrus & Bright",
       };
-      criteria.push(typeMap[scentType]);
+      scentPreferences.slice(0, 2).forEach((pref) => {
+        if (prefMap[pref]) criteria.push(prefMap[pref]);
+      });
     }
 
-    if (season && season !== "all") {
-      criteria.push(`${season} season`);
+    // Scent Style
+    if (scentStyle) {
+      const styleMap = {
+        fresh: "Fresh style",
+        sweet: "Sweet style",
+        dark: "Dark style",
+        elegant: "Elegant style",
+        bold: "Bold style",
+      };
+      criteria.push(styleMap[scentStyle]);
     }
 
-    if (occasion) {
-      criteria.push(`${occasion.replace("everyday", "daily")} wear`);
+    // Weather/Climate
+    if (weatherClimate) {
+      const climateMap = {
+        warmClimate: "Warm climate",
+        coolClimate: "Cool climate",
+        variableClimate: "Variable weather",
+        allWeather: "All weather",
+      };
+      criteria.push(climateMap[weatherClimate]);
     }
 
-    if (intensity) {
-      criteria.push(`${intensity} intensity`);
+    // Occasion/Time
+    if (occasionTime) {
+      const occasionMap = {
+        dayCasual: "Daytime casual",
+        nightOut: "Night out",
+        professional: "Professional",
+        specialEvents: "Special occasions",
+        versatile: "Versatile",
+      };
+      criteria.push(occasionMap[occasionTime]);
     }
 
-    if (notes) {
-      if (Array.isArray(notes)) {
-        criteria.push(...notes.map((note) => `${note} notes`));
-      } else {
-        criteria.push(`${notes} notes`);
-      }
+    // Strength/Longevity
+    if (strengthLongevity) {
+      criteria.push(
+        `${
+          strengthLongevity === "subtle"
+            ? "Subtle"
+            : strengthLongevity === "balanced"
+            ? "Balanced"
+            : "Strong"
+        } strength`
+      );
     }
 
+    // Notes
+    if (notes && Array.isArray(notes)) {
+      notes.slice(0, 3).forEach((note) => {
+        criteria.push(`${note.charAt(0).toUpperCase() + note.slice(1)} notes`);
+      });
+    }
+
+    // Mood
     if (mood) {
-      criteria.push(`${mood} vibe`);
+      criteria.push(`${mood.charAt(0).toUpperCase() + mood.slice(1)} vibe`);
     }
 
     return criteria;
-  };
-
-  // Enhanced personalized description
-  const getDescription = () => {
-    const { scentType, season, occasion, intensity, notes, mood } = answers;
-    let desc = "Based on your preferences, we've found fragrances that match ";
-
-    const criteriaParts = [];
-
-    if (scentType) {
-      const typeDesc = {
-        fresh: "bright, refreshing scents with clean notes",
-        sweet: "warm, comforting fragrances with sweet accords",
-        dark: "deep, sophisticated scents with mysterious character",
-        elegant: "timeless, refined compositions with classic appeal",
-        bold: "confident, attention-grabbing fragrances with strong presence",
-      };
-      criteriaParts.push(typeDesc[scentType]);
-    }
-
-    if (season && season !== "all") {
-      const seasonDesc = {
-        spring: `perfect for ${season}'s fresh florals`,
-        summer: `ideal for ${season}'s warm days`,
-        autumn: `great for ${season}'s cozy atmosphere`,
-        winter: `suited for ${season}'s rich evenings`,
-      };
-      criteriaParts.push(seasonDesc[season]);
-    }
-
-    if (occasion) {
-      const occasionDesc = {
-        everyday: "versatile enough for daily wear",
-        office: "professional and office-appropriate",
-        date: "romantic and sensual for special moments",
-        party: "bold and perfect for social events",
-        special: "sophisticated for memorable occasions",
-      };
-      criteriaParts.push(occasionDesc[occasion]);
-    }
-
-    if (intensity === "strong") {
-      criteriaParts.push("with long-lasting projection");
-    } else if (intensity === "noticeable") {
-      criteriaParts.push("with balanced presence");
-    } else if (intensity === "subtle") {
-      criteriaParts.push("with subtle, skin-close intimacy");
-    }
-
-    if (notes) {
-      if (Array.isArray(notes)) {
-        criteriaParts.push(
-          `featuring ${notes.slice(0, 2).join(" and ")} accords`
-        );
-      } else {
-        criteriaParts.push(`featuring ${notes} accords`);
-      }
-    }
-
-    if (mood) {
-      criteriaParts.push(`creating a ${mood} atmosphere`);
-    }
-
-    desc += criteriaParts.slice(0, 3).join(", ") + ". ";
-
-    if (recommendations.length > 0) {
-      desc += `We found ${recommendations.length} fragrances that match your style.`;
-    }
-
-    return desc;
   };
 
   const handleFragranceClick = (fragrance) => {
@@ -230,7 +259,7 @@ const QuizResults = ({ answers, onRestart }) => {
             gutterBottom
             sx={{ fontSize: { xs: "1.25rem", sm: "1.5rem" } }}
           >
-            Your Scent Profile: {getScentFamilyDescription()}
+            Your Scent Profile
           </Typography>
           <Typography
             variant="body1"
@@ -239,7 +268,8 @@ const QuizResults = ({ answers, onRestart }) => {
               fontSize: { xs: "0.875rem", sm: "1rem" },
             }}
           >
-            {getDescription()}
+            We found {recommendations.length} fragrances that match your style:{" "}
+            {getUserProfileDescription()}.
           </Typography>
 
           {/* Matched Criteria Chips */}
@@ -342,17 +372,21 @@ const QuizResults = ({ answers, onRestart }) => {
           transition={{ duration: 0.4 }}
           style={{ width: "100%" }}
         >
+          {/* IMPROVED MOBILE LAYOUT */}
           <Box
             sx={{
               display: "grid",
               gridTemplateColumns: {
-                xs: "repeat(2, minmax(0, 1fr))", // force 2 per row even on narrow screens
+                xs: "repeat(2, 1fr)", // Consistent 2 columns on mobile
                 sm: "repeat(2, 1fr)",
                 md: "repeat(3, 1fr)",
                 lg: "repeat(4, 1fr)",
               },
-              columnGap: { xs: 1.5, sm: 2.5, md: 3 },
-              rowGap: { xs: 2, sm: 3 },
+              gap: {
+                xs: 1.5, // Tighter gap on mobile
+                sm: 2.5,
+                md: 3,
+              },
               justifyItems: "center",
               alignItems: "stretch",
               width: "100%",
@@ -366,12 +400,12 @@ const QuizResults = ({ answers, onRestart }) => {
                 sx={{
                   display: "flex",
                   justifyContent: "center",
-                  minHeight: "100%",
                   width: "100%",
+                  // Better mobile sizing
                   maxWidth: {
-                    xs: "none", // Let grid handle width on mobile
-                    sm: "300px",
-                    md: "320px",
+                    xs: "none", // Let grid handle width
+                    sm: "280px",
+                    md: "300px",
                   },
                 }}
               >
@@ -381,11 +415,25 @@ const QuizResults = ({ answers, onRestart }) => {
                   showMatchScore={sortMode === "accuracy"}
                   sx={{
                     width: "100%",
-                    height: "100%",
+                    // Optimized mobile height
                     minHeight: {
-                      xs: "240px", // Slightly smaller on mobile for 2-column layout
-                      sm: "280px",
-                      md: "320px",
+                      xs: "200px", // Shorter on mobile
+                      sm: "260px",
+                      md: "300px",
+                    },
+                    // Better mobile typography
+                    "& .MuiTypography-h6": {
+                      fontSize: {
+                        xs: "0.9rem",
+                        sm: "1rem",
+                        md: "1.1rem",
+                      },
+                    },
+                    "& .MuiTypography-body2": {
+                      fontSize: {
+                        xs: "0.75rem",
+                        sm: "0.8rem",
+                      },
                     },
                     transition: "all 0.2s ease-in-out",
                     "&:hover": {
@@ -455,7 +503,8 @@ const QuizResults = ({ answers, onRestart }) => {
         fragrance={selectedFragrance}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        disableRouting={true}
+        disableRouting={false} // true -> false, allowing modal close when pressing outside it
+        noNavigate={true} // keep click-to-close but stop redirect
       />
     </Container>
   );

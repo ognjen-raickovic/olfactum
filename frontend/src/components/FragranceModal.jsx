@@ -15,10 +15,14 @@ import {
   CircularProgress,
   useTheme,
   useMediaQuery,
+  Grid,
+  Card,
 } from "@mui/material";
-import { Close } from "@mui/icons-material";
+import { Close, AccessTime, VolumeUp } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { humanizeName } from "../utils/humanizeName";
+import FragranceNotes from "./FragranceNotes";
+import FragranceDescription from "./FragranceDescription";
 
 // Helper to check if we're in quiz context
 const useIsQuizContext = () => {
@@ -28,11 +32,82 @@ const useIsQuizContext = () => {
   );
 };
 
+// Performance indicators
+const getPerformanceInfo = (fragrance) => {
+  const intensity = fragrance.intensity;
+  const longevity = fragrance.longevity;
+
+  const intensityMap = {
+    "Light Projection": {
+      label: "Intimate Projection",
+      description: "Stays close to the skin",
+      level: 1,
+    },
+    "Moderate Projection": {
+      label: "Moderate Projection",
+      description: "Noticeable within personal space",
+      level: 2,
+    },
+    "Strong Projection": {
+      label: "Strong Projection",
+      description: "Creates a scent trail",
+      level: 3,
+    },
+    "Heavy Projection": {
+      label: "Powerful Projection",
+      description: "Fills the room",
+      level: 4,
+    },
+  };
+
+  const longevityMap = {
+    "Very Short Lasting": {
+      label: "Short-Lasting",
+      description: "2-4 hours",
+      level: 1,
+    },
+    "Short Lasting": {
+      label: "Moderate-Lasting",
+      description: "4-6 hours",
+      level: 2,
+    },
+    "Moderate Lasting": {
+      label: "Long-Lasting",
+      description: "6-8 hours",
+      level: 3,
+    },
+    "Long Lasting": {
+      label: "Very Long-Lasting",
+      description: "8+ hours",
+      level: 4,
+    },
+    "Very Long Lasting": {
+      label: "Exceptional Lasting",
+      description: "12+ hours",
+      level: 5,
+    },
+  };
+
+  return {
+    intensity: intensityMap[intensity] || {
+      label: intensity || "Unknown",
+      description: "Projection information not available",
+      level: 2,
+    },
+    longevity: longevityMap[longevity] || {
+      label: longevity || "Unknown",
+      description: "Longevity information not available",
+      level: 2,
+    },
+  };
+};
+
 const FragranceModal = ({
   fragrance,
   open,
   onClose,
   disableRouting = false,
+  noNavigate = false,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +120,7 @@ const FragranceModal = ({
 
   const f = fragrance;
 
-  // ✅ Define derived variables safely
+  // Define derived variables safely
   const ratingValue = useMemo(() => {
     if (!f) return null;
     return typeof f.rating === "number" ? f.rating : f.ratingValue || 4.2;
@@ -56,9 +131,9 @@ const FragranceModal = ({
     return f.imageUrl || f.image || "/images/no-image.png";
   }, [f]);
 
-  const description = useMemo(() => {
-    if (!f) return "No description available.";
-    return f.description || "No detailed description for this fragrance.";
+  const performanceInfo = useMemo(() => {
+    if (!f) return { intensity: {}, longevity: {} };
+    return getPerformanceInfo(f);
   }, [f]);
 
   const quickDetails = useMemo(() => {
@@ -68,6 +143,10 @@ const FragranceModal = ({
       { label: "Launched", value: f.year || "N/A" },
       { label: "Gender", value: humanizeName(f.genderProfile || "Unisex") },
       { label: "Type", value: f.type || "EDP" },
+      ...(f.country ? [{ label: "Origin", value: f.country }] : []),
+      ...(f.perfumer && f.perfumer !== "Unknown"
+        ? [{ label: "Perfumer", value: f.perfumer }]
+        : []),
     ];
   }, [f]);
 
@@ -81,7 +160,7 @@ const FragranceModal = ({
   }, [fragrance]);
 
   const handleClose = () => {
-    if (!isQuizContext) {
+    if (!noNavigate && !isQuizContext) {
       const prev = prevRef.current;
       const fallback = "/fragrances";
       navigate(
@@ -89,9 +168,7 @@ const FragranceModal = ({
         { replace: true }
       );
     }
-
-    setIsLoading(true);
-    onClose?.();
+    if (onClose) onClose();
   };
 
   const handleBackdropClick = (event) => {
@@ -115,22 +192,22 @@ const FragranceModal = ({
         },
       }}
       sx={{
-        // This ensures the modal backdrop covers the entire screen
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
+        zIndex: 1300,
       }}
     >
       <Fade in={open} timeout={300}>
         <Box
           sx={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: { xs: "95%", sm: "92%", md: "950px" },
+            position: "relative",
+            width: { xs: "95%", sm: "92%", md: "900px" },
             maxHeight: "92vh",
             bgcolor: "background.paper",
             borderRadius: 2,
@@ -139,43 +216,75 @@ const FragranceModal = ({
             overflowX: "hidden",
             outline: "none",
             p: 0,
+            mx: "auto",
+            my: "auto",
+
+            /* ✨ Elegant, theme-matching scrollbar styling */
+            scrollbarWidth: "thin", // Firefox
+            scrollbarColor: `${theme.palette.primary.light} ${theme.palette.background.paper}`,
+
+            "&::-webkit-scrollbar": {
+              width: "10px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: theme.palette.background.paper,
+              borderRadius: "12px",
+              border: `1px solid ${
+                theme.palette.mode === "light"
+                  ? theme.palette.grey[200]
+                  : theme.palette.grey[100]
+              }`,
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: `linear-gradient(180deg, ${
+                theme.palette.mode === "light"
+                  ? theme.palette.primary.light
+                  : theme.palette.primary.dark
+              }, ${
+                theme.palette.mode === "light"
+                  ? theme.palette.primary.main
+                  : theme.palette.primary.light
+              })`,
+              borderRadius: "12px",
+              border: `2px solid ${theme.palette.background.paper}`,
+              transition: "background 0.3s ease",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: `linear-gradient(180deg, ${
+                theme.palette.mode === "light"
+                  ? theme.palette.primary.main
+                  : theme.palette.primary.light
+              }, ${
+                theme.palette.mode === "light"
+                  ? theme.palette.primary.dark
+                  : theme.palette.primary.main
+              })`,
+            },
           }}
         >
-          {/* FIXED CLOSE BUTTON - Now properly positioned outside scrollable content */}
-          {/* STICKY CLOSE BUTTON - Always visible while scrolling inside modal */}
-          <Box
+          {/* CLOSE BUTTON - Absolutely positioned relative to modal container */}
+          <IconButton
+            onClick={handleClose}
             sx={{
-              position: "sticky",
-              top: 0,
-              display: "flex",
-              justifyContent: "flex-end",
+              position: "absolute",
+              top: 16,
+              right: 16,
               zIndex: 10,
               bgcolor: "background.paper",
-              p: isMobile ? 1 : 2,
-              borderBottom: "1px solid",
+              boxShadow: 2,
+              "&:hover": {
+                bgcolor: "action.hover",
+                transform: "scale(1.1)",
+              },
+              width: isMobile ? 36 : 40,
+              height: isMobile ? 36 : 40,
+              border: "1px solid",
               borderColor: "divider",
             }}
+            aria-label="Close"
           >
-            <IconButton
-              onClick={handleClose}
-              sx={{
-                bgcolor: "background.paper",
-                boxShadow: 2,
-                "&:hover": {
-                  bgcolor: "action.hover",
-                  transform: "scale(1.1)",
-                },
-                width: isMobile ? 36 : 40,
-                height: isMobile ? 36 : 40,
-                border: "1px solid",
-                borderColor: "divider",
-              }}
-              aria-label="Close"
-            >
-              <Close />
-            </IconButton>
-          </Box>
-
+            <Close />
+          </IconButton>
           {isLoading ? (
             <Box
               sx={{
@@ -224,17 +333,70 @@ const FragranceModal = ({
 
               <Divider />
 
-              {/* MAIN CONTENT */}
+              {/* MAIN CONTENT - SIDE BY SIDE LAYOUT RESTORED */}
               <Box sx={{ p: 3 }}>
+                {/* DESKTOP LAYOUT - Image left, Description right */}
                 <Box
                   sx={{
-                    display: "flex",
-                    flexDirection: { xs: "column", md: "row" },
+                    display: { xs: "none", md: "flex" },
+                    flexDirection: "row",
                     gap: 3,
                     alignItems: "flex-start",
+                    mb: 3,
                   }}
                 >
-                  {/* LEFT - IMAGE */}
+                  {/* LEFT COLUMN - Image */}
+                  <Box sx={{ width: "45%" }}>
+                    <CardMedia
+                      component="img"
+                      image={imageUrl}
+                      alt={humanizeName(f.name)}
+                      sx={{
+                        borderRadius: 2,
+                        objectFit: "cover",
+                        width: "100%",
+                        height: "auto",
+                        maxHeight: "400px",
+                      }}
+                      onError={(e) => {
+                        e.target.src = "/images/no-image.png";
+                      }}
+                    />
+                  </Box>
+
+                  {/* RIGHT COLUMN - Description */}
+                  <Box sx={{ flex: 1 }}>
+                    <FragranceDescription fragrance={f} />
+
+                    {/* Quick details below description */}
+                    <Stack
+                      direction="row"
+                      gap={1}
+                      flexWrap="wrap"
+                      sx={{ mt: 2 }}
+                    >
+                      {quickDetails.map((d, idx) => (
+                        <Chip
+                          key={idx}
+                          label={`${d.label}: ${d.value}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                      ))}
+                    </Stack>
+                  </Box>
+                </Box>
+
+                {/* MOBILE LAYOUT - Stacked */}
+                <Box
+                  sx={{
+                    display: { xs: "flex", md: "none" },
+                    flexDirection: "column",
+                    gap: 3,
+                    mb: 3,
+                  }}
+                >
+                  {/* IMAGE */}
                   <CardMedia
                     component="img"
                     image={imageUrl}
@@ -242,62 +404,151 @@ const FragranceModal = ({
                     sx={{
                       borderRadius: 2,
                       objectFit: "cover",
-                      width: { xs: "100%", md: "45%" },
+                      width: "100%",
                       height: "auto",
-                      maxHeight: "480px",
+                      maxHeight: "300px",
                     }}
                     onError={(e) => {
                       e.target.src = "/images/no-image.png";
                     }}
                   />
 
-                  {/* RIGHT - OVERVIEW */}
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Overview
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        mb: 3,
-                        whiteSpace: "pre-line",
-                        lineHeight: 1.8,
-                      }}
-                    >
-                      {description}
-                    </Typography>
-                  </Box>
+                  {/* DESCRIPTION */}
+                  <FragranceDescription fragrance={f} />
+
+                  {/* Quick details */}
+                  <Stack direction="row" gap={1} flexWrap="wrap">
+                    {quickDetails.map((d, idx) => (
+                      <Chip
+                        key={idx}
+                        label={`${d.label}: ${d.value}`}
+                        size="small"
+                        variant="outlined"
+                      />
+                    ))}
+                  </Stack>
                 </Box>
+
+                {/* NOTES AND PERFORMANCE ROW - BELOW THE IMAGE/DESCRIPTION */}
+                <Grid container spacing={3}>
+                  {/* FRAGRANCE NOTES */}
+                  <Grid size={{ xs: 12, md: 8 }}>
+                    <FragranceNotes fragrance={f} />
+                  </Grid>
+
+                  {/* PERFORMANCE */}
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <Card variant="outlined" sx={{ p: 2, height: "100%" }}>
+                      <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        Performance
+                      </Typography>
+                      <Stack spacing={2}>
+                        <Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              mb: 1,
+                            }}
+                          >
+                            <VolumeUp fontSize="small" color="primary" />
+                            <Typography variant="subtitle2">
+                              Projection
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2" fontWeight="medium">
+                            {performanceInfo.intensity.label}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {performanceInfo.intensity.description}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              mb: 1,
+                            }}
+                          >
+                            <AccessTime fontSize="small" color="primary" />
+                            <Typography variant="subtitle2">
+                              Longevity
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2" fontWeight="medium">
+                            {performanceInfo.longevity.label}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {performanceInfo.longevity.description}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </Card>
+                  </Grid>
+                </Grid>
               </Box>
 
               <Divider />
 
-              {/* QUICK DETAILS & ACTIONS */}
+              {/* DETAILS & ACTIONS SECTION */}
               <Box sx={{ p: 3 }}>
                 <Typography variant="h6" gutterBottom>
-                  Quick Details
+                  Details & Accords
                 </Typography>
 
                 <Stack direction="row" gap={1} flexWrap="wrap" sx={{ mb: 2 }}>
-                  {quickDetails.map((d, idx) => (
-                    <Chip
-                      key={idx}
-                      label={`${d.label}: ${d.value}`}
-                      size="small"
-                    />
-                  ))}
-
-                  {(f.accords || []).slice(0, 5).map((a, i) => (
+                  {(f.accords || []).slice(0, 6).map((a, i) => (
                     <Chip
                       key={`acc-${i}`}
                       label={humanizeName(a)}
                       size="small"
-                      variant="outlined"
+                      color="primary"
                     />
                   ))}
                 </Stack>
 
-                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 1 }}>
+                {/* SEASON & OCCASION */}
+                {(f.season || f.occasion) && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography
+                      variant="body2"
+                      fontWeight="medium"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Ideal For:
+                    </Typography>
+                    <Stack direction="row" gap={1} flexWrap="wrap">
+                      {f.season &&
+                        f.season.map((season, i) => (
+                          <Chip
+                            key={`season-${i}`}
+                            label={season}
+                            size="small"
+                            variant="outlined"
+                          />
+                        ))}
+                      {f.occasion &&
+                        f.occasion.map((occ, i) => (
+                          <Chip
+                            key={`occ-${i}`}
+                            label={occ}
+                            size="small"
+                            variant="outlined"
+                          />
+                        ))}
+                    </Stack>
+                  </Box>
+                )}
+
+                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 2 }}>
                   <Button variant="contained" size="large">
                     Add to Favorites
                   </Button>
@@ -313,7 +564,7 @@ const FragranceModal = ({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Read Reviews on Fragrantica
+                      Fragrantica Reviews
                     </Button>
                   )}
 

@@ -41,12 +41,9 @@ export const matchesQuery = (fragrance, query) => {
 };
 
 /* ------------------------- Filter fragrances by query - FIXED SIGNATURE ------------------------- */
-// Your FragrancesPage expects: filterFragrances(allFragrances, query)
 export const filterFragrances = (allFragrances, query) => {
-  // Handle cases where query might be null, undefined, or not a string
   if (!query) return allFragrances;
 
-  // Ensure query is a string
   const queryStr = typeof query === "string" ? query : String(query);
   if (!queryStr.trim()) return allFragrances;
 
@@ -59,19 +56,165 @@ export const filterFragrances = (allFragrances, query) => {
   });
 };
 
-/* ------------------------- Improved Recommendation Engine ------------------------- */
+/* ------------------------- FIXED Note Matching Logic ------------------------- */
+// Map user-friendly note IDs to actual note keywords in the database
+const noteMapping = {
+  // From scentPreferences (general categories)
+  freshClean: [
+    "fresh",
+    "clean",
+    "aquatic",
+    "ozonic",
+    "water",
+    "rain",
+    "laundry",
+    "shower",
+  ],
+  sweetGourmand: [
+    "vanilla",
+    "sweet",
+    "gourmand",
+    "caramel",
+    "chocolate",
+    "honey",
+    "sugar",
+    "cotton candy",
+  ],
+  woodyEarthy: [
+    "woody",
+    "wood",
+    "cedar",
+    "sandalwood",
+    "vetiver",
+    "patchouli",
+    "earthy",
+    "soil",
+    "moss",
+  ],
+  floralRomantic: [
+    "floral",
+    "flower",
+    "rose",
+    "jasmine",
+    "lily",
+    "lilac",
+    "peony",
+    "violet",
+    "romantic",
+  ],
+  spicyWarm: [
+    "spicy",
+    "spice",
+    "cinnamon",
+    "pepper",
+    "cardamom",
+    "clove",
+    "nutmeg",
+    "warm",
+    "amber",
+  ],
+  citrusBright: [
+    "citrus",
+    "lemon",
+    "orange",
+    "bergamot",
+    "grapefruit",
+    "mandarin",
+    "lime",
+    "bright",
+  ],
+
+  // From notes (specific notes)
+  citrus: [
+    "citrus",
+    "lemon",
+    "orange",
+    "bergamot",
+    "grapefruit",
+    "mandarin",
+    "lime",
+    "yuzu",
+  ],
+  woody: [
+    "wood",
+    "woody",
+    "cedar",
+    "sandalwood",
+    "oak",
+    "vetiver",
+    "patchouli",
+    "guaiac",
+  ],
+  vanilla: ["vanilla", "vanille", "tonka", "benzoin"],
+  leather: ["leather", "suede", "tobacco", "smoke", "birch tar"],
+  spicy: [
+    "spicy",
+    "spice",
+    "cinnamon",
+    "pepper",
+    "cardamom",
+    "clove",
+    "nutmeg",
+    "saffron",
+  ],
+  floral: [
+    "floral",
+    "flower",
+    "rose",
+    "jasmine",
+    "lily",
+    "lilac",
+    "peony",
+    "violet",
+    "orchid",
+  ],
+  aquatic: ["aquatic", "water", "marine", "ocean", "sea", "ozonic", "calone"],
+  fruity: [
+    "fruity",
+    "fruit",
+    "berry",
+    "apple",
+    "peach",
+    "mango",
+    "pear",
+    "pineapple",
+    "strawberry",
+  ],
+  green: [
+    "green",
+    "grass",
+    "leaf",
+    "herbal",
+    "tea",
+    "mint",
+    "basil",
+    "galbanum",
+  ],
+  musky: ["musky", "musk", "animalic", "ambroxan", "ambergris"],
+};
+
+/* ------------------------- ENHANCED Recommendation Engine with FIXED Note Matching ------------------------- */
 export const getRecommendedFragrances = (
   answers,
   sortMode = "balanced",
-  limit = 24
+  limit = 48
 ) => {
   initializeFragranceData();
 
-  const { gender, scentType, season, occasion, intensity, notes, mood } =
-    answers;
+  const {
+    experience,
+    gender,
+    scentPreferences, // MULTIPLE - general scent categories
+    scentStyle, // SINGLE - fragrance personality
+    weatherClimate,
+    occasionTime,
+    strengthLongevity,
+    notes, // MULTIPLE - specific notes
+    mood,
+  } = answers;
 
-  // More precise scent type mapping with weights
-  const scentTypeMapping = {
+  // Enhanced scent style mapping (from scentStyle question)
+  const scentStyleMapping = {
     fresh: [
       { type: "Fresh", weight: 3 },
       { type: "Aquatic", weight: 3 },
@@ -109,26 +252,51 @@ export const getRecommendedFragrances = (
     ],
   };
 
-  const seasonMapping = {
-    spring: ["Spring", "All Year"],
-    summer: ["Summer", "All Year"],
-    autumn: ["Fall", "Autumn", "All Year"],
-    winter: ["Winter", "All Year"],
-    all: ["All Year", "Spring", "Summer", "Fall", "Winter", "Autumn"],
+  // Weather/Climate mapping
+  const weatherClimateMapping = {
+    warmClimate: ["Summer", "Spring", "All Year", "Warm"],
+    coolClimate: ["Winter", "Fall", "Autumn", "All Year", "Cool"],
+    variableClimate: ["Spring", "All Year", "Versatile"],
+    allWeather: [
+      "All Year",
+      "Spring",
+      "Summer",
+      "Fall",
+      "Winter",
+      "Autumn",
+      "Versatile",
+    ],
   };
 
-  const occasionMapping = {
-    everyday: ["Everyday", "Casual", "Office"],
-    office: ["Office", "Professional", "Everyday", "Business"],
-    date: ["Date", "Romantic", "Evening", "Night"],
-    party: ["Party", "Night", "Evening", "Club"],
-    special: ["Special", "Formal", "Evening", "Luxury"],
+  // Occasion/Time mapping
+  const occasionTimeMapping = {
+    dayCasual: ["Everyday", "Casual", "Day", "Daytime", "Office"],
+    nightOut: ["Night", "Evening", "Date", "Party", "Romantic", "Club"],
+    professional: ["Office", "Professional", "Business", "Formal", "Daytime"],
+    specialEvents: ["Special", "Formal", "Evening", "Luxury", "Night"],
+    versatile: [
+      "Everyday",
+      "Casual",
+      "Office",
+      "Date",
+      "Party",
+      "Versatile",
+      "All",
+    ],
   };
 
-  const intensityMapping = {
-    subtle: ["Light", "Soft", "Subtle"],
-    noticeable: ["Moderate", "Medium", "Average"],
-    strong: ["Strong", "Heavy", "Powerful", "Long-Lasting"],
+  // Strength/Longevity mapping
+  const strengthLongevityMapping = {
+    subtle: ["Light", "Soft", "Subtle", "Intimate", "Close to skin"],
+    balanced: ["Moderate", "Medium", "Average", "Balanced", "Normal"],
+    strong: [
+      "Strong",
+      "Heavy",
+      "Powerful",
+      "Long-Lasting",
+      "Intense",
+      "Projection",
+    ],
   };
 
   // Score fragrances
@@ -136,6 +304,23 @@ export const getRecommendedFragrances = (
     let matchScore = 0;
     let popularityScore =
       (fragrance.rating || 0) * Math.log10(1 + (fragrance.ratingCount || 1));
+
+    // NEW: Experience level adjustment
+    if (experience === "beginner") {
+      // Boost popular, safe fragrances for beginners
+      if (fragrance.rating > 3.5 && fragrance.ratingCount > 100) {
+        popularityScore += 15;
+      }
+      // Penalize very niche or polarizing fragrances
+      if (fragrance.rating < 2.5 || fragrance.ratingCount < 50) {
+        popularityScore -= 10;
+      }
+    } else if (experience === "knowledgeable") {
+      // Knowledgeable users might appreciate more niche options
+      if (fragrance.ratingCount < 200 && fragrance.rating > 3.0) {
+        popularityScore += 5;
+      }
+    }
 
     // Gender matching (strict)
     if (gender) {
@@ -158,17 +343,41 @@ export const getRecommendedFragrances = (
       if (gender === "unisex" && !fragranceGender.includes("unisex")) {
         return { ...fragrance, matchScore: 0, popularityScore };
       }
-      matchScore += 2; // Base score for gender match
+      matchScore += 2;
     }
 
-    // Scent type matching with weights
-    if (scentType && scentTypeMapping[scentType]) {
+    // NEW: Scent Preferences matching (MULTIPLE SELECTION)
+    if (scentPreferences && Array.isArray(scentPreferences)) {
+      const allNotes = [
+        ...(fragrance.notes || []),
+        ...(fragrance.topNotes || []),
+        ...(fragrance.middleNotes || []),
+        ...(fragrance.baseNotes || []),
+        ...(fragrance.accords || []),
+      ].map((note) => note.toLowerCase());
+
+      let scentPreferenceScore = 0;
+
+      scentPreferences.forEach((prefId) => {
+        const keywords = noteMapping[prefId] || [];
+        keywords.forEach((keyword) => {
+          if (allNotes.some((note) => note.includes(keyword))) {
+            scentPreferenceScore += 2; // 2 points per matched preference category
+          }
+        });
+      });
+
+      matchScore += scentPreferenceScore;
+    }
+
+    // Scent Style matching (SINGLE SELECTION)
+    if (scentStyle && scentStyleMapping[scentStyle]) {
       const scentFamily = fragrance.scentFamily?.toLowerCase() || "";
       const accords = (fragrance.accords || []).map((accord) =>
         accord.toLowerCase()
       );
 
-      scentTypeMapping[scentType].forEach(({ type, weight }) => {
+      scentStyleMapping[scentStyle].forEach(({ type, weight }) => {
         if (
           scentFamily.includes(type.toLowerCase()) ||
           accords.some((accord) => accord.includes(type.toLowerCase()))
@@ -178,48 +387,53 @@ export const getRecommendedFragrances = (
       });
     }
 
-    // Season matching
-    if (season && seasonMapping[season]) {
+    // Weather/Climate matching
+    if (weatherClimate && weatherClimateMapping[weatherClimate]) {
       const fragranceSeasons = (fragrance.season || []).map((s) =>
         s.toLowerCase()
       );
       if (
-        seasonMapping[season].some((s) =>
+        weatherClimateMapping[weatherClimate].some((s) =>
           fragranceSeasons.includes(s.toLowerCase())
         )
       ) {
-        matchScore += 2;
+        matchScore += 3;
       }
     }
 
-    // Occasion matching
-    if (occasion && occasionMapping[occasion]) {
+    // Occasion/Time matching
+    if (occasionTime && occasionTimeMapping[occasionTime]) {
       const fragranceOccasions = (fragrance.occasion || []).map((o) =>
         o.toLowerCase()
       );
       if (
-        occasionMapping[occasion].some((o) =>
+        occasionTimeMapping[occasionTime].some((o) =>
           fragranceOccasions.includes(o.toLowerCase())
+        )
+      ) {
+        matchScore += 3;
+      }
+    }
+
+    // Strength/Longevity matching
+    if (strengthLongevity && strengthLongevityMapping[strengthLongevity]) {
+      const fragranceIntensity = fragrance.intensity?.toLowerCase() || "";
+      const fragranceLongevity = fragrance.longevity?.toLowerCase() || "";
+
+      const combinedText =
+        `${fragranceIntensity} ${fragranceLongevity}`.toLowerCase();
+
+      if (
+        strengthLongevityMapping[strengthLongevity].some((i) =>
+          combinedText.includes(i.toLowerCase())
         )
       ) {
         matchScore += 2;
       }
     }
 
-    // Intensity matching
-    if (intensity && intensityMapping[intensity]) {
-      const fragranceIntensity = fragrance.intensity?.toLowerCase() || "";
-      if (
-        intensityMapping[intensity].some((i) =>
-          fragranceIntensity.includes(i.toLowerCase())
-        )
-      ) {
-        matchScore += 1.5;
-      }
-    }
-
-    // Notes matching (exact match preferred) - FIXED FOR MULTIPLE NOTES
-    if (notes) {
+    // FIXED: Notes matching (MULTIPLE SELECTION) - CRITICAL FIX
+    if (notes && Array.isArray(notes)) {
       const allNotes = [
         ...(fragrance.notes || []),
         ...(fragrance.topNotes || []),
@@ -227,30 +441,39 @@ export const getRecommendedFragrances = (
         ...(fragrance.baseNotes || []),
       ].map((note) => note.toLowerCase());
 
-      // Handle both single note (string) and multiple notes (array)
-      if (Array.isArray(notes)) {
-        // Multiple notes selected - check if any of the selected notes match
-        const matchedNotes = notes.filter((selectedNote) =>
-          allNotes.some((note) => note.includes(selectedNote.toLowerCase()))
+      let notesScore = 0;
+      let matchedNotesCount = 0;
+
+      notes.forEach((noteId) => {
+        const keywords = noteMapping[noteId] || [];
+        // Check if any of the keywords for this note appear in the fragrance
+        const hasMatch = keywords.some((keyword) =>
+          allNotes.some((fragranceNote) => fragranceNote.includes(keyword))
         );
 
-        // Add score based on number of matched notes
-        if (matchedNotes.length > 0) {
-          matchScore += 2.0 + matchedNotes.length * 0.5; // Base 2.0 + 0.5 per additional note
+        if (hasMatch) {
+          matchedNotesCount++;
+          // More points for the first few matches, diminishing returns
+          if (matchedNotesCount <= 3) {
+            notesScore += 3; // 3 points for first 3 matches
+          } else {
+            notesScore += 1; // 1 point for additional matches
+          }
         }
-      } else {
-        // Single note selected (original behavior)
-        if (allNotes.some((note) => note.includes(notes.toLowerCase()))) {
-          matchScore += 2.5;
-        }
-      }
+      });
+
+      matchScore += notesScore;
     }
 
     // Mood matching
     if (mood) {
       const fragranceMood = fragrance.mood?.toLowerCase() || "";
-      if (fragranceMood.includes(mood.toLowerCase())) {
-        matchScore += 1;
+      const fragranceDescription = fragrance.description?.toLowerCase() || "";
+
+      const combinedText = `${fragranceMood} ${fragranceDescription}`;
+
+      if (combinedText.includes(mood.toLowerCase())) {
+        matchScore += 1.5;
       }
     }
 
@@ -265,16 +488,16 @@ export const getRecommendedFragrances = (
 
       switch (sortMode) {
         case "accuracy": // Best personal match
-          scoreA = a.matchScore * 6 + a.popularityScore * 0.3;
-          scoreB = b.matchScore * 6 + b.popularityScore * 0.3;
+          scoreA = a.matchScore * 8 + a.popularityScore * 0.2;
+          scoreB = b.matchScore * 8 + b.popularityScore * 0.2;
           break;
         case "proven": // Proven popular picks
           scoreA = a.matchScore * 2 + a.popularityScore * 2;
           scoreB = b.matchScore * 2 + b.popularityScore * 2;
           break;
         default: // Balanced mix
-          scoreA = a.matchScore * 4 + a.popularityScore * 1;
-          scoreB = b.matchScore * 4 + b.popularityScore * 1;
+          scoreA = a.matchScore * 5 + a.popularityScore * 1;
+          scoreB = b.matchScore * 5 + b.popularityScore * 1;
       }
 
       return scoreB - scoreA;
@@ -286,4 +509,4 @@ export const getRecommendedFragrances = (
 // Clear cache periodically to prevent memory issues
 setInterval(() => {
   searchCache.clear();
-}, 5 * 60 * 1000); // Clear every 5 minutes
+}, 5 * 60 * 1000);

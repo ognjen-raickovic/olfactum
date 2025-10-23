@@ -3,9 +3,6 @@ import {
   Box,
   Typography,
   Button,
-  Stepper,
-  Step,
-  StepLabel,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
@@ -19,12 +16,17 @@ const QuizModal = ({ open, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  // In QuizModal.js, update the quizSteps array:
   const quizSteps = [
+    "Experience Level",
+    "Who's Wearing",
     "Scent Preferences",
-    "Season & Occasion",
-    "Intensity",
+    "Scent Style",
+    "Weather & Climate",
+    "Occasion & Time",
+    "Strength & Longevity",
     "Favorite Notes",
-    "Personality",
+    "Desired Vibe",
     "Results",
   ];
 
@@ -36,14 +38,11 @@ const QuizModal = ({ open, onClose }) => {
     setCurrentStep((prev) => prev - 1);
   };
 
-  // FIXED: Multiple selection functionality
+  // Multiple selection functionality
   const handleAnswer = (questionId, answer, isMultiple = false) => {
     setAnswers((prev) => {
-      // Check if this question allows multiple selections
       if (isMultiple) {
         const currentAnswers = prev[questionId] || [];
-
-        // Toggle selection
         if (currentAnswers.includes(answer)) {
           return {
             ...prev,
@@ -56,7 +55,6 @@ const QuizModal = ({ open, onClose }) => {
           };
         }
       } else {
-        // Single selection (original behavior)
         return {
           ...prev,
           [questionId]: answer,
@@ -111,36 +109,49 @@ const QuizModal = ({ open, onClose }) => {
           Find Your Perfect Scent
         </Typography>
 
-        {/* Clean Stepper - No connectors on mobile */}
-        <Stepper
-          activeStep={currentStep}
-          sx={{
-            mb: 4,
-            "& .MuiStepConnector-root": {
-              display: isMobile ? "none" : "block", // Hide connectors on mobile
-            },
-          }}
-        >
-          {quizSteps.map((label) => (
-            <Step key={label}>
-              <StepLabel
-                sx={{
-                  "& .MuiStepLabel-label": {
-                    fontSize: isMobile ? "0.75rem" : "0.875rem",
-                  },
-                }}
-              >
-                {isMobile
-                  ? // Short labels for mobile
-                    label
-                      .split(" ")
-                      .map((word) => word[0])
-                      .join("") + (label.includes("Preferences") ? "Pref" : "")
-                  : label}
-              </StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+        {/* Simplified Progress Bar - Better for many questions */}
+        <Box sx={{ mb: 4 }}>
+          {/* Progress text */}
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            align="center"
+            sx={{ mb: 1 }}
+          >
+            Question {currentStep + 1} of {quizSteps.length - 1}{" "}
+            {/* -1 because Results isn't a question */}
+          </Typography>
+
+          {/* Progress bar */}
+          <Box
+            sx={{
+              width: "100%",
+              height: 6,
+              backgroundColor: "grey.200",
+              borderRadius: 3,
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              sx={{
+                height: "100%",
+                backgroundColor: "primary.main",
+                width: `${((currentStep + 1) / (quizSteps.length - 1)) * 100}%`,
+                transition: "width 0.3s ease",
+                borderRadius: 3,
+              }}
+            />
+          </Box>
+
+          {/* Current step label */}
+          <Typography
+            variant="caption"
+            align="center"
+            sx={{ display: "block", mt: 1, fontWeight: "medium" }}
+          >
+            {quizSteps[currentStep]}
+          </Typography>
+        </Box>
 
         {/* Quiz Content */}
         <QuizQuestion

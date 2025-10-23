@@ -34,6 +34,36 @@ const faqs = [
     answer:
       "Not yet! For now, Olfactum focuses on helping you discover scents that match your personality and preferences.",
   },
+  {
+    question: "How do I choose a fragrance that suits me?",
+    answer:
+      "Use the quiz to identify your preferences and try sampling different fragrance families. Personal comfort and enjoyment are key!",
+  },
+  {
+    question: "What are fragrance families?",
+    answer:
+      "Fragrances are grouped into families like citrus, floral, woody, or oriental. These categories give a general idea of the scent style.",
+  },
+  {
+    question: "How many fragrances should I start with?",
+    answer:
+      "As a beginner, 1–3 versatile fragrances are ideal. This keeps your collection simple and allows you to find your signature scent.",
+  },
+  {
+    question: "How should I test a perfume before buying?",
+    answer:
+      "Spray on a blotter first, then on your skin if possible. Smell after a few minutes to see how it develops, as perfumes change with body chemistry.",
+  },
+  {
+    question: "How often should I reapply my perfume?",
+    answer:
+      "Most fragrances last several hours. For longer days or special occasions, a light reapplication on pulse points may be needed.",
+  },
+  {
+    question: "Can perfumes cause allergies or irritate skin?",
+    answer:
+      "Some people may be sensitive. Test a small amount on your skin first and avoid direct application if irritation occurs.",
+  },
 ];
 
 const FAQ = () => {

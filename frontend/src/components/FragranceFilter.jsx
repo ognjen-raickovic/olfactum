@@ -16,10 +16,18 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  TextField,
+  IconButton,
+  InputAdornment,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { FilterList, ExpandMore, Close } from "@mui/icons-material";
+import {
+  FilterList,
+  ExpandMore,
+  Close,
+  Search as SearchIcon,
+} from "@mui/icons-material";
 
 // Simplified filter options
 const FILTER_CATEGORIES = {
@@ -52,6 +60,10 @@ const FilterSidebar = ({
   onClearFilters,
   isMobile = false,
   onClose,
+  searchTerm,
+  onSearchChange,
+  sortBy,
+  onSortChange,
 }) => {
   const theme = useTheme();
 
@@ -73,10 +85,12 @@ const FilterSidebar = ({
     }, 0);
   };
 
+  const clearSearch = () => onSearchChange?.("");
+
   return (
     <Box
       sx={{
-        width: isMobile ? "100%" : 280,
+        width: isMobile ? "100%" : "100%",
         height: isMobile ? "80vh" : "auto",
         display: "flex",
         flexDirection: "column",
@@ -87,7 +101,7 @@ const FilterSidebar = ({
         sx={{
           p: 2,
           borderBottom: `1px solid ${theme.palette.divider}`,
-          flexShrink: 0, // Prevents header from shrinking
+          flexShrink: 0,
         }}
       >
         <Box
@@ -95,18 +109,44 @@ const FilterSidebar = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            mb: isMobile ? 0 : 2,
           }}
         >
-          <Typography variant="h6">
-            Filters{" "}
-            {getActiveFilterCount() > 0 && `(${getActiveFilterCount()})`}
-          </Typography>
+          <Typography variant="h6">Filters</Typography>
           {isMobile && (
             <Button onClick={onClose} size="small">
               <Close />
             </Button>
           )}
         </Box>
+
+        {/* Search Bar - Only show in desktop or when explicitly provided */}
+        {!isMobile && searchTerm !== undefined && onSearchChange && (
+          <TextField
+            variant="outlined"
+            placeholder="Search fragrances..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            size="small"
+            sx={{
+              width: "100%",
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "text.primary" }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchTerm && (
+                <InputAdornment position="end">
+                  <IconButton onClick={clearSearch} edge="end" size="small">
+                    <Close sx={{ color: "text.primary", fontSize: 18 }} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        )}
       </Box>
 
       {/* Scrollable Content Area */}
@@ -115,24 +155,18 @@ const FilterSidebar = ({
           flex: 1,
           overflow: "auto",
           p: 2,
-          // Add padding at the bottom to ensure content isn't hidden behind actions
           pb: isMobile ? 8 : 2,
         }}
       >
-        {/* Sort - Only show in mobile */}
-        {isMobile && (
+        {/* Sort Dropdown - Show in both mobile and desktop */}
+        {(isMobile || sortBy !== undefined) && (
           <>
             <FormControl fullWidth size="small" sx={{ mb: 3 }}>
               <InputLabel>Sort by</InputLabel>
               <Select
-                value={filters.sortBy || "relevance"}
+                value={sortBy || "relevance"}
                 label="Sort by"
-                onChange={(e) =>
-                  onFilterChange({
-                    ...filters,
-                    sortBy: e.target.value,
-                  })
-                }
+                onChange={(e) => onSortChange?.(e.target.value)}
               >
                 <MenuItem value="relevance">Relevance</MenuItem>
                 <MenuItem value="name-asc">Name (A → Z)</MenuItem>
@@ -197,7 +231,7 @@ const FilterSidebar = ({
         sx={{
           p: 2,
           borderTop: `1px solid ${theme.palette.divider}`,
-          flexShrink: 0, // Prevents actions from shrinking
+          flexShrink: 0,
           bgcolor: "background.paper",
         }}
       >
@@ -221,7 +255,17 @@ const FilterSidebar = ({
   );
 };
 
-const FragranceFilter = ({ onFilterChange, seasons, occasions, genders }) => {
+const FragranceFilter = ({
+  onFilterChange,
+  seasons,
+  occasions,
+  genders,
+  // New props for search and sort
+  searchTerm,
+  onSearchChange,
+  sortBy,
+  onSortChange,
+}) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -258,7 +302,7 @@ const FragranceFilter = ({ onFilterChange, seasons, occasions, genders }) => {
     }, 0);
   };
 
-  // Desktop: Permanent sidebar
+  // Desktop: Permanent sidebar with search and sort
   if (!isMobile) {
     return (
       <FilterSidebar
@@ -266,6 +310,10 @@ const FragranceFilter = ({ onFilterChange, seasons, occasions, genders }) => {
         onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
         isMobile={false}
+        searchTerm={searchTerm}
+        onSearchChange={onSearchChange}
+        sortBy={sortBy}
+        onSortChange={onSortChange}
       />
     );
   }
@@ -332,6 +380,8 @@ const FragranceFilter = ({ onFilterChange, seasons, occasions, genders }) => {
           onClearFilters={handleClearFilters}
           isMobile={true}
           onClose={() => setMobileOpen(false)}
+          sortBy={sortBy}
+          onSortChange={onSortChange}
         />
       </Drawer>
     </>

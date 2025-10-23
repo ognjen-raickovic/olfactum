@@ -26,10 +26,15 @@ const AboutMission = () => {
             every scent tells a story, and every nose has a unique perspective
             to share.
           </Typography>
+          <Typography variant="body1" sx={{ mb: 3, fontSize: "1.1rem" }}>
+            We make it easy for beginners to learn the essentials, find their
+            signature scent, and feel confident exploring the world of
+            fragrances.
+          </Typography>
           <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
             Our platform brings together fragrance enthusiasts, experts, and
-            newcomers to create the most comprehensive and honest fragrance
-            database on the web.
+            newcomers to create a welcoming community where everyone can share,
+            learn, and discover.
           </Typography>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>

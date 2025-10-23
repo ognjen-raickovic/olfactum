@@ -33,9 +33,11 @@ const AboutHero = () => {
         </Typography>
         <Typography
           variant="h5"
-          sx={{ maxWidth: 600, mx: "auto", opacity: 0.9 }}
+          sx={{ maxWidth: 650, mx: "auto", opacity: 0.9 }}
         >
-          Where passion for fragrances meets modern technology
+          Discover your signature scent, learn the essentials, and join a
+          welcoming community of fragrance lovers – whether you're just starting
+          out or exploring further.
         </Typography>
       </Container>
     </Box>

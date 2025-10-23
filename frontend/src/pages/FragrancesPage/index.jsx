@@ -4,17 +4,9 @@ import {
   Box,
   Typography,
   Button,
-  TextField,
-  IconButton,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { Close as CloseIcon, Search as SearchIcon } from "@mui/icons-material";
 import FragranceCard from "../../components/FragranceCard";
 import FragranceModal from "../../components/FragranceModal";
 import FragranceFilter from "../../components/FragranceFilter";
@@ -157,7 +149,6 @@ const FragrancesPage = () => {
 
   const handleCardClick = (f) => setSelected(f);
   const handleClose = () => setSelected(null);
-  const clearSearch = () => setSearchTerm("");
 
   const headerText = useMemo(() => {
     if (searchTerm) return `Searched for "${searchTerm}"`;
@@ -185,39 +176,16 @@ const FragrancesPage = () => {
   const gridColumns = getGridColumns();
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        minHeight: "100vh",
-        flexDirection: isMobile ? "column" : "row-reverse",
-      }}
-    >
-      {/* Desktop Sidebar - Now on the RIGHT */}
-      {!isMobile && (
-        <Box
-          sx={{
-            width: 280,
-            flexShrink: 0,
-            borderLeft: `1px solid ${theme.palette.divider}`,
-            bgcolor: "background.paper",
-          }}
-        >
-          <FragranceFilter
-            onFilterChange={setFilters}
-            seasons={[]}
-            occasions={[]}
-            genders={[]}
-          />
-        </Box>
-      )}
-
-      {/* Main Content */}
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      {/* Main Content - with right padding to account for fixed sidebar */}
       <Box
         sx={{
           flex: 1,
           px: { xs: 2, sm: 3, md: 4 },
           py: 4,
           pb: isMobile ? 10 : 4,
+          // Add right padding on desktop to prevent content from being hidden behind fixed sidebar
+          pr: { md: `calc(320px + ${theme.spacing(4)})` },
         }}
       >
         {/* Header - Centered on both mobile and desktop */}
@@ -226,82 +194,25 @@ const FragrancesPage = () => {
           sx={{
             mb: 3,
             fontWeight: 600,
-            textAlign: "center", // Always centered
+            textAlign: "center",
             fontSize: { xs: "1.75rem", md: "2.125rem" },
           }}
         >
           {headerText}
         </Typography>
 
-        {/* Search Bar */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            mb: 4,
-            flexDirection: { xs: "column", sm: "row" },
-            gap: { xs: 2, sm: 0 },
-            alignItems: { sm: "center" },
-          }}
-        >
-          <TextField
-            variant="outlined"
-            placeholder="Search fragrances..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            size="small"
-            sx={{
-              width: { xs: "100%", sm: 400 },
-              mr: { sm: 2 },
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "text.primary" }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm && (
-                <InputAdornment position="end">
-                  <IconButton onClick={clearSearch} edge="end" size="small">
-                    <CloseIcon sx={{ color: "text.primary" }} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          {/* Desktop Sort Dropdown */}
-          {!isMobile && (
-            <FormControl size="small" sx={{ minWidth: 180 }}>
-              <InputLabel>Sort by</InputLabel>
-              <Select
-                value={filters.sortBy}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    sortBy: e.target.value,
-                  }))
-                }
-                label="Sort by"
-              >
-                <MenuItem value="relevance">Relevance</MenuItem>
-                <MenuItem value="name-asc">Name (A → Z)</MenuItem>
-                <MenuItem value="name-desc">Name (Z → A)</MenuItem>
-                <MenuItem value="rating-desc">Rating (high → low)</MenuItem>
-                <MenuItem value="rating-asc">Rating (low → high)</MenuItem>
-                <MenuItem value="popularity-desc">
-                  Popularity (most → least)
-                </MenuItem>
-                <MenuItem value="popularity-asc">
-                  Popularity (least → most)
-                </MenuItem>
-              </Select>
-            </FormControl>
-          )}
-        </Box>
-
         {/* Mobile Filter Component (renders floating button) */}
-        {isMobile && <FragranceFilter onFilterChange={setFilters} />}
+        {isMobile && (
+          <FragranceFilter
+            onFilterChange={setFilters}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            sortBy={filters.sortBy}
+            onSortChange={(value) =>
+              setFilters((prev) => ({ ...prev, sortBy: value }))
+            }
+          />
+        )}
 
         {/* Results Grid */}
         {filteredResults.length === 0 ? (
@@ -314,7 +225,7 @@ const FragrancesPage = () => {
             <Typography
               variant="body2"
               color="text.secondary"
-              sx={{ mb: 2, textAlign: "center" }} // Always centered
+              sx={{ mb: 2, textAlign: "center" }}
             >
               Showing {Math.min(visibleCount, filteredResults.length)} of{" "}
               {filteredResults.length} fragrances
@@ -366,6 +277,36 @@ const FragrancesPage = () => {
           onClose={handleClose}
         />
       </Box>
+
+      {/* Desktop Sidebar - FIXED POSITION with search and sort included */}
+      {!isMobile && (
+        <Box
+          sx={{
+            width: 320, // Slightly wider to accommodate the search bar
+            position: "fixed",
+            top: 64, // ← ADD THIS: Push sidebar down below navbar
+            right: 0,
+            height: "calc(100vh - 64px)", // ← ADD THIS: Adjust height to account for navbar
+            borderLeft: `1px solid ${theme.palette.divider}`,
+            bgcolor: "background.paper",
+            overflowY: "auto",
+            zIndex: 1000,
+          }}
+        >
+          <FragranceFilter
+            onFilterChange={setFilters}
+            seasons={[]}
+            occasions={[]}
+            genders={[]}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            sortBy={filters.sortBy}
+            onSortChange={(value) =>
+              setFilters((prev) => ({ ...prev, sortBy: value }))
+            }
+          />
+        </Box>
+      )}
     </Box>
   );
 };
