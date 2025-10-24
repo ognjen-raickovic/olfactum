@@ -6,7 +6,7 @@ const AboutHero = () => {
       sx={{
         bgcolor: "primary.main",
         color: "white",
-        py: 8,
+        py: { xs: 12, md: 14 }, // Increased padding to prevent navbar overlap
         width: "100%",
         maxWidth: "100vw",
         overflowX: "hidden",

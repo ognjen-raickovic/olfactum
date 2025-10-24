@@ -12,7 +12,7 @@ import {
   useMediaQuery,
   Container,
 } from "@mui/material";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getRecommendedFragrances } from "../utils/fragranceUtils";
 import FragranceModal from "./FragranceModal";
@@ -22,20 +22,31 @@ import { motion, AnimatePresence } from "framer-motion";
 const QuizResults = ({ answers, onRestart }) => {
   const [selectedFragrance, setSelectedFragrance] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [visibleCount, setVisibleCount] = useState(8);
   const [sortMode, setSortMode] = useState("balanced");
 
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isSmallMobile = useMediaQuery("(max-width:400px)");
-
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
+  useEffect(() => {
+    setVisibleCount(8);
+  }, [sortMode]); // This runs every time sortMode changes
   // Memoize recommendations with updated algorithm
   const recommendations = useMemo(() => {
-    return getRecommendedFragrances(answers, sortMode, 48);
+    return getRecommendedFragrances(answers, sortMode, 40);
   }, [answers, sortMode]);
 
   const visibleFragrances = recommendations.slice(0, visibleCount);
+
+  // Calculate grid columns based on screen size - SAME AS FRAGRANCES PAGE
+  const getGridColumns = () => {
+    if (isMobile) return 2; // 2 columns on mobile
+    if (isTablet) return 3; // 3 columns on tablet
+    return 4; // 4 columns on desktop
+  };
+
+  const gridColumns = getGridColumns();
 
   // Get user-friendly description
   const getUserProfileDescription = () => {
@@ -212,30 +223,16 @@ const QuizResults = ({ answers, onRestart }) => {
   const matchedCriteria = getMatchedCriteria();
 
   return (
-    <Container
-      maxWidth={false}
-      sx={{
-        py: 4,
-        px: { xs: 1, sm: 2, md: 3 },
-        width: "100%",
-        maxWidth: "1200px !important",
-        margin: "0 auto",
-      }}
-    >
-      {/* Header */}
-      <Box sx={{ textAlign: "center", mb: 4, width: "100%" }}>
+    <Box sx={{ width: "100%", minHeight: "100vh", py: 4 }}>
+      {/* Header  */}
+      <Box sx={{ textAlign: "center", mb: 2, px: { xs: 2, sm: 3, md: 4 } }}>
         <Typography
-          variant="h3"
-          component="h1"
-          gutterBottom
+          variant="h4"
           sx={{
-            fontSize: {
-              xs: "1.5rem",
-              sm: "2rem",
-              md: "2.5rem",
-            },
-            px: { xs: 1, sm: 0 },
-            wordWrap: "break-word",
+            mb: 3,
+            fontWeight: 600,
+            textAlign: "center",
+            fontSize: { xs: "1.75rem", md: "2.125rem" },
           }}
         >
           Your Perfect Scent Matches! 🎉
@@ -251,7 +248,6 @@ const QuizResults = ({ answers, onRestart }) => {
             mb: 3,
             maxWidth: 900,
             mx: "auto",
-            width: "100%",
           }}
         >
           <Typography
@@ -308,7 +304,7 @@ const QuizResults = ({ answers, onRestart }) => {
           mb: 4,
           flexWrap: "wrap",
           gap: 2,
-          width: "100%",
+          px: { xs: 2, sm: 3, md: 4 },
         }}
       >
         <FormControl
@@ -330,39 +326,42 @@ const QuizResults = ({ answers, onRestart }) => {
           </Select>
         </FormControl>
 
-        <Typography
-          variant="body2"
+        <Box
           sx={{
             color: "text.secondary",
             maxWidth: 400,
             fontSize: { xs: "0.75rem", sm: "0.875rem" },
             textAlign: { xs: "center", sm: "left" },
+            lineHeight: 1.4,
           }}
         >
-          💡 <strong>Best match</strong> = more tailored to your answers.{" "}
-          <strong>Proven</strong> = higher-rated, popular picks.{" "}
-          <strong>Balanced</strong> = mix of both.
-        </Typography>
+          <Typography variant="body2" component="div">
+            🔹 <strong>Best match</strong> = more tailored to your answers
+          </Typography>
+          <Typography variant="body2" component="div">
+            🔹 <strong>Proven</strong> = higher-rated, popular picks
+          </Typography>
+          <Typography variant="body2" component="div">
+            🔹 <strong>Balanced</strong> = mix of both
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Recommendations Grid */}
+      {/* Results Count */}
       <Typography
-        variant="h4"
-        gutterBottom
+        variant="body2"
+        color="text.secondary"
         sx={{
-          mb: 3,
+          mb: 2,
           textAlign: "center",
-          fontSize: {
-            xs: "1.25rem",
-            sm: "1.5rem",
-            md: "2rem",
-          },
-          width: "100%",
+          px: { xs: 2, sm: 3, md: 4 },
         }}
       >
-        Recommended For You ({recommendations.length} matches)
+        Showing {Math.min(visibleCount, recommendations.length)} of{" "}
+        {recommendations.length} fragrances
       </Typography>
 
+      {/* Recommendations Grid */}
       <AnimatePresence mode="wait">
         <motion.div
           key={sortMode}
@@ -372,126 +371,118 @@ const QuizResults = ({ answers, onRestart }) => {
           transition={{ duration: 0.4 }}
           style={{ width: "100%" }}
         >
-          {/* IMPROVED MOBILE LAYOUT */}
           <Box
             sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "repeat(2, 1fr)", // Consistent 2 columns on mobile
-                sm: "repeat(2, 1fr)",
-                md: "repeat(3, 1fr)",
-                lg: "repeat(4, 1fr)",
-              },
-              gap: {
-                xs: 1.5, // Tighter gap on mobile
-                sm: 2.5,
-                md: 3,
-              },
-              justifyItems: "center",
-              alignItems: "stretch",
+              px: { xs: 2, sm: 3, md: 4 },
               width: "100%",
-              mx: "auto",
-              mb: 4,
             }}
           >
-            {visibleFragrances.map((fragrance) => (
-              <Box
-                key={fragrance.id}
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  width: "100%",
-                  // Better mobile sizing
-                  maxWidth: {
-                    xs: "none", // Let grid handle width
-                    sm: "280px",
-                    md: "300px",
-                  },
-                }}
+            {recommendations.length === 0 ? (
+              <Typography
+                color="text.secondary"
+                textAlign="center"
+                sx={{ mt: 8 }}
               >
-                <FragranceCard
-                  fragrance={fragrance}
-                  onViewDetails={handleFragranceClick}
-                  showMatchScore={sortMode === "accuracy"}
+                No fragrances found. Try adjusting your quiz answers.
+              </Typography>
+            ) : (
+              <>
+                <Box
                   sx={{
-                    width: "100%",
-                    // Optimized mobile height
-                    minHeight: {
-                      xs: "200px", // Shorter on mobile
-                      sm: "260px",
-                      md: "300px",
-                    },
-                    // Better mobile typography
-                    "& .MuiTypography-h6": {
-                      fontSize: {
-                        xs: "0.9rem",
-                        sm: "1rem",
-                        md: "1.1rem",
-                      },
-                    },
-                    "& .MuiTypography-body2": {
-                      fontSize: {
-                        xs: "0.75rem",
-                        sm: "0.8rem",
-                      },
-                    },
-                    transition: "all 0.2s ease-in-out",
-                    "&:hover": {
-                      transform: isMobile ? "none" : "translateY(-4px)",
-                      boxShadow: isMobile ? 1 : 3,
-                    },
+                    display: "grid",
+                    gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+                    gap: { xs: 2, md: 3 },
+                    justifyItems: "stretch",
                   }}
-                />
-              </Box>
-            ))}
+                >
+                  {visibleFragrances.map((fragrance) => (
+                    <FragranceCard
+                      key={fragrance.id}
+                      fragrance={fragrance}
+                      onClick={handleFragranceClick}
+                      sx={{
+                        transition: "all 0.2s ease-in-out",
+                        "&:hover": {
+                          transform: isMobile ? "none" : "translateY(-4px)",
+                          boxShadow: isMobile ? 1 : 3,
+                        },
+                      }}
+                    />
+                  ))}
+                </Box>
+              </>
+            )}
           </Box>
         </motion.div>
       </AnimatePresence>
-
-      {/* Show More Button */}
-      {recommendations.length > visibleCount && (
-        <Box sx={{ textAlign: "center", mb: 4, width: "100%" }}>
-          <Button
-            variant="outlined"
-            size="large"
-            onClick={() => setVisibleCount((prev) => prev + 12)}
-          >
-            Show More ({recommendations.length - visibleCount} remaining)
-          </Button>
-        </Box>
-      )}
 
       {/* Action Buttons */}
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" }, // Column on mobile, row on larger screens
           justifyContent: "center",
-          gap: 2,
-          flexWrap: "wrap",
-          width: "100%",
+          alignItems: "center",
+          gap: { xs: 1.5, sm: 2 },
+          mt: 2,
+          px: { xs: 2, sm: 3, md: 4 },
         }}
       >
+        {/* Load More / Show Less */}
+        {visibleCount < recommendations.length ? (
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={() => setVisibleCount((prev) => prev + 8)}
+            sx={{
+              width: { xs: "100%", sm: "auto" },
+              minWidth: { xs: "auto", sm: 140 },
+            }}
+          >
+            Load More ({recommendations.length - visibleCount} remaining)
+          </Button>
+        ) : visibleCount > 8 ? (
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={() => {
+              setVisibleCount(8);
+              // Smooth scroll to the top of the fragrance results
+              window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+              });
+            }}
+            sx={{
+              width: { xs: "100%", sm: "auto" },
+              minWidth: { xs: "auto", sm: 140 },
+            }}
+          >
+            Show Less
+          </Button>
+        ) : null}
+
+        {/* Retake Quiz Button */}
         <Button
           variant="outlined"
           onClick={onRestart}
           size="large"
           sx={{
-            flex: { xs: 1, sm: "none" },
-            maxWidth: { xs: "100%", sm: "none" },
-            minWidth: { xs: "auto", sm: "140px" },
+            width: { xs: "100%", sm: "auto" },
+            minWidth: { xs: "auto", sm: 140 },
           }}
         >
           Retake Quiz
         </Button>
 
+        {/* Browse All Fragrances Button */}
         <Button
           variant="contained"
           size="large"
           onClick={handleBrowseAllFragrances}
           sx={{
-            flex: { xs: 1, sm: "none" },
-            maxWidth: { xs: "100%", sm: "none" },
-            minWidth: { xs: "auto", sm: "180px" },
+            width: { xs: "100%", sm: "auto" },
+            minWidth: { xs: "auto", sm: 180 },
           }}
         >
           Browse All Fragrances
@@ -503,10 +494,10 @@ const QuizResults = ({ answers, onRestart }) => {
         fragrance={selectedFragrance}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        disableRouting={false} // true -> false, allowing modal close when pressing outside it
-        noNavigate={true} // keep click-to-close but stop redirect
+        disableRouting={false}
+        noNavigate={true}
       />
-    </Container>
+    </Box>
   );
 };
 

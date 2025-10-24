@@ -17,18 +17,19 @@ import FemaleIcon from "@mui/icons-material/Female";
 import TransgenderIcon from "@mui/icons-material/Transgender";
 
 const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
-  const ratingNumber =
-    fragrance.rating != null
-      ? Number(String(fragrance.rating).replace(",", "."))
-      : null;
+  // Handle both direct fragrance objects and wrapped ones (like { fragrance, createdAt })
+  const f = fragrance?.fragrance ? fragrance.fragrance : fragrance;
 
-  const handleOpen = (f) => {
-    if (onClick) return onClick(f);
-    if (onViewDetails) return onViewDetails(f);
+  const ratingNumber =
+    f.rating != null ? Number(String(f.rating).replace(",", ".")) : null;
+
+  const handleOpen = (frag) => {
+    if (onClick) return onClick(frag);
+    if (onViewDetails) return onViewDetails(frag);
   };
 
   const splitOccasions =
-    fragrance.occasion
+    f.occasion
       ?.flatMap((o) =>
         String(o)
           .split("/")
@@ -37,7 +38,7 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
       .filter(Boolean) || [];
 
   const splitSeasons =
-    fragrance.season
+    f.season
       ?.flatMap((s) =>
         String(s)
           .split("/")
@@ -46,11 +47,11 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
       .filter(Boolean) || [];
 
   const imageSrc =
-    fragrance.image && fragrance.image !== "/images/default.jpg"
-      ? fragrance.image
+    f.image && f.image !== "/images/default.jpg"
+      ? f.image
       : "/images/no-image.png";
 
-  const gender = fragrance.genderProfile?.toLowerCase();
+  const gender = f.genderProfile?.toLowerCase();
   const GenderIcon =
     gender === "masculine"
       ? MaleIcon
@@ -60,9 +61,9 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
 
   return (
     <Card
-      onClick={() => handleOpen(fragrance)}
+      onClick={() => handleOpen(f)}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") handleOpen(fragrance);
+        if (e.key === "Enter" || e.key === " ") handleOpen(f);
       }}
       role="button"
       tabIndex={0}
@@ -76,27 +77,28 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
           transform: "translateY(-5px)",
           boxShadow: 6,
         },
-        height: "100%", // Ensure card takes full height
+        height: "100%",
+        justifyContent: "space-between",
         ...sx,
       }}
     >
-      {/* --- IMAGE SECTION - Fixed white space issue --- */}
+      {/* --- IMAGE SECTION --- */}
       <Box
         sx={{
           position: "relative",
           width: "100%",
-          aspectRatio: "4 / 5",
+          aspectRatio: "3 / 4",
           overflow: "hidden",
           bgcolor: (theme) =>
             theme.palette.mode === "dark" ? "#20160F" : "grey.50",
           borderBottom: "1px solid",
           borderColor: "divider",
-          flexShrink: 0, // Prevent image from shrinking
+          flexShrink: 0,
         }}
       >
         <LazyLoadImage
           src={imageSrc}
-          alt={humanizeName(fragrance.name)}
+          alt={humanizeName(f.name)}
           effect="blur"
           onError={(e) => {
             e.target.src = "/images/no-image.png";
@@ -106,7 +108,7 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
               display: "block",
               width: "100%",
               height: "100%",
-              lineHeight: 0, // Remove any line height spacing
+              lineHeight: 0,
             },
           }}
           style={{
@@ -132,8 +134,8 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
                   boxShadow: 2,
                 },
                 p: 0.6,
-                width: 32,
-                height: 32,
+                width: 30,
+                height: 30,
               }}
               size="small"
             >
@@ -142,10 +144,10 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
                 sx={{
                   color:
                     gender === "men"
-                      ? "#1976d2" // blue for male
+                      ? "#1976d2"
                       : gender === "women"
-                      ? "#e91e63" // pink for female
-                      : "#4caf50", // green for unisex
+                      ? "#e91e63"
+                      : "#4caf50",
                 }}
               />
             </IconButton>
@@ -153,57 +155,67 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
         )}
       </Box>
 
-      {/* --- CONTENT SECTION - Improved spacing and layout --- */}
+      {/* --- CONTENT SECTION --- */}
       <CardContent
         sx={{
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
-          p: 2,
-          pb: 2,
-          "&:last-child": { pb: 2 }, // Remove Material-UI default extra padding
+          p: { xs: 1.5, sm: 2 },
+          pb: { xs: 1.5, sm: 2 },
+          "&:last-child": { pb: { xs: 1.5, sm: 2 } },
         }}
       >
-        {/* Brand Name */}
-        <Typography
-          color="text.secondary"
-          sx={{
-            fontSize: 14,
-            mb: 0.5,
-            display: "block",
-            fontWeight: 500,
-          }}
-        >
-          {humanizeName(fragrance.brand)}
-        </Typography>
+        {/* Brand + Fragrance Name (centered) */}
+        <Box sx={{ textAlign: "center" }}>
+          {/* Brand Name */}
+          <Typography
+            color="text.secondary"
+            sx={{
+              fontSize: { xs: 13, sm: 14 },
+              mb: 0.3,
+              display: "block",
+              fontWeight: 500,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              textAlign: "center",
+            }}
+          >
+            {humanizeName(f.brand)}
+          </Typography>
 
-        {/* Fragrance Name */}
-        <Typography
-          variant="h6"
-          component="h3"
-          sx={{
-            fontWeight: 700,
-            fontSize: "1.1rem",
-            lineHeight: 1.3,
-            mb: 1,
-            minHeight: "2.6em", // Ensure consistent height for 2 lines
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-        >
-          {humanizeName(fragrance.name)}
-        </Typography>
+          {/* Fragrance Name */}
+          <Typography
+            variant="h6"
+            component="h3"
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: "1rem", sm: "1.1rem" },
+              lineHeight: 1.3,
+              mb: 1,
+              minHeight: { xs: "2.4em", sm: "2.6em" },
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              textAlign: "center",
+            }}
+          >
+            {humanizeName(f.name)}
+          </Typography>
+        </Box>
 
-        {/* Rating Section */}
+        {/* Rating - centered */}
         {ratingNumber != null && !isNaN(ratingNumber) && (
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: 0.5,
-              mb: 1,
+              mb: { xs: 0.5, sm: 1 },
             }}
           >
             <Rating
@@ -221,18 +233,17 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
             </Typography>
           </Box>
         )}
-
-        {/* Spacer to push chips to bottom */}
+        {/* Spacer */}
         <Box sx={{ flexGrow: 1 }} />
 
-        {/* Season + Occasion Chips */}
+        {/* Season & Occasion Chips */}
         <Box
           sx={{
             display: "flex",
-            gap: 0.5,
+            gap: 0.4,
             flexWrap: "wrap",
             justifyContent: "center",
-            mt: 1.5,
+            mt: { xs: 1, sm: 1.5 },
           }}
         >
           {splitSeasons.slice(0, 2).map((season) => (
@@ -242,8 +253,8 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
               size="small"
               variant="outlined"
               sx={{
-                fontSize: "0.7rem",
-                height: 22,
+                fontSize: { xs: "0.65rem", sm: "0.7rem" },
+                height: { xs: 20, sm: 22 },
               }}
             />
           ))}
@@ -254,8 +265,8 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
               size="small"
               variant="outlined"
               sx={{
-                fontSize: "0.7rem",
-                height: 22,
+                fontSize: { xs: "0.65rem", sm: "0.7rem" },
+                height: { xs: 20, sm: 22 },
               }}
             />
           ))}

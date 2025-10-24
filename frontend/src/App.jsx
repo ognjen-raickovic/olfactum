@@ -10,20 +10,21 @@ import FAQ from "./pages/FaqPage";
 import ContactPage from "./pages/ContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <ThemeProviderContext>
       <Router>
+        <ScrollToTop />
         <MainLayout>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/fragrances" element={<FragrancesPage />} />
             <Route path="/fragrances/:slug?" element={<FragrancesPage />} />
             <Route path="/browse" element={<FragrancesPage />} />
-            {/* In case you decide to divide them into two separate pages
-            <Route path="/wishlist" element={<WishlistPage />} />
-            <Route path="/favorites" element={<FavoritesPage />} /> */}
+            {/* <Route path="/wishlist" element={<WishlistPage />} /> */}
+            {/* <Route path="/favorites" element={<FavoritesPage />} /> */}
             <Route path="/library" element={<LibraryPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/faq" element={<FAQ />} />

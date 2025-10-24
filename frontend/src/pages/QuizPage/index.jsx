@@ -8,17 +8,11 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react"; // ← ADD useRef here
 import QuizQuestions from "../../components/QuizQuestions";
 import QuizResults from "../../components/QuizResults";
 
 const QuizPage = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState({});
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
   const quizSteps = [
     "Scent Preferences",
     "Season & Occasion",
@@ -29,7 +23,50 @@ const QuizPage = () => {
     "Your Results",
   ];
 
-  const handleNext = () => setCurrentStep((prev) => prev + 1);
+  // Load saved quiz from LocalStorage
+  const savedQuiz = JSON.parse(localStorage.getItem("fragranceQuiz") || "null");
+  // State initialization
+  const [currentStep, setCurrentStep] = useState(
+    savedQuiz ? quizSteps.length - 1 : 0
+  );
+  const [answers, setAnswers] = useState(savedQuiz || {});
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // ADD THIS: Create a ref for the results section
+  const resultsRef = useRef(null);
+
+  // Scroll to top on question change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentStep]);
+
+  // REPLACE the current scroll effect with this:
+  useEffect(() => {
+    if (savedQuiz && resultsRef.current) {
+      // Small delay to ensure the component is rendered
+      setTimeout(() => {
+        resultsRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, []); // run only once on mount
+
+  const handleNext = () => {
+    setCurrentStep((prev) => {
+      const next = prev + 1;
+
+      // Save answers when reaching the results page
+      if (next === quizSteps.length - 1) {
+        localStorage.setItem("fragranceQuiz", JSON.stringify(answers));
+      }
+
+      return next;
+    });
+  };
   const handleBack = () => setCurrentStep((prev) => prev - 1);
 
   // FIXED: Update handleAnswer to support multiple selection
@@ -57,9 +94,11 @@ const QuizPage = () => {
     });
   };
 
+  // Updated handleRestart to clear LocalStorage
   const handleRestart = () => {
     setCurrentStep(0);
     setAnswers({});
+    localStorage.removeItem("fragranceQuiz");
   };
 
   const isResultStep = currentStep === quizSteps.length - 1;
@@ -86,15 +125,16 @@ const QuizPage = () => {
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
-          width: "100%", // Ensure full width
+          width: "100%",
         }}
       >
-        <Box sx={{ textAlign: "center", mb: 6 }}>
+        {/* Header - Reduced bottom margin even more */}
+        <Box sx={{ textAlign: "center", mb: 1 }}>
           <Typography
             variant="h3"
             sx={{
               fontWeight: 700,
-              mb: 4,
+              mb: 4, // Kept this at 4 to maintain space between title and stepper
               color: "text.primary",
               fontSize: {
                 xs: "1.75rem",
@@ -113,7 +153,7 @@ const QuizPage = () => {
             activeStep={currentStep}
             alternativeLabel
             sx={{
-              mb: 4,
+              mb: 1, // Reduced from mb: 2 to mb: 1
               "& .MuiStepConnector-root": {
                 display: isMobile ? "none" : "block",
               },
@@ -165,7 +205,8 @@ const QuizPage = () => {
           )}
         </Box>
 
-        <Box sx={{ width: "100%", flexGrow: 1 }}>
+        {/* ADD THE REF TO THIS BOX */}
+        <Box ref={resultsRef} sx={{ width: "100%", flexGrow: 1 }}>
           {isResultStep ? (
             <QuizResults answers={answers} onRestart={handleRestart} />
           ) : (
