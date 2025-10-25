@@ -373,7 +373,7 @@ const QuizResults = ({ answers, onRestart }) => {
         >
           <Box
             sx={{
-              px: { xs: 2, sm: 3, md: 4 },
+              px: { xs: 1, sm: 3, md: 4 },
               width: "100%",
             }}
           >
@@ -401,6 +401,10 @@ const QuizResults = ({ answers, onRestart }) => {
                       fragrance={fragrance}
                       onClick={handleFragranceClick}
                       sx={{
+                        minHeight: { xs: 210, sm: 240 },
+                        "& .MuiCardContent-root": {
+                          minHeight: { xs: 70, sm: 90 },
+                        },
                         transition: "all 0.2s ease-in-out",
                         "&:hover": {
                           transform: isMobile ? "none" : "translateY(-4px)",

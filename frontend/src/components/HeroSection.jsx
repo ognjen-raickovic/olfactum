@@ -11,7 +11,7 @@ const HeroSection = () => {
             0.9
           )} 0%, ${alpha(theme.palette.primary.dark, 0.95)} 100%)`,
         color: "white",
-        py: { xs: 8, md: 12 },
+        py: { xs: 6, md: 10 }, // Reduced from { xs: 8, md: 12 }
         position: "relative",
         overflow: "hidden",
         "&::before": {
@@ -47,6 +47,7 @@ const HeroSection = () => {
             WebkitBackgroundClip: "text",
             color: "transparent",
             textShadow: "0 4px 8px rgba(0,0,0,0.1)",
+            mt: { xs: 0, md: 0 }, // Ensures no extra margin on top
           }}
         >
           Discover Your Signature Scent
@@ -57,10 +58,11 @@ const HeroSection = () => {
           sx={{
             maxWidth: 600,
             mx: "auto",
-            mb: 4,
+            mb: 3, // Reduced from 4
             opacity: 0.95,
             fontWeight: 300,
             lineHeight: 1.6,
+            fontSize: { xs: "1.1rem", md: "1.25rem" }, // Slightly smaller on mobile
           }}
         >
           Explore thousands of fragrances, read authentic reviews, and find your
@@ -78,7 +80,7 @@ const HeroSection = () => {
             fontWeight: "bold",
             px: 4,
             py: 1.5,
-            mb: 4, // Increased margin bottom
+            mb: 3, // Reduced from 4
             borderRadius: 2,
             fontSize: "1.1rem",
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -96,33 +98,34 @@ const HeroSection = () => {
         {/* Larger Quiz Box */}
         <Box
           sx={{
-            maxWidth: 550, // Increased width
+            maxWidth: 550,
             mx: "auto",
             bgcolor: "rgba(255,255,255,0.15)",
-            p: 4, // Increased padding
+            p: { xs: 3, md: 4 }, // Reduced padding on mobile
             borderRadius: 2,
             backdropFilter: "blur(10px)",
             border: "1px solid rgba(255,255,255,0.2)",
+            mt: 1, // Small top margin to separate from button
           }}
         >
           <Typography
-            variant="h6" // Larger text
+            variant="h6"
             sx={{
               mb: 2,
               opacity: 0.95,
               fontWeight: 600,
-              fontSize: "1.2rem", // Explicit font size
+              fontSize: { xs: "1.1rem", md: "1.2rem" }, // Slightly smaller on mobile
             }}
           >
             🎯 Not sure where to start?
           </Typography>
           <Typography
-            variant="body1" // Larger body text
+            variant="body1"
             sx={{
               opacity: 0.9,
               lineHeight: 1.6,
-              mb: 3, // Increased margin
-              fontSize: "1.05rem", // Slightly larger
+              mb: 3,
+              fontSize: { xs: "1rem", md: "1.05rem" }, // Slightly smaller on mobile
             }}
           >
             Take our 2-minute quiz to find your perfect fragrance match based on
