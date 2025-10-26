@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/HomePage";
 import FragrancesPage from "./pages/FragrancesPage";
+import LearnPage from "./pages/LearnPage";
 import LibraryPage from "./pages/LibraryPage";
 import AboutPage from "./pages/AboutPage";
 import QuizPage from "./pages/QuizPage";
@@ -25,6 +26,7 @@ function App() {
             <Route path="/browse" element={<FragrancesPage />} />
             {/* <Route path="/wishlist" element={<WishlistPage />} /> */}
             {/* <Route path="/favorites" element={<FavoritesPage />} /> */}
+            <Route path="/learn" element={<LearnPage />} />
             <Route path="/library" element={<LibraryPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/faq" element={<FAQ />} />
