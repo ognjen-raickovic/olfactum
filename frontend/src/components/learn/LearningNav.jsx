@@ -16,6 +16,7 @@ import {
   Air,
   Palette,
 } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 const modules = [
   {
@@ -26,24 +27,27 @@ const modules = [
     status: "active",
     icon: <School />,
     progress: 100,
+    path: "/learn/module1",
   },
   {
     id: "module-2",
-    title: "Module 2: Concentration & Form",
+    title: "Module 2: Sillage & Longevity",
+    description:
+      "Discover scent trails and techniques to make fragrances last longer",
+    status: "active",
+    icon: <Air />,
+    progress: 0,
+    path: "/learn/module2",
+  },
+  {
+    id: "module-3",
+    title: "Module 3: Fragrance Concentrations",
     description:
       "Learn about Eau de Toilette, Eau de Parfum, Parfum and their differences",
     status: "upcoming",
     icon: <Science />,
     progress: 0,
-  },
-  {
-    id: "module-3",
-    title: "Module 3: Sillage & Longevity",
-    description:
-      "Discover scent trails and techniques to make fragrances last longer",
-    status: "upcoming",
-    icon: <Air />,
-    progress: 0,
+    path: "/learn/module3",
   },
   {
     id: "module-4",
@@ -53,13 +57,16 @@ const modules = [
     status: "upcoming",
     icon: <Palette />,
     progress: 0,
+    path: "/learn/module4",
   },
 ];
 
 export default function LearningNav() {
   const theme = useTheme();
-  const scrollToModule = (moduleId) => {
-    document.getElementById(moduleId)?.scrollIntoView({ behavior: "smooth" });
+  const navigate = useNavigate();
+
+  const navigateToModule = (path) => {
+    navigate(path);
   };
 
   const getStatusIcon = (status, progress) => {
@@ -111,7 +118,7 @@ export default function LearningNav() {
 
       <Grid container spacing={3}>
         {modules.map((module) => (
-          <Grid key={module.id} xs={12} md={6}>
+          <Grid item key={module.id} xs={12} md={6}>
             <Paper
               sx={{
                 p: 3,
@@ -133,7 +140,7 @@ export default function LearningNav() {
                     : {},
               }}
               onClick={() =>
-                module.status === "active" && scrollToModule(module.id)
+                module.status === "active" && navigateToModule(module.path)
               }
             >
               {/* Progress Bar */}
@@ -207,7 +214,10 @@ export default function LearningNav() {
                         module.progress === 100 ? "outlined" : "contained"
                       }
                       size="small"
-                      onClick={() => scrollToModule(module.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigateToModule(module.path);
+                      }}
                     >
                       {module.progress === 100 ? "Review" : "Start Learning"}
                     </Button>
