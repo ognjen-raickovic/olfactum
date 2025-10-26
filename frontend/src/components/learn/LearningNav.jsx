@@ -15,6 +15,7 @@ import {
   Science,
   Air,
   Palette,
+  LocalBar,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
@@ -24,7 +25,7 @@ const modules = [
     title: "Module 1: The Language of Perfume",
     description:
       "Understand fragrance notes, the pyramid, and how scents evolve over time",
-    status: "active",
+    status: "completed",
     icon: <School />,
     progress: 100,
     path: "/learn/module1",
@@ -34,9 +35,9 @@ const modules = [
     title: "Module 2: Sillage & Longevity",
     description:
       "Discover scent trails and techniques to make fragrances last longer",
-    status: "active",
+    status: "completed",
     icon: <Air />,
-    progress: 0,
+    progress: 100,
     path: "/learn/module2",
   },
   {
@@ -44,8 +45,8 @@ const modules = [
     title: "Module 3: Fragrance Concentrations",
     description:
       "Learn about Eau de Toilette, Eau de Parfum, Parfum and their differences",
-    status: "upcoming",
-    icon: <Science />,
+    status: "active",
+    icon: <LocalBar />,
     progress: 0,
     path: "/learn/module3",
   },
@@ -71,6 +72,8 @@ export default function LearningNav() {
 
   const getStatusIcon = (status, progress) => {
     switch (status) {
+      case "completed":
+        return <CheckCircle color="success" />;
       case "active":
         return progress === 100 ? (
           <CheckCircle color="success" />
@@ -122,17 +125,17 @@ export default function LearningNav() {
             <Paper
               sx={{
                 p: 3,
-                border: module.status === "active" ? 2 : 1,
+                border: module.status !== "upcoming" ? 2 : 1,
                 borderColor:
-                  module.status === "active" ? "primary.main" : "divider",
-                cursor: module.status === "active" ? "pointer" : "default",
+                  module.status !== "upcoming" ? "primary.main" : "divider",
+                cursor: module.status !== "upcoming" ? "pointer" : "default",
                 transition: "all 0.3s ease",
-                opacity: module.status === "active" ? 1 : 0.6,
+                opacity: module.status !== "upcoming" ? 1 : 0.6,
                 backgroundColor: "background.paper",
                 position: "relative",
                 overflow: "hidden",
                 "&:hover":
-                  module.status === "active"
+                  module.status !== "upcoming"
                     ? {
                         transform: "translateY(-4px)",
                         boxShadow: theme.shadows[4],
@@ -140,7 +143,7 @@ export default function LearningNav() {
                     : {},
               }}
               onClick={() =>
-                module.status === "active" && navigateToModule(module.path)
+                module.status !== "upcoming" && navigateToModule(module.path)
               }
             >
               {/* Progress Bar */}
@@ -170,7 +173,7 @@ export default function LearningNav() {
                 <Box
                   sx={{
                     color:
-                      module.status === "active"
+                      module.status !== "upcoming"
                         ? "primary.main"
                         : "text.disabled",
                     mt: 0.5,
@@ -186,7 +189,7 @@ export default function LearningNav() {
                       sx={{
                         fontWeight: "bold",
                         color:
-                          module.status === "active"
+                          module.status !== "upcoming"
                             ? "text.primary"
                             : "text.disabled",
                       }}
@@ -199,7 +202,7 @@ export default function LearningNav() {
                   <Typography
                     variant="body2"
                     color={
-                      module.status === "active"
+                      module.status !== "upcoming"
                         ? "text.secondary"
                         : "text.disabled"
                     }
@@ -208,10 +211,10 @@ export default function LearningNav() {
                     {module.description}
                   </Typography>
 
-                  {module.status === "active" && (
+                  {module.status !== "upcoming" && (
                     <Button
                       variant={
-                        module.progress === 100 ? "outlined" : "contained"
+                        module.status === "completed" ? "outlined" : "contained"
                       }
                       size="small"
                       onClick={(e) => {
@@ -219,7 +222,9 @@ export default function LearningNav() {
                         navigateToModule(module.path);
                       }}
                     >
-                      {module.progress === 100 ? "Review" : "Start Learning"}
+                      {module.status === "completed"
+                        ? "Review"
+                        : "Start Learning"}
                     </Button>
                   )}
                 </Box>
