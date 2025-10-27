@@ -12,6 +12,7 @@ import { Home, School } from "@mui/icons-material";
 import SectionHeader from "../SectionHeader";
 import FragrancePyramid from "./FragrancePyramid";
 import NoteClassification from "./NoteClassification";
+import ModuleNavigation from "../ModuleNavigation";
 
 export default function Module1() {
   const theme = useTheme();
@@ -47,6 +48,9 @@ export default function Module1() {
           </Typography>
         </Breadcrumbs>
       </Box>
+
+      {/* Navigation */}
+      <ModuleNavigation />
 
       <Paper
         id="module-1"
@@ -130,9 +134,8 @@ export default function Module1() {
           </Typography>
           <Typography variant="body1" color="text.primary">
             Now that you understand fragrance notes, continue to{" "}
-            <strong>Module 2: Concentration & Form</strong>
-            to learn about different perfume concentrations like Eau de
-            Toilette, Eau de Parfum, and more!
+            <strong>Module 2: Sillage & Longevity</strong>
+            to learn how fragrances perform and project throughout the day!
           </Typography>
         </Paper>
       </Paper>

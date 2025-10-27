@@ -32,21 +32,21 @@ const modules = [
   },
   {
     id: "module-2",
-    title: "Module 2: Sillage & Longevity",
+    title: "Module 2: Fragrance Concentrations",
     description:
-      "Discover scent trails and techniques to make fragrances last longer",
+      "Learn about Eau de Toilette, Eau de Parfum, Parfum and their differences",
     status: "completed",
-    icon: <Air />,
+    icon: <LocalBar />,
     progress: 100,
     path: "/learn/module2",
   },
   {
     id: "module-3",
-    title: "Module 3: Fragrance Concentrations",
+    title: "Module 3: Sillage & Longevity",
     description:
-      "Learn about Eau de Toilette, Eau de Parfum, Parfum and their differences",
+      "Discover scent trails and techniques to make fragrances last longer",
     status: "active",
-    icon: <LocalBar />,
+    icon: <Air />,
     progress: 0,
     path: "/learn/module3",
   },
@@ -55,10 +55,20 @@ const modules = [
     title: "Module 4: Fragrance Families",
     description:
       "Explore the main scent categories and their unique characteristics",
-    status: "upcoming",
+    status: "active",
     icon: <Palette />,
     progress: 0,
     path: "/learn/module4",
+  },
+  {
+    id: "module-5",
+    title: "Module 5: Fragrance Care & Testing",
+    description:
+      "Learn proper storage and testing techniques to preserve scent quality",
+    status: "upcoming",
+    icon: <Science />, // or <Storage /> if available
+    progress: 0,
+    path: "/learn/module5",
   },
 ];
 

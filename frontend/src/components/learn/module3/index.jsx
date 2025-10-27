@@ -7,11 +7,14 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
+  Breadcrumbs,
+  Link,
 } from "@mui/material";
+import { Home, School, LocalBar } from "@mui/icons-material";
 import SectionHeader from "../SectionHeader";
+import ModuleNavigation from "../ModuleNavigation";
 import ConcentrationSlider from "./ConcentrationSlider";
 import ConcentrationDetails from "./ConcentrationDetails";
-import { LocalBar } from "@mui/icons-material";
 
 export default function Module3() {
   const theme = useTheme();
@@ -78,12 +81,46 @@ export default function Module3() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* Breadcrumbs */}
+      <Box mb={3}>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link
+            underline="hover"
+            color="inherit"
+            href="/"
+            sx={{ display: "flex", alignItems: "center" }}
+          >
+            <Home sx={{ mr: 0.5 }} fontSize="small" />
+            Home
+          </Link>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="/learn"
+            sx={{ display: "flex", alignItems: "center" }}
+          >
+            <School sx={{ mr: 0.5 }} fontSize="small" />
+            Learn
+          </Link>
+          <Typography
+            color="text.primary"
+            sx={{ display: "flex", alignItems: "center" }}
+          >
+            Module 3: Fragrance Concentrations
+          </Typography>
+        </Breadcrumbs>
+      </Box>
+
+      <ModuleNavigation />
+
+      {/* Module 3 Header */}
       <SectionHeader
         title="Module 3: Fragrance Concentrations"
         subtitle="Understand the differences between Cologne, Eau de Toilette, Eau de Parfum, Parfum, and Elixir - and how concentration affects longevity and sillage"
         icon={<LocalBar />}
       />
 
+      {/* Introduction */}
       <Paper
         sx={{
           p: { xs: 2, md: 3 },
@@ -126,6 +163,7 @@ export default function Module3() {
         </Paper>
       </Paper>
 
+      {/* Concentration Slider + Details */}
       <Grid container spacing={4} alignItems="flex-start">
         <Grid item xs={12} lg={6}>
           <ConcentrationSlider
