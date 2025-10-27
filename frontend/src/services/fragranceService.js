@@ -1,4 +1,4 @@
-import fragranceData from "./fragranceData.json";
+import fragranceData from "../data/fragranceData.json";
 import {
   inferOccasion,
   inferSeason,

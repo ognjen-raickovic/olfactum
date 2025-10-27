@@ -1,0 +1,2 @@
+Contains static or hardcoded data used throughout the application, such as fragrance information, quiz questions, or other reference datasets. 
+These files are not fetched from external APIs and serve as local, read-only sources of data.

@@ -1,4 +1,4 @@
-import fragranceData from "../services/fragranceData.json";
+import fragranceData from "../data/fragranceData.json";
 
 // Cache for search results
 let searchCache = new Map();

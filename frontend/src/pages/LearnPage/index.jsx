@@ -1,6 +1,5 @@
 import { Container, Box, Typography } from "@mui/material";
 import LearningNav from "../../components/learn/LearningNav.jsx";
-import Module1 from "../../components/learn/module1/index.jsx";
 
 export default function LearnPage() {
   return (
@@ -29,12 +28,8 @@ export default function LearnPage() {
           language of scent and discover the art of perfumery.
         </Typography>
       </Box>
-
       {/* Module Navigation */}
       <LearningNav />
-
-      {/* Module 1 */}
-      <Module1 />
     </Container>
   );
 }

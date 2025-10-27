@@ -1,17 +1,1 @@
 Encompasses the business logic of the application, such as authentication, data processing, and integration with external services. Primarily uses Axios instances from apis/, enabling consistent and modular API communication.
-
-fragranceData.js - Database of fragrances with detailed information
-
-Contains:
-- 25 popular fragrances with complete details
-- Helper functions for filtering by scent family, season, occasion
-- Advanced recommendation engine for quiz results
-
-Each fragrance has:
-- id, name, brand, type
-- scentFamily, notes, season, occasion
-- intensity, longevity, priceRange
-- description
-
-Usage:
-import { fragranceData, getRecommendedFragrances } from './data/fragranceData'

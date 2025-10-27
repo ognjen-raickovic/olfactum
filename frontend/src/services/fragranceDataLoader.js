@@ -21,7 +21,7 @@ class FragranceDataLoader {
 
     try {
       // Dynamic import for code splitting
-      const module = await import("./fragranceData.json");
+      const module = await import("../data/fragranceData.json");
       this.data = module.default;
       this.isLoading = false;
 
