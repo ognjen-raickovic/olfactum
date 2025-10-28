@@ -16,6 +16,7 @@ import {
   Air,
   Palette,
   LocalBar,
+  Inventory2,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
@@ -62,11 +63,11 @@ const modules = [
   },
   {
     id: "module-5",
-    title: "Module 5: Fragrance Care & Testing",
+    title: "Module 5: Fragrance Storage & Care",
     description:
-      "Learn proper storage and testing techniques to preserve scent quality",
+      "Learn proper storage techniques and how to preserve your fragrance collection",
     status: "upcoming",
-    icon: <Science />, // or <Storage /> if available
+    icon: <Inventory2 />,
     progress: 0,
     path: "/learn/module5",
   },

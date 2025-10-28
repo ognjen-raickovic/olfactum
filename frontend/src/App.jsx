@@ -8,6 +8,7 @@ import Module1 from "./components/learn/module1";
 import Module2 from "./components/learn/module2";
 import Module3 from "./components/learn/module3";
 import Module4 from "./components/learn/module4";
+import Module5 from "./components/learn/module5";
 import LibraryPage from "./pages/LibraryPage";
 import AboutPage from "./pages/AboutPage";
 import QuizPage from "./pages/QuizPage";
@@ -35,6 +36,7 @@ function App() {
             <Route path="/learn/module2" element={<Module2 />} />
             <Route path="/learn/module3" element={<Module3 />} />
             <Route path="/learn/module4" element={<Module4 />} />
+            <Route path="/learn/module5" element={<Module5 />} />
             <Route path="/library" element={<LibraryPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/faq" element={<FAQ />} />

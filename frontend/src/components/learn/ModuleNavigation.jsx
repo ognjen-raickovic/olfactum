@@ -25,8 +25,8 @@ const moduleStructure = [
   },
   {
     path: "/learn/module5",
-    label: "Fragrance Care & Testing",
-    shortLabel: "Fragrance Care",
+    label: "Fragrance Storage & Care",
+    shortLabel: "Storage & Care",
   },
 ];
 
@@ -58,7 +58,7 @@ export default function ModuleNavigation({ sx = {} }) {
         display: "flex",
         justifyContent: "space-between",
         mb: 4,
-        mt: 2, // Add top margin to prevent navbar overlap
+        mt: 2,
         flexWrap: "wrap",
         gap: 2,
         ...sx,
@@ -72,7 +72,7 @@ export default function ModuleNavigation({ sx = {} }) {
         sx={{
           minWidth: { xs: "100%", sm: 200 },
           opacity: previousModule ? 1 : 0.6,
-          py: 1.5, // Add padding for better touch targets
+          py: 1.5,
         }}
       >
         Previous: {previousModule?.shortLabel}
@@ -86,7 +86,7 @@ export default function ModuleNavigation({ sx = {} }) {
         sx={{
           minWidth: { xs: "100%", sm: 200 },
           opacity: nextModule ? 1 : 0.6,
-          py: 1.5, // Add padding for better touch targets
+          py: 1.5,
         }}
       >
         Next: {nextModule?.shortLabel}
