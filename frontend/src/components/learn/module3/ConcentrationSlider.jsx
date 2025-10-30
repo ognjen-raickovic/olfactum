@@ -60,18 +60,19 @@ export default function ConcentrationSlider({
         height: "100%",
         display: "flex",
         flexDirection: "column",
+        justifyContent: "center",
       }}
     >
-      <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mb: 2 }}>
         Concentration Spectrum
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
         Slide to explore different fragrance concentrations and their properties
       </Typography>
 
       <Box
         sx={{
-          px: isMobile ? 1 : 3,
+          px: isMobile ? 1 : 2,
           pb: 2,
           flexGrow: 1,
           display: "flex",

@@ -6,6 +6,12 @@ import {
   Chip,
   Button,
   useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import {
   CheckCircle,
@@ -17,18 +23,20 @@ import {
   Palette,
   LocalBar,
   Inventory2,
+  Close,
+  Check,
+  Warning,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
-const modules = [
+const initialModules = [
   {
     id: "module-1",
     title: "Module 1: The Language of Perfume",
     description:
       "Understand fragrance notes, the pyramid, and how scents evolve over time",
-    status: "completed",
     icon: <School />,
-    progress: 100,
     path: "/learn/module1",
   },
   {
@@ -36,9 +44,7 @@ const modules = [
     title: "Module 2: Fragrance Concentrations",
     description:
       "Learn about Eau de Toilette, Eau de Parfum, Parfum and their differences",
-    status: "completed",
     icon: <LocalBar />,
-    progress: 100,
     path: "/learn/module2",
   },
   {
@@ -46,9 +52,7 @@ const modules = [
     title: "Module 3: Sillage & Longevity",
     description:
       "Discover scent trails and techniques to make fragrances last longer",
-    status: "active",
     icon: <Air />,
-    progress: 0,
     path: "/learn/module3",
   },
   {
@@ -56,9 +60,7 @@ const modules = [
     title: "Module 4: Fragrance Families",
     description:
       "Explore the main scent categories and their unique characteristics",
-    status: "active",
     icon: <Palette />,
-    progress: 0,
     path: "/learn/module4",
   },
   {
@@ -66,16 +68,68 @@ const modules = [
     title: "Module 5: Fragrance Storage & Care",
     description:
       "Learn proper storage techniques and how to preserve your fragrance collection",
-    status: "upcoming",
     icon: <Inventory2 />,
-    progress: 0,
     path: "/learn/module5",
+  },
+  {
+    id: "module-6",
+    title: "Module 6: Fragrance Testing & Skin Chemistry",
+    description:
+      "Learn proper testing techniques and how skin chemistry transforms fragrances",
+    icon: <Science />,
+    path: "/learn/module6",
   },
 ];
 
 export default function LearningNav() {
   const theme = useTheme();
   const navigate = useNavigate();
+  const [modules, setModules] = useState([]);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+
+  // Load module progress from localStorage
+  useEffect(() => {
+    const updateModuleProgress = () => {
+      const completedModules = JSON.parse(
+        localStorage.getItem("completedModules") || "{}"
+      );
+
+      const updatedModules = initialModules.map((module, index) => {
+        const isCompleted = completedModules[module.id];
+        let status = "upcoming";
+        let progress = 0;
+
+        if (isCompleted) {
+          status = "completed";
+          progress = 100;
+        } else {
+          // If this is the first module or previous module is completed, mark as active
+          if (index === 0 || completedModules[initialModules[index - 1].id]) {
+            status = "active";
+          }
+        }
+
+        return {
+          ...module,
+          status,
+          progress,
+        };
+      });
+
+      setModules(updatedModules);
+    };
+
+    // Initial load
+    updateModuleProgress();
+
+    // Listen for storage changes (when modules are marked complete/incomplete)
+    const handleStorageChange = () => {
+      updateModuleProgress();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   const navigateToModule = (path) => {
     navigate(path);
@@ -98,6 +152,31 @@ export default function LearningNav() {
     }
   };
 
+  // Function to mark a module as complete from the learn page
+  const markModuleAsComplete = (moduleId) => {
+    const completedModules = JSON.parse(
+      localStorage.getItem("completedModules") || "{}"
+    );
+    completedModules[moduleId] = true;
+    localStorage.setItem("completedModules", JSON.stringify(completedModules));
+    window.dispatchEvent(new Event("storage"));
+  };
+
+  // Function to reset all progress with confirmation
+  const handleResetProgress = () => {
+    localStorage.removeItem("completedModules");
+    window.dispatchEvent(new Event("storage"));
+    setResetDialogOpen(false);
+  };
+
+  const openResetDialog = () => {
+    setResetDialogOpen(true);
+  };
+
+  const closeResetDialog = () => {
+    setResetDialogOpen(false);
+  };
+
   return (
     <Paper
       sx={{
@@ -106,6 +185,7 @@ export default function LearningNav() {
         borderRadius: 2,
         backgroundColor: "background.paper",
         border: `1px solid ${theme.palette.divider}`,
+        position: "relative",
       }}
     >
       <Typography
@@ -129,6 +209,22 @@ export default function LearningNav() {
         Follow our structured learning path to become a fragrance expert.
         Complete each module to unlock the next!
       </Typography>
+
+      {/* Reset Progress Button with Confirmation Dialog */}
+      <Button
+        variant="outlined"
+        color="warning"
+        size="small"
+        onClick={openResetDialog}
+        sx={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          fontSize: "0.75rem",
+        }}
+      >
+        Reset Progress
+      </Button>
 
       <Grid container spacing={3}>
         {modules.map((module) => (
@@ -222,22 +318,44 @@ export default function LearningNav() {
                     {module.description}
                   </Typography>
 
-                  {module.status !== "upcoming" && (
-                    <Button
-                      variant={
-                        module.status === "completed" ? "outlined" : "contained"
-                      }
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigateToModule(module.path);
-                      }}
-                    >
-                      {module.status === "completed"
-                        ? "Review"
-                        : "Start Learning"}
-                    </Button>
-                  )}
+                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    {module.status !== "upcoming" && (
+                      <Button
+                        variant={
+                          module.status === "completed"
+                            ? "outlined"
+                            : "contained"
+                        }
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigateToModule(module.path);
+                        }}
+                      >
+                        {module.status === "completed"
+                          ? "Review"
+                          : "Start Learning"}
+                      </Button>
+                    )}
+
+                    {/* Quick Complete Button - Only show for active, incomplete modules */}
+                    {module.status === "active" && module.progress < 100 && (
+                      <Tooltip title="Mark this module as completed without going through it">
+                        <Button
+                          variant="outlined"
+                          color="success"
+                          size="small"
+                          startIcon={<Check />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markModuleAsComplete(module.id);
+                          }}
+                        >
+                          Complete
+                        </Button>
+                      </Tooltip>
+                    )}
+                  </Box>
                 </Box>
               </Box>
 
@@ -254,6 +372,57 @@ export default function LearningNav() {
           </Grid>
         ))}
       </Grid>
+
+      {/* Reset Progress Confirmation Dialog */}
+      <Dialog
+        open={resetDialogOpen}
+        onClose={closeResetDialog}
+        aria-labelledby="reset-dialog-title"
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle
+          id="reset-dialog-title"
+          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+        >
+          <Warning color="warning" />
+          Reset All Progress?
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to reset all your learning progress? This
+            action cannot be undone and will:
+          </Typography>
+          <Box component="ul" sx={{ mt: 1, pl: 2 }}>
+            <Typography component="li">
+              Clear all completed module marks
+            </Typography>
+            <Typography component="li">
+              Reset your progress back to the beginning
+            </Typography>
+            <Typography component="li">
+              Require you to start over from Module 1
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, gap: 1 }}>
+          <Button
+            onClick={closeResetDialog}
+            variant="outlined"
+            startIcon={<Close />}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleResetProgress}
+            variant="contained"
+            color="error"
+            startIcon={<Warning />}
+          >
+            Yes, Reset Everything
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }

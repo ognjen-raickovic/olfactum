@@ -71,29 +71,38 @@ export default function ConcentrationDetails({ concentration }) {
         backgroundColor: "background.paper",
         border: `1px solid ${theme.palette.divider}`,
         height: "100%",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="h4"
           gutterBottom
-          sx={{ fontWeight: "bold", color: "primary.main" }}
+          sx={{ fontWeight: "bold", color: "primary.main", textAlign: "left" }}
         >
           {concentration.name}
         </Typography>
         <Typography
           variant="body1"
           color="text.secondary"
-          sx={{ mb: 2, lineHeight: 1.6 }}
+          sx={{
+            mb: 2,
+            lineHeight: 1.6,
+            textAlign: "left",
+            minHeight: "48px", // Ensure consistent height for 2 lines
+            display: "flex",
+            alignItems: "center",
+          }}
         >
           {concentration.description}
         </Typography>
       </Box>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={2} sx={{ flexGrow: 1 }}>
         {/* Key Specifications */}
         <Grid item xs={12} md={6}>
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 2 }}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <ConcentrationIcon color="primary" />
               <Typography variant="h6" sx={{ fontWeight: "bold" }}>
@@ -104,7 +113,7 @@ export default function ConcentrationDetails({ concentration }) {
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Box display="flex" alignItems="center" gap={2}>
                 <ConcentrationIcon color="primary" fontSize="small" />
-                <Box>
+                <Box sx={{ textAlign: "left" }}>
                   <Typography variant="body2" sx={{ fontWeight: "bold" }}>
                     Perfume Oil Concentration
                   </Typography>
@@ -120,7 +129,7 @@ export default function ConcentrationDetails({ concentration }) {
 
               <Box display="flex" alignItems="center" gap={2}>
                 <AccessTime color="primary" fontSize="small" />
-                <Box>
+                <Box sx={{ textAlign: "left" }}>
                   <Typography variant="body2" sx={{ fontWeight: "bold" }}>
                     Longevity
                   </Typography>
@@ -136,7 +145,7 @@ export default function ConcentrationDetails({ concentration }) {
 
               <Box display="flex" alignItems="center" gap={2}>
                 <Air color="primary" fontSize="small" />
-                <Box>
+                <Box sx={{ textAlign: "left" }}>
                   <Typography variant="body2" sx={{ fontWeight: "bold" }}>
                     Sillage (Projection)
                   </Typography>
@@ -152,7 +161,7 @@ export default function ConcentrationDetails({ concentration }) {
 
               <Box display="flex" alignItems="center" gap={2}>
                 <AttachMoney color="primary" fontSize="small" />
-                <Box>
+                <Box sx={{ textAlign: "left" }}>
                   <Typography variant="body2" sx={{ fontWeight: "bold" }}>
                     Price Range
                   </Typography>
@@ -168,27 +177,33 @@ export default function ConcentrationDetails({ concentration }) {
             </Box>
           </Box>
 
-          <Paper
-            variant="outlined"
-            sx={{
-              p: 2,
-              backgroundColor:
-                theme.palette.mode === "dark" ? "primary.900" : "primary.50",
-              borderColor: theme.palette.primary.main,
-            }}
-          >
-            <Typography
-              variant="body2"
-              sx={{ fontStyle: "italic", color: "text.primary" }}
+          {/* Centered Best For section */}
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                width: "100%",
+                maxWidth: "400px",
+                backgroundColor:
+                  theme.palette.mode === "dark" ? "primary.900" : "primary.50",
+                borderColor: theme.palette.primary.main,
+                textAlign: "center",
+              }}
             >
-              <strong>Best for:</strong> {concentration.bestFor}
-            </Typography>
-          </Paper>
+              <Typography
+                variant="body2"
+                sx={{ fontStyle: "italic", color: "text.primary" }}
+              >
+                <strong>Best for:</strong> {concentration.bestFor}
+              </Typography>
+            </Paper>
+          </Box>
         </Grid>
 
-        {/* Performance Metrics */}
+        {/* Performance Metrics - Shifted more to the left */}
         <Grid item xs={12} md={6}>
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 2, pl: { md: 1 } }}>
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Whatshot color="primary" />
               <Typography variant="h6" sx={{ fontWeight: "bold" }}>
@@ -198,7 +213,10 @@ export default function ConcentrationDetails({ concentration }) {
 
             <Box sx={{ mb: 3 }}>
               <Box display="flex" justifyContent="space-between" mb={1}>
-                <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: "bold", textAlign: "left" }}
+                >
                   Intensity & Projection
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -226,7 +244,10 @@ export default function ConcentrationDetails({ concentration }) {
 
             <Box sx={{ mb: 3 }}>
               <Box display="flex" justifyContent="space-between" mb={1}>
-                <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: "bold", textAlign: "left" }}
+                >
                   Longevity
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -254,7 +275,10 @@ export default function ConcentrationDetails({ concentration }) {
 
             <Box sx={{ mb: 2 }}>
               <Box display="flex" justifyContent="space-between" mb={1}>
-                <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: "bold", textAlign: "left" }}
+                >
                   Price Range
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -281,7 +305,15 @@ export default function ConcentrationDetails({ concentration }) {
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 1,
+              mt: 2,
+              justifyContent: "center",
+            }}
+          >
             <Chip
               label={`Oil: ${concentration.oil}`}
               color="primary"
