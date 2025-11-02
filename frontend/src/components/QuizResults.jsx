@@ -498,7 +498,7 @@ const QuizResults = ({ answers, onRestart }) => {
         fragrance={selectedFragrance}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        disableRouting={false}
+        disableRouting={true}
         noNavigate={true}
       />
     </Box>

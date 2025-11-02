@@ -1,80 +1,152 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Typography, Box } from "@mui/material";
 import { humanizeName } from "../utils/humanizeName";
 
 const FragranceDescription = ({ fragrance }) => {
-  if (!fragrance) return "No description available.";
+  const description = useMemo(() => {
+    if (!fragrance) return "No description available.";
 
-  const brand = humanizeName(fragrance.brand);
-  const name = humanizeName(fragrance.name);
-  const perfumer =
-    fragrance.perfumer && fragrance.perfumer !== "Unknown"
-      ? fragrance.perfumer
-      : null;
-  const year = fragrance.year;
-  const country = fragrance.country;
-  const type = fragrance.type || "Eau de Parfum";
+    const {
+      brand,
+      name,
+      perfumer,
+      year,
+      country,
+      type = "Eau de Parfum",
+      topNotes = [],
+      middleNotes = [],
+      baseNotes = [],
+      accords = [],
+      genderProfile = "Unisex",
+      season = [],
+      occasion = [],
+    } = fragrance;
 
-  // Get notes in a readable format
-  const topNotes =
-    fragrance.topNotes && fragrance.topNotes.length > 0
-      ? fragrance.topNotes.map((note) => humanizeName(note)).join(", ")
-      : null;
+    // Format notes properly
+    const formatNotes = (notes) => {
+      if (!notes.length) return null;
+      const humanizedNotes = notes.map((note) => humanizeName(note));
 
-  const middleNotes =
-    fragrance.middleNotes && fragrance.middleNotes.length > 0
-      ? fragrance.middleNotes.map((note) => humanizeName(note)).join(", ")
-      : null;
+      if (humanizedNotes.length === 1) return humanizedNotes[0];
+      if (humanizedNotes.length === 2) return humanizedNotes.join(" and ");
 
-  const baseNotes =
-    fragrance.baseNotes && fragrance.baseNotes.length > 0
-      ? fragrance.baseNotes.map((note) => humanizeName(note)).join(", ")
-      : null;
+      return (
+        humanizedNotes.slice(0, -1).join(", ") +
+        ", and " +
+        humanizedNotes[humanizedNotes.length - 1]
+      );
+    };
 
-  const accords =
-    fragrance.accords && fragrance.accords.length > 0
-      ? fragrance.accords
-          .slice(0, 3)
-          .map((accord) => humanizeName(accord))
-          .join(", ")
-      : null;
+    // Build description parts naturally
+    const parts = [];
 
-  // Build a balanced, elegant description
-  let description = `${name} by ${brand}`;
+    // Opening line
+    let opening = `${humanizeName(name)} by ${humanizeName(brand)}`;
+    if (year) opening += `, launched in ${year}`;
 
-  if (perfumer) {
-    description += `, crafted by master perfumer ${perfumer}`;
-  }
+    // Add perfumer if available and not "Unknown"
+    if (perfumer && perfumer !== "Unknown") {
+      opening += `, was crafted by ${humanizeName(perfumer)}`;
+    }
 
-  if (year) {
-    description += ` in ${year}`;
-  }
+    // Add location if available
+    if (country) {
+      opening += ` in ${country}`;
+    }
 
-  description += `. This exquisite ${type.toLowerCase()}`;
+    parts.push(opening + ".");
 
-  if (country) {
-    description += ` from ${country}`;
-  }
+    // Type and gender - handle gracefully
+    const genderText = humanizeName(genderProfile.toLowerCase());
+    const typeText =
+      type.toLowerCase() === "eau de parfum"
+        ? "Eau de Parfum"
+        : humanizeName(type);
 
-  description += ` presents a sophisticated olfactory journey.`;
+    parts.push(
+      `This ${genderText} ${typeText} presents a sophisticated blend that evolves beautifully over time.`
+    );
 
-  if (topNotes) {
-    description += ` It opens with vibrant notes of ${topNotes}, creating an immediate and captivating introduction.`;
-  }
+    // Notes description
+    const topNotesStr = formatNotes(topNotes);
+    const middleNotesStr = formatNotes(middleNotes);
+    const baseNotesStr = formatNotes(baseNotes);
 
-  if (middleNotes) {
-    description += ` The heart reveals ${middleNotes}, forming an elegant and well-balanced core.`;
-  }
+    if (topNotesStr) {
+      parts.push(
+        `It opens with ${topNotesStr}, creating an inviting first impression.`
+      );
+    }
 
-  if (baseNotes) {
-    description += ` Finally, it settles into a warm base of ${baseNotes}, leaving a memorable trail.`;
-  }
+    if (middleNotesStr) {
+      parts.push(
+        `The heart reveals ${middleNotesStr}, developing into a complex and engaging character.`
+      );
+    }
 
-  if (accords) {
-    description += ` Characterized by ${accords} accords, this composition offers a refined scent experience for discerning enthusiasts.`;
-  } else {
-    description += ` This masterful composition offers a refined scent experience for discerning enthusiasts.`;
-  }
+    if (baseNotesStr) {
+      parts.push(
+        `Finally, it settles into a warm base of ${baseNotesStr}, leaving a memorable trail that lingers.`
+      );
+    }
+
+    // Accords
+    if (accords.length > 0) {
+      const mainAccords = accords
+        .slice(0, 3)
+        .map((accord) => humanizeName(accord));
+      const accordText =
+        mainAccords.length === 1
+          ? mainAccords[0]
+          : mainAccords.length === 2
+          ? mainAccords.join(" and ")
+          : mainAccords.slice(0, -1).join(", ") +
+            ", and " +
+            mainAccords[mainAccords.length - 1];
+
+      parts.push(
+        `Characterized by ${accordText.toLowerCase()} accords, this composition offers a refined and distinctive scent profile.`
+      );
+    }
+
+    // Season and occasion
+    if (season.length > 0 || occasion.length > 0) {
+      const seasonStr =
+        season.length > 0
+          ? season.length === 1
+            ? season[0].toLowerCase()
+            : season.map((s) => s.toLowerCase()).join(", ")
+          : "";
+
+      const occasionStr =
+        occasion.length > 0
+          ? occasion.length === 1
+            ? occasion[0].toLowerCase()
+            : occasion.map((o) => o.toLowerCase()).join(", ")
+          : "";
+
+      if (seasonStr && occasionStr) {
+        parts.push(`Ideal for ${seasonStr} wear and ${occasionStr} occasions.`);
+      } else if (seasonStr) {
+        parts.push(`Perfect for ${seasonStr} seasons.`);
+      } else if (occasionStr) {
+        parts.push(`Well-suited for ${occasionStr} occasions.`);
+      }
+    }
+
+    // Final impression
+    const finalAdjectives = [
+      "A sophisticated choice for the discerning fragrance enthusiast",
+      "An elegant scent that makes a lasting impression",
+      "A refined fragrance that balances complexity with wearability",
+      "A distinctive composition that stands out with subtle confidence",
+    ];
+    const finalAdjective =
+      finalAdjectives[Math.floor(Math.random() * finalAdjectives.length)];
+    parts.push(`${finalAdjective}.`);
+
+    return parts.join(" ");
+  }, [fragrance]);
 
   return (
     <Box>
