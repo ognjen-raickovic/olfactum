@@ -160,7 +160,8 @@ const FragranceModal = ({
   }, [fragrance]);
 
   const handleClose = () => {
-    if (!noNavigate && !isQuizContext) {
+    // FIX: Only navigate if explicitly not in modal context and not disabled
+    if (!noNavigate && !isQuizContext && !disableRouting) {
       const prev = prevRef.current;
       const fallback = "/fragrances";
       navigate(
@@ -168,11 +169,12 @@ const FragranceModal = ({
         { replace: true }
       );
     }
+    // Always call onClose when provided
     if (onClose) onClose();
   };
 
   const handleBackdropClick = (event) => {
-    if (isQuizContext) {
+    if (isQuizContext || disableRouting) {
       event.stopPropagation();
       return;
     }
@@ -181,7 +183,7 @@ const FragranceModal = ({
   return (
     <Modal
       open={open}
-      onClose={isQuizContext ? undefined : handleClose}
+      onClose={isQuizContext || disableRouting ? undefined : handleClose}
       closeAfterTransition
       disableScrollLock
       slots={{ backdrop: Backdrop }}
@@ -262,29 +264,76 @@ const FragranceModal = ({
             },
           }}
         >
-          {/* CLOSE BUTTON - Absolutely positioned relative to modal container */}
-          <IconButton
-            onClick={handleClose}
+          {/* STICKY HEADER with Close Button */}
+          <Box
             sx={{
-              position: "absolute",
-              top: 16,
-              right: 16,
+              p: 3,
+              pb: 2,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
+              position: "sticky",
+              top: 0,
               zIndex: 10,
-              bgcolor: "background.paper",
-              boxShadow: 2,
-              "&:hover": {
-                bgcolor: "action.hover",
-                transform: "scale(1.1)",
-              },
-              width: isMobile ? 36 : 40,
-              height: isMobile ? 36 : 40,
-              border: "1px solid",
-              borderColor: "divider",
+              backdropFilter: "blur(10px)",
             }}
-            aria-label="Close"
           >
-            <Close />
-          </IconButton>
+            <Box sx={{ position: "relative", textAlign: "center" }}>
+              {/* CLOSE BUTTON - Fixed position in header */}
+              <IconButton
+                onClick={handleClose}
+                sx={{
+                  position: "absolute",
+                  top: -8,
+                  right: -8,
+                  zIndex: 11,
+                  bgcolor: "background.paper",
+                  boxShadow: 2,
+                  "&:hover": {
+                    bgcolor: "action.hover",
+                    transform: "scale(1.1)",
+                  },
+                  width: isMobile ? 36 : 40,
+                  height: isMobile ? 36 : 40,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+                aria-label="Close"
+              >
+                <Close />
+              </IconButton>
+
+              <Typography variant="h4" component="h2">
+                {humanizeName(f?.brand)} — {humanizeName(f?.name)}
+              </Typography>
+
+              <Typography
+                variant="h6"
+                color="primary.main"
+                sx={{ mt: 0.5, mb: 1 }}
+              >
+                {humanizeName(f?.genderProfile || "Unisex")}
+              </Typography>
+
+              {ratingValue != null && f && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                    mt: 0.5,
+                  }}
+                >
+                  <Rating value={ratingValue} precision={0.1} readOnly />
+                  <Typography variant="body2" color="text.secondary">
+                    {ratingValue.toFixed(1)}/5{" "}
+                    {f.ratingCount ? `(${f.ratingCount} reviews)` : ""}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </Box>
+
           {isLoading ? (
             <Box
               sx={{
@@ -298,41 +347,6 @@ const FragranceModal = ({
             </Box>
           ) : f ? (
             <>
-              {/* HEADER */}
-              <Box sx={{ p: 3, pb: 2, textAlign: "center" }}>
-                <Typography variant="h4" component="h2">
-                  {humanizeName(f.brand)} — {humanizeName(f.name)}
-                </Typography>
-
-                <Typography
-                  variant="h6"
-                  color="primary.main"
-                  sx={{ mt: 0.5, mb: 1 }}
-                >
-                  {humanizeName(f.genderProfile || "Unisex")}
-                </Typography>
-
-                {ratingValue != null && (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 1,
-                      mt: 0.5,
-                    }}
-                  >
-                    <Rating value={ratingValue} precision={0.1} readOnly />
-                    <Typography variant="body2" color="text.secondary">
-                      {ratingValue.toFixed(1)}/5{" "}
-                      {f.ratingCount ? `(${f.ratingCount} reviews)` : ""}
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-
-              <Divider />
-
               {/* MAIN CONTENT - SIDE BY SIDE LAYOUT RESTORED */}
               <Box sx={{ p: 3 }}>
                 {/* DESKTOP LAYOUT - Image left, Description right */}
@@ -432,12 +446,12 @@ const FragranceModal = ({
                 {/* NOTES AND PERFORMANCE ROW - BELOW THE IMAGE/DESCRIPTION */}
                 <Grid container spacing={3}>
                   {/* FRAGRANCE NOTES */}
-                  <Grid size={{ xs: 12, md: 8 }}>
+                  <Grid item xs={12} md={8}>
                     <FragranceNotes fragrance={f} />
                   </Grid>
 
                   {/* PERFORMANCE */}
-                  <Grid size={{ xs: 12, md: 4 }}>
+                  <Grid item xs={12} md={4}>
                     <Card variant="outlined" sx={{ p: 2, height: "100%" }}>
                       <Typography
                         variant="h6"
@@ -497,26 +511,44 @@ const FragranceModal = ({
 
               <Divider />
 
-              {/* DETAILS & ACTIONS SECTION */}
+              {/* SIMPLIFIED DETAILS SECTION - Removed redundant information */}
               <Box sx={{ p: 3 }}>
                 <Typography variant="h6" gutterBottom>
-                  Details & Accords
+                  Scent Profile & Occasions
                 </Typography>
 
-                <Stack direction="row" gap={1} flexWrap="wrap" sx={{ mb: 2 }}>
-                  {(f.accords || []).slice(0, 6).map((a, i) => (
-                    <Chip
-                      key={`acc-${i}`}
-                      label={humanizeName(a)}
-                      size="small"
-                      color="primary"
-                    />
-                  ))}
-                </Stack>
+                {/* ACCORDS */}
+                {(f.accords || []).length > 0 && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography
+                      variant="body2"
+                      fontWeight="medium"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Main Accords:
+                    </Typography>
+                    <Stack
+                      direction="row"
+                      gap={1}
+                      flexWrap="wrap"
+                      sx={{ mb: 2 }}
+                    >
+                      {(f.accords || []).slice(0, 6).map((a, i) => (
+                        <Chip
+                          key={`acc-${i}`}
+                          label={humanizeName(a)}
+                          size="small"
+                          color="primary"
+                        />
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
 
                 {/* SEASON & OCCASION */}
                 {(f.season || f.occasion) && (
-                  <Box sx={{ mb: 2 }}>
+                  <Box sx={{ mb: 3 }}>
                     <Typography
                       variant="body2"
                       fontWeight="medium"
@@ -548,7 +580,8 @@ const FragranceModal = ({
                   </Box>
                 )}
 
-                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 2 }}>
+                {/* ACTION BUTTONS */}
+                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 3 }}>
                   <Button variant="contained" size="large">
                     Add to Favorites
                   </Button>

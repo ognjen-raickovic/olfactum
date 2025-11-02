@@ -178,7 +178,6 @@ export default function FamilyCard({ family, onFragranceClick }) {
                               transform: "none",
                               maxWidth: "100%",
                               height: "100%",
-                              // Ultra compact styling
                               "& .MuiCardContent-root": {
                                 p: 1,
                                 "&:last-child": { pb: 1 },

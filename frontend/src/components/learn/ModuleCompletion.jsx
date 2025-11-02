@@ -88,10 +88,12 @@ export default function ModuleCompletion({ loaded, moduleId, moduleTitle }) {
           >
             <Box
               display="flex"
+              flexDirection={{ xs: "column", sm: "row" }}
               alignItems="center"
               justifyContent="center"
               gap={1.5}
               mb={2}
+              textAlign="center"
             >
               <CheckCircle sx={{ fontSize: 40, color: "success.main" }} />
               <Typography

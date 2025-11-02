@@ -52,11 +52,13 @@ export default function FamilyModal({
           bgcolor: "background.paper",
           borderRadius: 2,
           boxShadow: 24,
-          overflow: "auto",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
           outline: "none",
         }}
       >
-        {/* Header */}
+        {/* Sticky Header */}
         <Box
           sx={{
             p: 3,
@@ -65,55 +67,82 @@ export default function FamilyModal({
               getFamilyColor(family.id),
               0.1
             )} 0%, ${alpha(getFamilyColor(family.id), 0.05)} 100%)`,
-            position: "relative",
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            backdropFilter: "blur(10px)",
           }}
         >
-          <IconButton
-            onClick={onClose}
-            sx={{
-              position: "absolute",
-              top: 16,
-              right: 16,
-              bgcolor: "background.paper",
-              boxShadow: 1,
-            }}
-          >
-            <Close />
-          </IconButton>
+          <Box sx={{ position: "relative" }}>
+            <IconButton
+              onClick={onClose}
+              sx={{
+                position: "absolute",
+                top: -16,
+                right: -16,
+                bgcolor: "background.paper",
+                boxShadow: 3,
+                border: `1px solid ${theme.palette.divider}`,
+                width: 40,
+                height: 40,
+                "&:hover": {
+                  bgcolor:
+                    theme.palette.mode === "dark" ? "grey.800" : "grey.100",
+                },
+              }}
+            >
+              <Close />
+            </IconButton>
 
-          <Typography
-            variant="h3"
-            component="h2"
-            gutterBottom
-            sx={{ fontWeight: "bold", color: getFamilyColor(family.id) }}
-          >
-            {family.name}
-          </Typography>
-          <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-            {family.description}
-          </Typography>
+            <Typography
+              variant="h3"
+              component="h2"
+              gutterBottom
+              sx={{
+                fontWeight: "bold",
+                color: getFamilyColor(family.id),
+                fontSize: { xs: "2rem", md: "2.5rem" },
+                pr: 6,
+              }}
+            >
+              {family.name}
+            </Typography>
+            <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+              {family.description}
+            </Typography>
 
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            {family.characteristics.map((char) => (
-              <Chip
-                key={char}
-                label={char}
-                sx={{
-                  borderColor: alpha(getFamilyColor(family.id), 0.3),
-                  color: getFamilyColor(family.id),
-                  backgroundColor: alpha(getFamilyColor(family.id), 0.1),
-                }}
-              />
-            ))}
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              {family.characteristics.map((char) => (
+                <Chip
+                  key={char}
+                  label={char}
+                  sx={{
+                    borderColor: alpha(getFamilyColor(family.id), 0.3),
+                    color: getFamilyColor(family.id),
+                    backgroundColor: alpha(getFamilyColor(family.id), 0.1),
+                  }}
+                />
+              ))}
+            </Box>
           </Box>
         </Box>
 
-        {/* Content */}
-        <Box sx={{ p: 3 }}>
+        {/* Scrollable Content */}
+        <Box
+          sx={{
+            p: 3,
+            overflow: "auto",
+            flex: 1,
+          }}
+        >
           <Typography
             variant="h5"
             gutterBottom
-            sx={{ fontWeight: "bold", mb: 3 }}
+            sx={{
+              fontWeight: "bold",
+              mb: 3,
+              fontSize: { xs: "1.5rem", md: "1.75rem" },
+            }}
           >
             Sub-Families & Popular Fragrances
           </Typography>
@@ -122,7 +151,7 @@ export default function FamilyModal({
             <Paper
               key={index}
               sx={{
-                p: 3,
+                p: { xs: 2, md: 3 },
                 mb: 3,
                 border: `1px solid ${theme.palette.divider}`,
               }}
@@ -130,7 +159,11 @@ export default function FamilyModal({
               <Typography
                 variant="h6"
                 gutterBottom
-                sx={{ fontWeight: "bold", color: "primary.main" }}
+                sx={{
+                  fontWeight: "bold",
+                  color: "primary.main",
+                  fontSize: { xs: "1.1rem", md: "1.25rem" },
+                }}
               >
                 {subFamily.name}
               </Typography>
@@ -143,7 +176,11 @@ export default function FamilyModal({
                   <Typography
                     variant="subtitle1"
                     gutterBottom
-                    sx={{ fontWeight: "bold", mt: 2 }}
+                    sx={{
+                      fontWeight: "bold",
+                      mt: 2,
+                      fontSize: { xs: "0.9rem", md: "1rem" },
+                    }}
                   >
                     Popular Examples:
                   </Typography>

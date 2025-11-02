@@ -6,7 +6,6 @@ import {
   Grid,
   Card,
   CardContent,
-  Chip,
   alpha,
 } from "@mui/material";
 import {
@@ -74,8 +73,8 @@ export default function FamilyOverview({ onFamilyClick }) {
           color="text.secondary"
           sx={{ maxWidth: 600, mx: "auto" }}
         >
-          Explore the six main scent categories that form the foundation of
-          perfumery
+          Click on any family to explore its characteristics, notes, and popular
+          fragrances
         </Typography>
       </Box>
 
@@ -84,7 +83,7 @@ export default function FamilyOverview({ onFamilyClick }) {
           <Grid item key={family.id} xs={12} sm={6} md={4}>
             <Card
               sx={{
-                height: 180,
+                height: 120,
                 background: `linear-gradient(135deg, ${alpha(
                   getFamilyColor(family.id),
                   0.1
@@ -114,9 +113,10 @@ export default function FamilyOverview({ onFamilyClick }) {
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
-                <Box sx={{ color: getFamilyColor(family.id), mb: 2 }}>
+                <Box sx={{ color: getFamilyColor(family.id), mb: 1 }}>
                   {familyIcons[family.id]}
                 </Box>
                 <Typography
@@ -125,40 +125,10 @@ export default function FamilyOverview({ onFamilyClick }) {
                   sx={{
                     fontWeight: "bold",
                     color: getFamilyColor(family.id),
-                    mb: 1,
                   }}
                 >
                   {family.name}
                 </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  {family.description}
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 1,
-                    justifyContent: "center",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {family.characteristics.slice(0, 3).map((char) => (
-                    <Chip
-                      key={char}
-                      label={char}
-                      size="small"
-                      variant="outlined"
-                      sx={{
-                        borderColor: alpha(getFamilyColor(family.id), 0.3),
-                        color: getFamilyColor(family.id),
-                        backgroundColor: alpha(getFamilyColor(family.id), 0.1),
-                      }}
-                    />
-                  ))}
-                </Box>
               </CardContent>
             </Card>
           </Grid>
@@ -174,8 +144,8 @@ export default function FamilyOverview({ onFamilyClick }) {
         }}
       >
         <Typography variant="body1" color="text.secondary">
-          💡 <strong>Click</strong> any family to explore its sub-categories and
-          popular fragrances
+          💡 <strong>Click</strong> any family to explore its characteristics,
+          sub-categories, and popular fragrances
         </Typography>
       </Box>
     </Paper>

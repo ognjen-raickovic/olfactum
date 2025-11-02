@@ -169,8 +169,8 @@ export default function Module4() {
                     maxWidth: 600,
                   }}
                 >
-                  Discover the major fragrance families and learn to identify
-                  your signature scent style through systematic classification
+                  Click on each family to explore their unique characteristics,
+                  notes, and popular fragrances
                 </Typography>
               </Box>
             </Box>
@@ -231,13 +231,26 @@ export default function Module4() {
                     borderRadius: 3,
                     border: `1px solid ${alpha(theme.palette.info.main, 0.3)}`,
                     backgroundColor: alpha(theme.palette.info.main, 0.08),
-                    "& .MuiAlert-message": { width: "100%" },
+                    "& .MuiAlert-message": {
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                    },
+                    "& .MuiAlert-icon": {
+                      alignItems: "center",
+                      marginRight: 2,
+                    },
                   }}
                 >
                   <Typography
                     variant="h6"
                     gutterBottom
-                    sx={{ fontWeight: "bold", color: "info.main" }}
+                    sx={{
+                      fontWeight: "bold",
+                      color: "info.main",
+                      mb: 1,
+                    }}
                   >
                     🎨 Your Olfactory Palette
                   </Typography>
@@ -372,30 +385,9 @@ export default function Module4() {
                 mx: "auto",
               }}
             >
-              Explore the major fragrance families and their characteristics.
-              Click on each family to discover its unique scent profile, popular
-              examples, and ideal occasions.
+              Click on any family to discover its unique scent profile, key
+              characteristics, and popular examples.
             </Typography>
-
-            <Alert
-              severity="info"
-              sx={{
-                mb: 4,
-                fontSize: "0.9rem",
-                p: 2,
-                borderRadius: 2,
-                border: `1px solid ${alpha(theme.palette.info.main, 0.3)}`,
-                backgroundColor: alpha(theme.palette.info.main, 0.08),
-                maxWidth: 800,
-                mx: "auto",
-              }}
-            >
-              <Typography variant="body2" fontStyle="italic">
-                <strong>Tip:</strong> Most modern fragrances blend multiple
-                families, creating unique and complex scent profiles. Use these
-                classifications as a starting point for your fragrance journey.
-              </Typography>
-            </Alert>
 
             <FamilyOverview onFamilyClick={handleFamilyClick} />
           </Container>
@@ -507,6 +499,16 @@ export default function Module4() {
                   textAlign: "center",
                   p: 3,
                   borderRadius: 3,
+                  "& .MuiAlert-message": {
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                  },
+                  "& .MuiAlert-icon": {
+                    alignItems: "center",
+                    marginRight: 2,
+                  },
                 }}
               >
                 <strong>Congratulations!</strong> You've completed the
@@ -518,7 +520,7 @@ export default function Module4() {
         </Box>
       </Fade>
 
-      {/* Module Completion - Only keeping the lower one */}
+      {/* Module Completion */}
       <Container maxWidth="lg" sx={{ mb: 4 }}>
         <ModuleCompletion
           loaded={loaded}
@@ -539,6 +541,7 @@ export default function Module4() {
         fragrance={selectedFragrance}
         open={fragranceModalOpen}
         onClose={handleCloseFragranceModal}
+        disableRouting={true} // Prevents redirect to /fragrances when closing
       />
 
       <ModuleNavigation sx={{ mt: 4 }} />

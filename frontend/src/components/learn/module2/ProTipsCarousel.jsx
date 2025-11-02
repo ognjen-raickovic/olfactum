@@ -93,10 +93,12 @@ export default function ProTipsCarousel() {
   return (
     <Paper
       sx={{
-        p: { xs: 3, sm: 4 }, // Responsive padding
+        p: { xs: 3, sm: 4 },
         background: currentColors.background,
         position: "relative",
         overflow: "hidden",
+        width: "100%",
+        boxSizing: "border-box",
       }}
     >
       {/* Decorative elements */}
@@ -141,10 +143,11 @@ export default function ProTipsCarousel() {
           color: currentColors.text,
           justifyContent: "center",
           fontWeight: "bold",
-          fontSize: { xs: "1.75rem", sm: "2.125rem" }, // Responsive font size
+          fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
         }}
       >
-        <Lightbulb sx={{ fontSize: { xs: 28, sm: 32 } }} /> Pro Tips & Tricks
+        <Lightbulb sx={{ fontSize: { xs: 24, sm: 28, md: 32 } }} /> Pro Tips &
+        Tricks
       </Typography>
 
       <Box sx={{ position: "relative", minHeight: 280, zIndex: 1 }}>
@@ -153,13 +156,13 @@ export default function ProTipsCarousel() {
             <Card
               sx={{
                 width: "100%",
-                maxWidth: { xs: "90%", sm: 600 }, // Smaller on mobile
+                maxWidth: { xs: "95%", sm: 500, md: 600 },
                 mt: 2,
                 backgroundColor:
                   theme.palette.mode === "light"
                     ? "white"
                     : theme.palette.grey[800],
-                minHeight: { xs: 200, sm: 240 }, // Responsive height
+                minHeight: { xs: 220, sm: 240, md: 260 },
                 display: "flex",
                 flexDirection: "column",
               }}
@@ -167,7 +170,7 @@ export default function ProTipsCarousel() {
               <CardContent
                 sx={{
                   textAlign: "center",
-                  p: { xs: 3, sm: 4 }, // Responsive padding
+                  p: { xs: 2, sm: 3, md: 4 },
                   flex: 1,
                   display: "flex",
                   flexDirection: "column",
@@ -179,8 +182,8 @@ export default function ProTipsCarousel() {
                       theme.palette.mode === "light"
                         ? theme.palette.warning.main
                         : theme.palette.warning.light,
-                    mb: { xs: 2, sm: 3 }, // Responsive margin
-                    fontSize: { xs: "2.5rem", sm: "3rem" }, // Responsive icon
+                    mb: { xs: 1, sm: 2, md: 3 },
+                    fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
                   }}
                 >
                   {tips[currentTip].icon}
@@ -190,10 +193,10 @@ export default function ProTipsCarousel() {
                   sx={{
                     display: "flex",
                     justifyContent: "center",
-                    gap: { xs: 1, sm: 2 }, // Responsive gap
-                    mb: { xs: 2, sm: 3 },
+                    gap: { xs: 1, sm: 2 },
+                    mb: { xs: 1, sm: 2, md: 3 },
                     flexShrink: 0,
-                    flexWrap: "wrap", // Allow wrapping on very small screens
+                    flexWrap: "wrap",
                   }}
                 >
                   <Chip
@@ -203,7 +206,7 @@ export default function ProTipsCarousel() {
                     sx={{
                       color: theme.palette.text.secondary,
                       borderColor: theme.palette.text.secondary,
-                      fontSize: isMobile ? "0.8rem" : "0.9rem",
+                      fontSize: isMobile ? "0.7rem" : "0.875rem",
                     }}
                   />
                   <Chip
@@ -214,25 +217,25 @@ export default function ProTipsCarousel() {
                         ? "primary"
                         : "secondary"
                     }
-                    sx={{ fontSize: isMobile ? "0.8rem" : "0.9rem" }}
+                    sx={{ fontSize: isMobile ? "0.7rem" : "0.875rem" }}
                   />
                 </Box>
 
                 <Typography
-                  variant={isMobile ? "h6" : "h5"} // Responsive title size
+                  variant={isMobile ? "h6" : "h5"}
                   gutterBottom
                   sx={{
                     color: theme.palette.text.primary,
                     flexShrink: 0,
                     mb: { xs: 1, sm: 2 },
-                    fontSize: { xs: "1.25rem", sm: "1.5rem" },
+                    fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.5rem" },
                   }}
                 >
                   {tips[currentTip].title}
                 </Typography>
 
                 <Typography
-                  variant={isMobile ? "body2" : "body1"} // Smaller text on mobile
+                  variant={isMobile ? "body2" : "body1"}
                   sx={{
                     color: theme.palette.text.secondary,
                     flex: 1,
@@ -240,7 +243,8 @@ export default function ProTipsCarousel() {
                     alignItems: "center",
                     justifyContent: "center",
                     lineHeight: 1.6,
-                    fontSize: { xs: "0.875rem", sm: "1rem" },
+                    fontSize: { xs: "0.8rem", sm: "0.875rem", md: "1rem" },
+                    px: { xs: 0.5, sm: 0 },
                   }}
                 >
                   {tips[currentTip].description}
@@ -250,12 +254,12 @@ export default function ProTipsCarousel() {
           </Box>
         </Slide>
 
-        {/* Navigation - Better mobile placement */}
+        {/* Navigation - Positioned outside the card */}
         <IconButton
           onClick={prevTip}
           sx={{
             position: "absolute",
-            left: { xs: 5, sm: 10 }, // Closer to edge on mobile
+            left: { xs: -10, sm: -15, md: -20 },
             top: "50%",
             transform: "translateY(-50%)",
             backgroundColor:
@@ -274,19 +278,20 @@ export default function ProTipsCarousel() {
                   : theme.palette.grey[700],
             },
             transition: "all 0.3s ease",
-            width: { xs: 40, sm: 48 }, // Smaller on mobile
-            height: { xs: 40, sm: 48 },
+            width: { xs: 36, sm: 44, md: 48 },
+            height: { xs: 36, sm: 44, md: 48 },
             zIndex: 2,
+            border: `1px solid ${theme.palette.divider}`,
           }}
         >
-          <ChevronLeft sx={{ fontSize: { xs: 24, sm: 28 } }} />
+          <ChevronLeft sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />
         </IconButton>
 
         <IconButton
           onClick={nextTip}
           sx={{
             position: "absolute",
-            right: { xs: 5, sm: 10 }, // Closer to edge on mobile
+            right: { xs: -10, sm: -15, md: -20 },
             top: "50%",
             transform: "translateY(-50%)",
             backgroundColor:
@@ -305,24 +310,25 @@ export default function ProTipsCarousel() {
                   : theme.palette.grey[700],
             },
             transition: "all 0.3s ease",
-            width: { xs: 40, sm: 48 },
-            height: { xs: 40, sm: 48 },
+            width: { xs: 36, sm: 44, md: 48 },
+            height: { xs: 36, sm: 44, md: 48 },
             zIndex: 2,
+            border: `1px solid ${theme.palette.divider}`,
           }}
         >
-          <ChevronRight sx={{ fontSize: { xs: 24, sm: 28 } }} />
+          <ChevronRight sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />
         </IconButton>
       </Box>
 
-      {/* Dots indicator - Better mobile visibility */}
+      {/* Dots indicator */}
       <Box sx={{ display: "flex", justifyContent: "center", gap: 1.5, mt: 4 }}>
         {tips.map((_, index) => (
           <Box
             key={index}
             onClick={() => goToTip(index)}
             sx={{
-              width: { xs: 10, sm: 12 },
-              height: { xs: 10, sm: 12 },
+              width: { xs: 8, sm: 10, md: 12 },
+              height: { xs: 8, sm: 10, md: 12 },
               borderRadius: "50%",
               backgroundColor:
                 index === currentTip

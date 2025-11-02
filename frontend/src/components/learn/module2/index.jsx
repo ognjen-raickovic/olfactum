@@ -60,48 +60,14 @@ export default function Module2() {
     },
   ];
 
-  const coreConcepts = [
-    {
-      icon: <Waves />,
-      title: "Sillage",
-      description:
-        "The scent trail you leave behind - your fragrance's footprint in the air",
-      items: [
-        "Measured by distance and intensity",
-        "Affected by fragrance concentration",
-        "Varies by environment and movement",
-        "Can be intimate, moderate, or strong",
-      ],
-    },
-    {
-      icon: <AccessTime />,
-      title: "Longevity",
-      description: "How long your fragrance remains detectable on your skin",
-      items: [
-        "Ranges from 2-12+ hours typically",
-        "Depends on skin chemistry and type",
-        "Influenced by application technique",
-        "Varies by fragrance concentration",
-      ],
-    },
-    {
-      icon: <TrendingUp />,
-      title: "Projection",
-      description: "How far your fragrance travels from your skin",
-      items: [
-        "Different from sillage (trail vs distance)",
-        "Strongest in the first 1-2 hours",
-        "Affected by body heat and pulse points",
-        "Can be controlled with application",
-      ],
-    },
-  ];
-
   return (
-    <Container maxWidth="xl" sx={{ py: 0 }}>
+    <Container
+      maxWidth="xl"
+      sx={{ py: 0, width: "100%", boxSizing: "border-box" }}
+    >
       {/* Breadcrumbs */}
       <Fade in={loaded} timeout={500}>
-        <Box mb={3} sx={{ pt: 4, px: 2 }}>
+        <Box mb={3} sx={{ pt: 4, px: { xs: 2, sm: 3 } }}>
           <Breadcrumbs aria-label="breadcrumb">
             <Link
               underline="hover"
@@ -141,14 +107,15 @@ export default function Module2() {
               ${alpha(theme.palette.primary.main, 0.15)} 0%, 
               ${alpha(theme.palette.secondary.main, 0.1)} 50%, 
               ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
-            py: { xs: 6, md: 8 },
-            px: { xs: 3, md: 4 },
+            py: { xs: 4, md: 8 },
+            px: { xs: 2, sm: 3 },
             mb: 6,
             borderBottom: `1px solid ${theme.palette.divider}`,
             borderTop: `1px solid ${theme.palette.divider}`,
+            width: "100%",
           }}
         >
-          <Container maxWidth="lg">
+          <Container maxWidth="lg" sx={{ width: "100%" }}>
             <Box
               display="flex"
               alignItems="center"
@@ -157,19 +124,20 @@ export default function Module2() {
               mb={4}
               flexDirection={{ xs: "column", sm: "row" }}
             >
-              <Whatshot sx={{ fontSize: { xs: 48, md: 64 } }} color="primary" />
+              <Whatshot sx={{ fontSize: { xs: 40, md: 64 } }} color="primary" />
               <Box textAlign={{ xs: "center", sm: "left" }}>
                 <Typography
                   variant="h2"
                   component="h1"
                   sx={{
                     fontWeight: "bold",
-                    fontSize: { xs: "2.5rem", md: "3.5rem" },
+                    fontSize: { xs: "2rem", sm: "2.5rem", md: "3.5rem" },
                     background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                     backgroundClip: "text",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     mb: 2,
+                    lineHeight: 1.2,
                   }}
                 >
                   Sillage & Longevity
@@ -178,8 +146,9 @@ export default function Module2() {
                   variant="h5"
                   color="text.secondary"
                   sx={{
-                    fontSize: { xs: "1.1rem", md: "1.4rem" },
+                    fontSize: { xs: "1rem", sm: "1.1rem", md: "1.4rem" },
                     maxWidth: 600,
+                    lineHeight: 1.4,
                   }}
                 >
                   Master the art of fragrance performance and learn how to
@@ -198,12 +167,13 @@ export default function Module2() {
             background: `linear-gradient(180deg, 
               ${alpha(theme.palette.background.paper, 0.9)} 0%, 
               ${alpha(theme.palette.primary.main, 0.03)} 100%)`,
-            py: { xs: 4, md: 6 },
-            px: { xs: 2, md: 0 },
+            py: { xs: 3, md: 6 },
+            px: { xs: 2, sm: 3 },
             mb: 6,
+            width: "100%",
           }}
         >
-          <Container maxWidth="lg">
+          <Container maxWidth="lg" sx={{ width: "100%" }}>
             <Box>
               <Typography
                 variant="h3"
@@ -211,7 +181,7 @@ export default function Module2() {
                 sx={{
                   fontWeight: "bold",
                   color: "text.primary",
-                  fontSize: { xs: "2rem", md: "2.5rem" },
+                  fontSize: { xs: "1.75rem", sm: "2rem", md: "2.5rem" },
                   mb: 3,
                 }}
               >
@@ -221,7 +191,7 @@ export default function Module2() {
                 variant="h6"
                 color="text.secondary"
                 sx={{
-                  fontSize: { xs: "1.1rem", md: "1.3rem" },
+                  fontSize: { xs: "1rem", sm: "1.1rem", md: "1.3rem" },
                   lineHeight: 1.7,
                   mb: 4,
                 }}
@@ -236,8 +206,8 @@ export default function Module2() {
               <Alert
                 severity="info"
                 sx={{
-                  fontSize: "1.1rem",
-                  p: 3,
+                  fontSize: { xs: "0.9rem", md: "1.1rem" },
+                  p: { xs: 2, md: 3 },
                   borderRadius: 3,
                   border: `1px solid ${alpha(theme.palette.info.main, 0.3)}`,
                   backgroundColor: alpha(theme.palette.info.main, 0.08),
@@ -249,11 +219,18 @@ export default function Module2() {
                 <Typography
                   variant="h6"
                   gutterBottom
-                  sx={{ fontWeight: "bold", color: "info.main" }}
+                  sx={{
+                    fontWeight: "bold",
+                    color: "info.main",
+                    fontSize: { xs: "1rem", md: "1.1rem" },
+                  }}
                 >
                   🎯 Performance Matters
                 </Typography>
-                <Typography variant="body1">
+                <Typography
+                  variant="body1"
+                  sx={{ fontSize: { xs: "0.9rem", md: "1rem" } }}
+                >
                   A fragrance that performs well adapts to your lifestyle -
                   intimate when needed, projecting when desired, and lasting as
                   long as you need it to.
@@ -264,19 +241,21 @@ export default function Module2() {
         </Box>
       </Fade>
 
-      {/* Performance Cards - Three in One Row (smaller fixed size, centered layout) */}
+      {/* Performance Cards */}
       <Fade in={loaded} timeout={1000}>
-        <Container maxWidth="lg" sx={{ mb: 8 }}>
+        <Container maxWidth="lg" sx={{ mb: 8, width: "100%" }}>
           <Grid
             container
             spacing={4}
             justifyContent="center"
             alignItems="stretch"
-            sx={{ flexWrap: "wrap" }}
           >
             {performanceCards.map((card, index) => (
               <Grid
                 item
+                xs={12}
+                sm={6}
+                md={4}
                 key={index}
                 sx={{
                   display: "flex",
@@ -286,8 +265,9 @@ export default function Module2() {
                 <Zoom in={loaded} timeout={800 + index * 200}>
                   <Card
                     sx={{
-                      width: 340, // fixed width for consistency
-                      height: 300, // fixed height for proportionate layout
+                      width: "100%",
+                      maxWidth: 340,
+                      height: 300,
                       textAlign: "center",
                       p: 3,
                       display: "flex",
@@ -345,12 +325,16 @@ export default function Module2() {
 
       {/* Core Performance Concepts */}
       <Fade in={loaded} timeout={1000}>
-        <Container maxWidth="lg" sx={{ mb: 10 }}>
+        <Container maxWidth="lg" sx={{ mb: 10, width: "100%" }}>
           <Typography
             variant="h4"
             align="center"
             gutterBottom
-            sx={{ fontWeight: "bold", mb: 4 }}
+            sx={{
+              fontWeight: "bold",
+              mb: 4,
+              fontSize: { xs: "1.75rem", md: "2.125rem" },
+            }}
           >
             🔬 Core Performance Concepts
           </Typography>
@@ -358,7 +342,13 @@ export default function Module2() {
             variant="subtitle1"
             align="center"
             color="text.secondary"
-            sx={{ mb: 6, maxWidth: 720, mx: "auto" }}
+            sx={{
+              mb: 6,
+              maxWidth: 720,
+              mx: "auto",
+              fontSize: { xs: "0.9rem", md: "1rem" },
+              px: 2,
+            }}
           >
             Understand the fundamental concepts that determine how your
             fragrance performs throughout the day.
@@ -369,7 +359,6 @@ export default function Module2() {
             spacing={4}
             justifyContent="center"
             alignItems="stretch"
-            sx={{ flexWrap: "wrap" }}
           >
             {[
               {
@@ -410,6 +399,9 @@ export default function Module2() {
             ].map((concept, index) => (
               <Grid
                 item
+                xs={12}
+                sm={6}
+                md={4}
                 key={index}
                 sx={{
                   display: "flex",
@@ -419,8 +411,9 @@ export default function Module2() {
                 <Zoom in={loaded} timeout={800 + index * 200}>
                   <Card
                     sx={{
-                      width: 340,
-                      height: 340,
+                      width: "100%",
+                      maxWidth: 340,
+                      height: concept.title === "Sillage" ? 370 : 340,
                       textAlign: "center",
                       p: 3,
                       display: "flex",
@@ -513,7 +506,7 @@ export default function Module2() {
       <Fade in={loaded} timeout={800}>
         <Paper
           sx={{
-            p: { xs: 3, md: 6 },
+            p: { xs: 2, sm: 3, md: 6 },
             mb: 6,
             background: `linear-gradient(135deg, ${alpha(
               theme.palette.warning.main,
@@ -521,9 +514,11 @@ export default function Module2() {
             )} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
             border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
             borderRadius: 0,
+            width: "100%",
+            boxSizing: "border-box",
           }}
         >
-          <Container maxWidth="lg">
+          <Container maxWidth="lg" sx={{ width: "100%" }}>
             <Typography
               variant="h3"
               gutterBottom
@@ -532,7 +527,7 @@ export default function Module2() {
                 color: "warning.main",
                 textAlign: "center",
                 mb: 3,
-                fontSize: { xs: "2rem", md: "2.5rem" },
+                fontSize: { xs: "1.75rem", md: "2.5rem" },
               }}
             >
               🎮 Interactive Tools
@@ -546,6 +541,8 @@ export default function Module2() {
                 color: "text.secondary",
                 maxWidth: 800,
                 mx: "auto",
+                fontSize: { xs: "1rem", md: "1.25rem" },
+                px: 2,
               }}
             >
               Explore these interactive tools to visualize and understand
@@ -568,7 +565,7 @@ export default function Module2() {
       <Fade in={loaded} timeout={800}>
         <Paper
           sx={{
-            p: { xs: 3, md: 6 },
+            p: { xs: 2, sm: 3, md: 6 },
             mb: 6,
             background: `linear-gradient(135deg, ${alpha(
               theme.palette.success.main,
@@ -576,9 +573,11 @@ export default function Module2() {
             )} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
             border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
             borderRadius: 0,
+            width: "100%",
+            boxSizing: "border-box",
           }}
         >
-          <Container maxWidth="lg">
+          <Container maxWidth="lg" sx={{ width: "100%" }}>
             <Typography
               variant="h3"
               gutterBottom
@@ -587,7 +586,7 @@ export default function Module2() {
                 color: "success.main",
                 textAlign: "center",
                 mb: 3,
-                fontSize: { xs: "2rem", md: "2.5rem" },
+                fontSize: { xs: "1.75rem", md: "2.5rem" },
               }}
             >
               💡 Professional Tips & Techniques
@@ -598,28 +597,29 @@ export default function Module2() {
         </Paper>
       </Fade>
 
-      {/* Key Takeaways */}
+      {/* Key Takeaways - Green Theme */}
       <Fade in={loaded} timeout={800}>
         <Box
           sx={{
             background: `linear-gradient(135deg, ${alpha(
-              theme.palette.primary.main,
+              theme.palette.success.main,
               0.1
             )} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
             py: { xs: 4, md: 6 },
-            borderTop: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+            borderTop: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+            width: "100%",
           }}
         >
-          <Container maxWidth="lg">
+          <Container maxWidth="lg" sx={{ width: "100%" }}>
             <Typography
               variant="h3"
               gutterBottom
               sx={{
                 fontWeight: "bold",
-                color: "primary.main",
+                color: "success.main",
                 textAlign: "center",
                 mb: 4,
-                fontSize: { xs: "2rem", md: "2.5rem" },
+                fontSize: { xs: "1.75rem", md: "2.5rem" },
               }}
             >
               ✅ Key Takeaways
@@ -630,17 +630,17 @@ export default function Module2() {
                 <Zoom in={loaded} timeout={600}>
                   <Paper
                     sx={{
-                      p: { xs: 3, md: 4 },
+                      p: { xs: 2, sm: 3, md: 4 },
                       borderRadius: 3,
-                      backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                      backgroundColor: alpha(theme.palette.success.main, 0.05),
                       border: `2px solid ${alpha(
-                        theme.palette.primary.main,
+                        theme.palette.success.main,
                         0.3
                       )}`,
                       transition: "all 0.3s ease",
                       "&:hover": {
                         backgroundColor: alpha(
-                          theme.palette.primary.main,
+                          theme.palette.success.main,
                           0.08
                         ),
                         transform: "translateY(-4px)",
@@ -666,18 +666,19 @@ export default function Module2() {
                             padding: "12px 16px",
                             borderRadius: 2,
                             backgroundColor: alpha(
-                              theme.palette.primary.main,
+                              theme.palette.success.main,
                               0.08
                             ),
-                            borderLeft: `4px solid ${theme.palette.primary.main}`,
+                            borderLeft: `4px solid ${theme.palette.success.main}`,
                             transition: "all 0.3s ease",
                             "&:hover": {
                               backgroundColor: alpha(
-                                theme.palette.primary.main,
+                                theme.palette.success.main,
                                 0.12
                               ),
                               transform: "translateX(8px)",
                             },
+                            fontSize: { xs: "0.9rem", md: "1rem" },
                           }}
                         >
                           {item}
@@ -688,12 +689,32 @@ export default function Module2() {
                 </Zoom>
               </Grid>
             </Grid>
+
+            <Fade in={loaded} timeout={1000}>
+              <Alert
+                severity="info"
+                sx={{
+                  mt: 4,
+                  fontSize: { xs: "0.9rem", md: "1.1rem" },
+                  maxWidth: 800,
+                  mx: "auto",
+                  textAlign: "center",
+                  p: { xs: 2, md: 3 },
+                  borderRadius: 3,
+                }}
+              >
+                <strong>Master performance to master your scent!</strong>{" "}
+                Understanding how your fragrance behaves throughout the day
+                helps you make intentional choices that enhance your personal
+                style and presence.
+              </Alert>
+            </Fade>
           </Container>
         </Box>
       </Fade>
 
       {/* Module Completion */}
-      <Container maxWidth="lg" sx={{ mb: 4 }}>
+      <Container maxWidth="lg" sx={{ mb: 4, width: "100%" }}>
         <ModuleCompletion
           loaded={loaded}
           moduleId="module-2"

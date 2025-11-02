@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -16,6 +16,7 @@ import {
   Fade,
   Slide,
   Zoom,
+  styled,
 } from "@mui/material";
 import {
   AccessTime,
@@ -25,6 +26,27 @@ import {
   Whatshot,
   Adjust,
 } from "@mui/icons-material";
+
+// Custom scrollbar styles
+const StyledBox = styled(Box)(({ theme }) => ({
+  "&::-webkit-scrollbar": {
+    width: 8,
+  },
+  "&::-webkit-scrollbar-track": {
+    background:
+      theme.palette.mode === "dark"
+        ? theme.palette.grey[800]
+        : theme.palette.grey[200],
+    borderRadius: 4,
+  },
+  "&::-webkit-scrollbar-thumb": {
+    background: theme.palette.primary.main,
+    borderRadius: 4,
+  },
+  "&::-webkit-scrollbar-thumb:hover": {
+    background: theme.palette.primary.dark,
+  },
+}));
 
 const longevityData = [
   {
@@ -154,8 +176,10 @@ export default function LongevityTracker() {
               ? theme.palette.grey[900]
               : theme.palette.background.paper,
           border: `1px solid ${theme.palette.divider}`,
-          overflowY: "auto",
-          minHeight: 750,
+          overflow: "hidden",
+          minHeight: 650,
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
         <Typography
@@ -167,9 +191,11 @@ export default function LongevityTracker() {
             gap: 1,
             color: theme.palette.text.primary,
             justifyContent: "center",
+            fontSize: { xs: "1.25rem", sm: "1.5rem" },
           }}
         >
-          <AccessTime /> Longevity Calculator
+          <AccessTime sx={{ fontSize: { xs: 20, sm: 24 } }} /> Longevity
+          Calculator
         </Typography>
 
         <Typography
@@ -178,6 +204,7 @@ export default function LongevityTracker() {
             mb: 3,
             color: theme.palette.text.secondary,
             textAlign: "center",
+            fontSize: { xs: "0.875rem", sm: "0.9rem" },
           }}
         >
           See how factors affect your fragrance's staying power
@@ -190,12 +217,29 @@ export default function LongevityTracker() {
           variant="fullWidth"
           sx={{ mb: 3 }}
         >
-          <Tab label="Longevity" icon={<AccessTime />} iconPosition="start" />
-          <Tab label="Factors" icon={<Adjust />} iconPosition="start" />
+          <Tab
+            label="Longevity"
+            icon={<AccessTime />}
+            iconPosition="start"
+            sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+          />
+          <Tab
+            label="Factors"
+            icon={<Adjust />}
+            iconPosition="start"
+            sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+          />
         </Tabs>
 
         {/* Tab Content with Slide Transitions */}
-        <Box sx={{ position: "relative", minHeight: 650, overflowY: "auto" }}>
+        <StyledBox
+          sx={{
+            position: "relative",
+            minHeight: 500,
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+        >
           <Slide
             direction={slideDirection}
             in={activeTab === 0}
@@ -203,20 +247,24 @@ export default function LongevityTracker() {
             unmountOnExit
             timeout={400}
           >
-            <Box sx={{ position: "absolute", width: "100%" }}>
+            <Box sx={{ position: "absolute", width: "100%", px: 1 }}>
               {/* Base Longevity */}
               <Box sx={{ textAlign: "center", mb: 4, pt: 1 }}>
                 <Typography
                   variant="h6"
                   gutterBottom
-                  sx={{ color: theme.palette.text.secondary, mb: 2 }}
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    mb: 2,
+                    fontSize: { xs: "1rem", sm: "1.1rem" },
+                  }}
                 >
                   Base Longevity
                 </Typography>
                 <Box
                   sx={{
-                    width: 120,
-                    height: 120,
+                    width: 100,
+                    height: 100,
                     borderRadius: "50%",
                     backgroundColor: currentLongevity.color,
                     display: "flex",
@@ -229,18 +277,19 @@ export default function LongevityTracker() {
                   }}
                 >
                   <Typography
-                    variant="h4"
+                    variant="h5"
                     sx={{ color: "white", fontWeight: "bold" }}
                   >
                     {currentLongevity.hours}
                   </Typography>
                 </Box>
-                <Box sx={{ minHeight: 60 }}>
+                <Box sx={{ minHeight: 50 }}>
                   <Typography
                     variant="h6"
                     sx={{
                       color: currentLongevity.color,
                       mb: 0.5,
+                      fontSize: { xs: "1rem", sm: "1.1rem" },
                     }}
                   >
                     {currentLongevity.label}
@@ -250,6 +299,7 @@ export default function LongevityTracker() {
                     sx={{
                       color: theme.palette.text.secondary,
                       fontStyle: "italic",
+                      fontSize: { xs: "0.8rem", sm: "0.875rem" },
                     }}
                   >
                     {currentLongevity.tip}
@@ -257,7 +307,7 @@ export default function LongevityTracker() {
                 </Box>
               </Box>
 
-              {/* Slider - Fixed width with proper centering */}
+              {/* Slider */}
               <Box
                 sx={{
                   width: "100%",
@@ -268,14 +318,17 @@ export default function LongevityTracker() {
               >
                 <Box
                   sx={{
-                    width: "90%",
+                    width: "95%",
                     maxWidth: 400,
                   }}
                 >
                   <Typography
                     variant="body2"
                     gutterBottom
-                    sx={{ textAlign: "center" }}
+                    sx={{
+                      textAlign: "center",
+                      fontSize: { xs: "0.875rem", sm: "0.9rem" },
+                    }}
                   >
                     Adjust base longevity:
                   </Typography>
@@ -285,8 +338,20 @@ export default function LongevityTracker() {
                     min={1}
                     max={6}
                     step={1}
-                    marks
+                    marks={[
+                      { value: 1, label: "1-3h" },
+                      { value: 2, label: "3-5h" },
+                      { value: 3, label: "5-7h" },
+                      { value: 4, label: "7-9h" },
+                      { value: 5, label: "9-12h" },
+                      { value: 6, label: "12+h" },
+                    ]}
                     valueLabelDisplay="auto"
+                    sx={{
+                      "& .MuiSlider-markLabel": {
+                        fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                      },
+                    }}
                   />
                 </Box>
               </Box>
@@ -296,14 +361,18 @@ export default function LongevityTracker() {
                 <Typography
                   variant="h6"
                   gutterBottom
-                  sx={{ color: theme.palette.text.secondary, mb: 2 }}
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    mb: 2,
+                    fontSize: { xs: "1rem", sm: "1.1rem" },
+                  }}
                 >
                   Adjusted Longevity
                 </Typography>
                 <Box
                   sx={{
-                    width: 120,
-                    height: 120,
+                    width: 100,
+                    height: 100,
                     borderRadius: "50%",
                     backgroundColor: adjustedLongevity.color,
                     display: "flex",
@@ -325,18 +394,19 @@ export default function LongevityTracker() {
                   }}
                 >
                   <Typography
-                    variant="h4"
+                    variant="h5"
                     sx={{ color: "white", fontWeight: "bold" }}
                   >
                     {adjustedLongevity.hours}
                   </Typography>
                 </Box>
-                <Box sx={{ minHeight: 60 }}>
+                <Box sx={{ minHeight: 50 }}>
                   <Typography
                     variant="h6"
                     sx={{
                       color: adjustedLongevity.color,
                       mb: 0.5,
+                      fontSize: { xs: "1rem", sm: "1.1rem" },
                     }}
                   >
                     {adjustedLongevity.label}
@@ -346,6 +416,7 @@ export default function LongevityTracker() {
                     sx={{
                       color: theme.palette.text.secondary,
                       fontStyle: "italic",
+                      fontSize: { xs: "0.8rem", sm: "0.875rem" },
                     }}
                   >
                     {activeFactors.length > 0
@@ -366,7 +437,7 @@ export default function LongevityTracker() {
             unmountOnExit
             timeout={400}
           >
-            <Box sx={{ position: "absolute", width: "100%" }}>
+            <Box sx={{ position: "absolute", width: "100%", px: 1 }}>
               <Typography
                 variant="h6"
                 gutterBottom
@@ -374,6 +445,7 @@ export default function LongevityTracker() {
                   mb: 3,
                   color: theme.palette.text.primary,
                   textAlign: "center",
+                  fontSize: { xs: "1rem", sm: "1.1rem" },
                 }}
               >
                 Adjust Factors
@@ -397,7 +469,7 @@ export default function LongevityTracker() {
                         theme.palette.mode === "dark"
                           ? theme.palette.grey[800]
                           : theme.palette.background.paper,
-                      minHeight: 140, // Fixed height for mobile
+                      minHeight: 120,
                     }}
                     onClick={() => toggleFactor(index)}
                   >
@@ -424,7 +496,7 @@ export default function LongevityTracker() {
                           <Typography
                             variant="h6"
                             sx={{
-                              fontSize: "1rem",
+                              fontSize: { xs: "0.9rem", sm: "1rem" },
                               color: theme.palette.text.primary,
                             }}
                           >
@@ -449,7 +521,7 @@ export default function LongevityTracker() {
                         variant="body2"
                         sx={{
                           color: theme.palette.text.secondary,
-                          fontSize: "0.875rem",
+                          fontSize: { xs: "0.8rem", sm: "0.875rem" },
                           mb: 1,
                         }}
                       >
@@ -462,7 +534,7 @@ export default function LongevityTracker() {
                             variant="body2"
                             sx={{
                               color: theme.palette.text.secondary,
-                              fontSize: "0.8rem",
+                              fontSize: { xs: "0.75rem", sm: "0.8rem" },
                               fontStyle: "italic",
                               backgroundColor:
                                 theme.palette.mode === "dark"
@@ -483,16 +555,16 @@ export default function LongevityTracker() {
               </Stack>
             </Box>
           </Slide>
-        </Box>
+        </StyledBox>
       </Paper>
     );
   }
 
-  // Desktop layout with symmetrical factor boxes
+  // Desktop layout
   return (
     <Paper
       sx={{
-        p: 4,
+        p: { xs: 3, md: 4 },
         backgroundColor:
           theme.palette.mode === "dark"
             ? theme.palette.grey[900]
@@ -502,7 +574,9 @@ export default function LongevityTracker() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        minHeight: 650, // Match SillageVisualizer height
+        minHeight: 650,
+        width: "100%",
+        boxSizing: "border-box",
       }}
     >
       <Typography
@@ -517,9 +591,10 @@ export default function LongevityTracker() {
           textAlign: "center",
           justifyContent: "center",
           mb: 3,
+          fontSize: { xs: "1.25rem", sm: "1.5rem" },
         }}
       >
-        <AccessTime /> Longevity Tracker
+        <AccessTime sx={{ fontSize: { xs: 20, sm: 24 } }} /> Longevity Tracker
       </Typography>
 
       <Typography
@@ -529,15 +604,16 @@ export default function LongevityTracker() {
           color: theme.palette.text.secondary,
           textAlign: "center",
           maxWidth: 600,
+          fontSize: { xs: "0.875rem", sm: "0.9rem" },
         }}
       >
         See how different factors affect how long your fragrance lasts. Toggle
         factors to see their impact.
       </Typography>
 
-      {/* Longevity Circles - Centered in the row */}
+      {/* Longevity Circles */}
       <Box sx={{ width: "100%", mb: 4 }}>
-        <Grid container spacing={6} sx={{ justifyContent: "center" }}>
+        <Grid container spacing={4} sx={{ justifyContent: "center" }}>
           {/* Base Longevity */}
           <Grid item xs={12} md={5}>
             <Box
@@ -557,16 +633,16 @@ export default function LongevityTracker() {
                   mb: 3,
                   width: "100%",
                   textAlign: "center",
+                  fontSize: { xs: "1rem", sm: "1.1rem" },
                 }}
               >
                 Base Longevity
               </Typography>
 
-              {/* Fixed size container for consistent positioning */}
               <Box
                 sx={{
-                  width: 160,
-                  height: 160,
+                  width: { xs: 120, sm: 140, md: 160 },
+                  height: { xs: 120, sm: 140, md: 160 },
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
@@ -576,8 +652,8 @@ export default function LongevityTracker() {
                 <Zoom in={true} key={currentLongevity.level} timeout={500}>
                   <Box
                     sx={{
-                      width: 140,
-                      height: 140,
+                      width: { xs: 100, sm: 120, md: 140 },
+                      height: { xs: 100, sm: 120, md: 140 },
                       borderRadius: "50%",
                       backgroundColor: currentLongevity.color,
                       display: "flex",
@@ -588,7 +664,11 @@ export default function LongevityTracker() {
                   >
                     <Typography
                       variant="h4"
-                      sx={{ color: "white", fontWeight: "bold" }}
+                      sx={{
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                      }}
                     >
                       {currentLongevity.hours}
                     </Typography>
@@ -596,7 +676,6 @@ export default function LongevityTracker() {
                 </Zoom>
               </Box>
 
-              {/* Fixed width text container */}
               <Box
                 sx={{
                   width: "100%",
@@ -609,6 +688,7 @@ export default function LongevityTracker() {
                   sx={{
                     color: currentLongevity.color,
                     mb: 1,
+                    fontSize: { xs: "1.1rem", sm: "1.25rem" },
                   }}
                 >
                   {currentLongevity.label}
@@ -618,6 +698,7 @@ export default function LongevityTracker() {
                   sx={{
                     color: theme.palette.text.secondary,
                     fontStyle: "italic",
+                    fontSize: { xs: "0.875rem", sm: "0.9rem" },
                   }}
                 >
                   {currentLongevity.tip}
@@ -645,16 +726,16 @@ export default function LongevityTracker() {
                   mb: 3,
                   width: "100%",
                   textAlign: "center",
+                  fontSize: { xs: "1rem", sm: "1.1rem" },
                 }}
               >
                 Adjusted Longevity
               </Typography>
 
-              {/* Fixed size container for consistent positioning */}
               <Box
                 sx={{
-                  width: 160,
-                  height: 160,
+                  width: { xs: 120, sm: 140, md: 160 },
+                  height: { xs: 120, sm: 140, md: 160 },
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
@@ -664,8 +745,8 @@ export default function LongevityTracker() {
                 <Zoom in={true} key={adjustedLongevity.level} timeout={500}>
                   <Box
                     sx={{
-                      width: 140,
-                      height: 140,
+                      width: { xs: 100, sm: 120, md: 140 },
+                      height: { xs: 100, sm: 120, md: 140 },
                       borderRadius: "50%",
                       backgroundColor: adjustedLongevity.color,
                       display: "flex",
@@ -685,7 +766,11 @@ export default function LongevityTracker() {
                   >
                     <Typography
                       variant="h4"
-                      sx={{ color: "white", fontWeight: "bold" }}
+                      sx={{
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+                      }}
                     >
                       {adjustedLongevity.hours}
                     </Typography>
@@ -693,7 +778,6 @@ export default function LongevityTracker() {
                 </Zoom>
               </Box>
 
-              {/* Fixed width text container */}
               <Box
                 sx={{
                   width: "100%",
@@ -706,6 +790,7 @@ export default function LongevityTracker() {
                   sx={{
                     color: adjustedLongevity.color,
                     mb: 1,
+                    fontSize: { xs: "1.1rem", sm: "1.25rem" },
                   }}
                 >
                   {adjustedLongevity.label}
@@ -715,6 +800,7 @@ export default function LongevityTracker() {
                   sx={{
                     color: theme.palette.text.secondary,
                     fontStyle: "italic",
+                    fontSize: { xs: "0.875rem", sm: "0.9rem" },
                   }}
                 >
                   {activeFactors.length > 0
@@ -728,7 +814,7 @@ export default function LongevityTracker() {
       </Box>
 
       {/* Slider */}
-      <Box sx={{ width: "100%", mb: 4, maxWidth: 600 }}>
+      <Box sx={{ width: "100%", mb: 4, maxWidth: 600, px: 2 }}>
         <Slider
           value={longevityLevel}
           onChange={(e, newValue) => setLongevityLevel(newValue)}
@@ -744,16 +830,24 @@ export default function LongevityTracker() {
             { value: 6, label: "12+h" },
           ]}
           valueLabelDisplay="auto"
+          sx={{
+            "& .MuiSlider-markLabel": {
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            },
+          }}
         />
       </Box>
 
-      {/* Factors Grid - Centered and Symmetrical */}
-      <Box
+      {/* Factors Grid */}
+      <StyledBox
         sx={{
           width: "100%",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
+          maxHeight: 400,
+          overflowY: "auto",
+          px: 1,
         }}
       >
         <Typography
@@ -764,6 +858,7 @@ export default function LongevityTracker() {
             color: theme.palette.text.primary,
             textAlign: "center",
             width: "100%",
+            fontSize: { xs: "1rem", sm: "1.1rem" },
           }}
         >
           Factors That Affect Longevity
@@ -796,11 +891,11 @@ export default function LongevityTracker() {
                     theme.palette.mode === "dark"
                       ? theme.palette.grey[800]
                       : theme.palette.background.paper,
-                  width: "100%",
-                  maxWidth: index >= 2 ? 320 : 280, // ⬅️ Wider for Application & Notes
-                  height: 200, // ⬅️ Keep the same height
+                  width: 260, // ✅ fixed width
+                  height: isMobile ? 180 : 220,
                   display: "flex",
                   flexDirection: "column",
+                  justifyContent: "space-between",
                 }}
                 onClick={() => toggleFactor(index)}
               >
@@ -811,7 +906,7 @@ export default function LongevityTracker() {
                     flex: 1,
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "space-between", // Evenly distribute content
+                    justifyContent: "space-between",
                   }}
                 >
                   <Box
@@ -822,10 +917,13 @@ export default function LongevityTracker() {
                       mb: 2,
                       display: "flex",
                       justifyContent: "center",
-                      fontSize: "2.5rem",
+                      alignItems: "center",
+                      width: 48, // ✅ normalize icon box width
+                      height: 48, // ✅ normalize icon box height
+                      mx: "auto", // center horizontally
                     }}
                   >
-                    {factor.icon}
+                    {React.cloneElement(factor.icon, { fontSize: "large" })}
                   </Box>
                   <Box>
                     <Typography
@@ -868,7 +966,7 @@ export default function LongevityTracker() {
             </Grid>
           ))}
         </Grid>
-      </Box>
+      </StyledBox>
     </Paper>
   );
 }
