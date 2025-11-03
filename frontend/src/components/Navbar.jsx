@@ -88,7 +88,12 @@ const Navbar = () => {
   };
 
   const handleResultClick = (f) => {
-    setSelectedFragrance(f);
+    const fragranceSlug =
+      f.slug || `${f.brand}-${f.name}`.toLowerCase().replace(/\s+/g, "-");
+
+    // Navigate to the fragrance URL - let the URL system handle opening the modal
+    navigate(`/fragrances/${fragranceSlug}`);
+
     setResults([]);
     setQuery("");
   };
@@ -481,15 +486,6 @@ const Navbar = () => {
           </Box>
         </Box>
       </Drawer>
-
-      {/* Modal */}
-      {selectedFragrance && (
-        <FragranceModal
-          fragrance={selectedFragrance}
-          open={Boolean(selectedFragrance)}
-          onClose={() => setSelectedFragrance(null)}
-        />
-      )}
     </>
   );
 };

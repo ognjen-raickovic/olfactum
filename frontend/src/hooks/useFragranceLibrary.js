@@ -1,134 +1,115 @@
 import { useState, useEffect } from "react";
 import { getAllFragrances } from "../services/fragranceService";
+import { migrateStorage } from "../utils/migrateStorage";
 
 const useFragranceLibrary = () => {
   const [favorites, setFavorites] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper to migrate from old storage format to new format with timestamps
-  const migrateStorage = (key) => {
+  // Load all fragrances and map IDs to full objects with proper sorting
+  const loadLibrary = () => {
     try {
-      const stored = localStorage.getItem(key);
-      if (!stored) return [];
+      const allFrags = getAllFragrances();
 
-      const parsed = JSON.parse(stored);
+      // Use the centralized migrateStorage function
+      const favoriteItems = migrateStorage("fragranceFavorites");
+      const wishlistItems = migrateStorage("fragranceWishlist");
 
-      // If it's already the new format (array of objects with id), return as is
-      if (
-        Array.isArray(parsed) &&
-        parsed.length > 0 &&
-        typeof parsed[0] === "object" &&
-        parsed[0].id
-      ) {
-        return parsed;
-      }
+      // Process favorites: sort by addedAt (newest first) and get full fragrance data
+      const favoriteFragrances = favoriteItems
+        .sort((a, b) => b.addedAt - a.addedAt) // Newest first (most recent at top)
+        .map((item) => {
+          // Use stored fragrance data if available and complete, otherwise look it up
+          if (
+            item.fragranceData &&
+            item.fragranceData.id &&
+            item.fragranceData.name
+          ) {
+            return { ...item.fragranceData, addedAt: item.addedAt };
+          }
+          const fragrance = allFrags.find((f) => f.id === item.id);
+          return fragrance ? { ...fragrance, addedAt: item.addedAt } : null;
+        })
+        .filter(Boolean);
 
-      // If it's the old format (array of IDs), migrate to new format
-      if (
-        Array.isArray(parsed) &&
-        parsed.length > 0 &&
-        (typeof parsed[0] === "string" || typeof parsed[0] === "number")
-      ) {
-        const migrated = parsed.map((id) => ({
-          id,
-          addedAt: Date.now(), // Use current time for migration
-          migrated: true, // Flag to identify migrated items
-        }));
-        localStorage.setItem(key, JSON.stringify(migrated));
-        console.log(`Migrated ${key} from old format to new format`);
-        return migrated;
-      }
+      // Process wishlist: sort by addedAt (newest first) and get full fragrance data
+      const wishlistFragrances = wishlistItems
+        .sort((a, b) => b.addedAt - a.addedAt) // Newest first (most recent at top)
+        .map((item) => {
+          // Use stored fragrance data if available and complete, otherwise look it up
+          if (
+            item.fragranceData &&
+            item.fragranceData.id &&
+            item.fragranceData.name
+          ) {
+            return { ...item.fragranceData, addedAt: item.addedAt };
+          }
+          const fragrance = allFrags.find((f) => f.id === item.id);
+          return fragrance ? { ...fragrance, addedAt: item.addedAt } : null;
+        })
+        .filter(Boolean);
 
-      return [];
+      setFavorites(favoriteFragrances);
+      setWishlist(wishlistFragrances);
     } catch (error) {
-      console.error(`Error migrating ${key}:`, error);
-      return [];
+      console.error("Error loading fragrance library:", error);
+      setFavorites([]);
+      setWishlist([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Load all fragrances and map IDs to full objects with proper sorting
+  // Load library on mount
   useEffect(() => {
-    const loadLibrary = () => {
-      try {
-        const allFrags = getAllFragrances();
+    loadLibrary();
+  }, []);
 
-        // Migrate and load favorites and wishlist
-        const favoriteItems = migrateStorage("fragranceFavorites");
-        const wishlistItems = migrateStorage("fragranceWishlist");
-
-        // Process favorites: sort by addedAt (newest first) and get full fragrance data
-        const favoriteFragrances = favoriteItems
-          .sort((a, b) => b.addedAt - a.addedAt) // Newest first (most recent at top)
-          .map((item) => {
-            // Use stored fragrance data if available and complete, otherwise look it up
-            if (
-              item.fragranceData &&
-              item.fragranceData.id &&
-              item.fragranceData.name
-            ) {
-              return { ...item.fragranceData, addedAt: item.addedAt };
-            }
-            const fragrance = allFrags.find((f) => f.id === item.id);
-            return fragrance ? { ...fragrance, addedAt: item.addedAt } : null;
-          })
-          .filter(Boolean);
-
-        // Process wishlist: sort by addedAt (newest first) and get full fragrance data
-        const wishlistFragrances = wishlistItems
-          .sort((a, b) => b.addedAt - a.addedAt) // Newest first (most recent at top)
-          .map((item) => {
-            // Use stored fragrance data if available and complete, otherwise look it up
-            if (
-              item.fragranceData &&
-              item.fragranceData.id &&
-              item.fragranceData.name
-            ) {
-              return { ...item.fragranceData, addedAt: item.addedAt };
-            }
-            const fragrance = allFrags.find((f) => f.id === item.id);
-            return fragrance ? { ...fragrance, addedAt: item.addedAt } : null;
-          })
-          .filter(Boolean);
-
-        setFavorites(favoriteFragrances);
-        setWishlist(wishlistFragrances);
-      } catch (error) {
-        console.error("Error loading fragrance library:", error);
-        setFavorites([]);
-        setWishlist([]);
-      } finally {
-        setLoading(false);
+  // Set up storage event listener to sync between tabs/windows
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === "fragranceFavorites" || e.key === "fragranceWishlist") {
+        loadLibrary(); // Reload when storage changes
       }
     };
 
-    loadLibrary();
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   // Remove from favorites
   const removeFromFavorites = (fragranceId) => {
-    const updatedFavorites = favorites.filter((f) => f.id !== fragranceId);
-    setFavorites(updatedFavorites);
-
-    // Update localStorage
     const favoriteItems = migrateStorage("fragranceFavorites");
     const updatedItems = favoriteItems.filter(
       (item) => item.id !== fragranceId
     );
     localStorage.setItem("fragranceFavorites", JSON.stringify(updatedItems));
+
+    // Update state immediately
+    setFavorites((prev) => prev.filter((f) => f.id !== fragranceId));
   };
 
   // Remove from wishlist
   const removeFromWishlist = (fragranceId) => {
-    const updatedWishlist = wishlist.filter((f) => f.id !== fragranceId);
-    setWishlist(updatedWishlist);
-
-    // Update localStorage
     const wishlistItems = migrateStorage("fragranceWishlist");
     const updatedItems = wishlistItems.filter(
       (item) => item.id !== fragranceId
     );
     localStorage.setItem("fragranceWishlist", JSON.stringify(updatedItems));
+
+    // Update state immediately
+    setWishlist((prev) => prev.filter((f) => f.id !== fragranceId));
+  };
+
+  // Add refresh function in case we need to manually reload
+  const refreshLibrary = () => {
+    setLoading(true);
+    loadLibrary();
   };
 
   return {
@@ -137,6 +118,7 @@ const useFragranceLibrary = () => {
     loading,
     removeFromFavorites,
     removeFromWishlist,
+    refreshLibrary, // Optional: in case you need manual refresh
   };
 };
 

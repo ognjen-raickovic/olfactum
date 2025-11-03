@@ -36,6 +36,31 @@ const FragrancesPage = () => {
   const [visibleCount, setVisibleCount] = useState(20);
   const [selected, setSelected] = useState(null);
 
+  // Calculate scrollbar width to prevent layout shift
+  const scrollbarWidth = useMemo(() => {
+    if (typeof window === "undefined") return 0;
+    return window.innerWidth - document.documentElement.clientWidth;
+  }, []);
+
+  // Prevent body scroll and maintain layout when modal is open
+  useEffect(() => {
+    if (selected) {
+      // Store current body styles
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      const originalPaddingRight = document.body.style.paddingRight;
+
+      // Prevent body scrolling and maintain scrollbar space
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+
+      return () => {
+        // Restore original styles
+        document.body.style.overflow = originalStyle;
+        document.body.style.paddingRight = originalPaddingRight;
+      };
+    }
+  }, [selected, scrollbarWidth]);
+
   // Update search term if query in URL changes
   useEffect(() => {
     setSearchTerm(queryParam);
@@ -278,19 +303,23 @@ const FragrancesPage = () => {
         />
       </Box>
 
-      {/* Desktop Sidebar - FIXED POSITION with search and sort included */}
+      {/* Desktop Sidebar - FIXED POSITION with scrollbar compensation */}
       {!isMobile && (
         <Box
           sx={{
-            width: 320, // Slightly wider to accommodate the search bar
+            width: 320,
             position: "fixed",
-            top: 64, // ← ADD THIS: Push sidebar down below navbar
+            top: 64,
             right: 0,
-            height: "calc(100vh - 64px)", // ← ADD THIS: Adjust height to account for navbar
+            height: "calc(100vh - 64px)",
             borderLeft: `1px solid ${theme.palette.divider}`,
             bgcolor: "background.paper",
             overflowY: "auto",
             zIndex: 1000,
+            // Add scrollbar compensation when modal is open
+            ...(selected && {
+              paddingRight: `${scrollbarWidth}px`,
+            }),
           }}
         >
           <FragranceFilter

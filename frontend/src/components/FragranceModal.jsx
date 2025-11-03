@@ -169,6 +169,7 @@ const FragranceModal = ({
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   const f = fragrance;
@@ -208,16 +209,17 @@ const FragranceModal = ({
   // Get display names for header
   const displayTitle = useMemo(() => {
     if (!f) return "";
-    const brand = getBrandDisplayName(f.brand, isMobile);
-    const name = humanizeName(f.name);
 
-    if (isMobile && `${brand} — ${name}`.length > 35) {
-      const shortenedName =
-        name.length > 20 ? name.substring(0, 20) + "..." : name;
-      return `${brand} — ${shortenedName}`;
+    if (isMobile) {
+      // Mobile: Show only fragrance name
+      const name = humanizeName(f.name);
+      return name.length > 35 ? name.substring(0, 32) + "..." : name;
+    } else {
+      // Desktop: Keep brand + name
+      const brand = getBrandDisplayName(f.brand, isMobile);
+      const name = humanizeName(f.name);
+      return `${brand} — ${name}`;
     }
-
-    return `${brand} — ${name}`;
   }, [f, isMobile]);
 
   // Store scroll position before opening modal
@@ -231,7 +233,6 @@ const FragranceModal = ({
   // Update URL when modal opens
   useEffect(() => {
     if (open && f && !isQuizContext && !disableRouting) {
-      // Added !disableRouting check
       prevRef.current = location.pathname + location.search;
 
       const fragranceSlug =
@@ -432,7 +433,7 @@ const FragranceModal = ({
           <Box
             sx={{
               position: "relative",
-              width: { xs: "95%", sm: "92%", md: "900px" },
+              width: { xs: "95%", sm: "92%", md: "1100px" },
               maxHeight: "92vh",
               bgcolor: "background.paper",
               borderRadius: 2,
@@ -696,7 +697,7 @@ const FragranceModal = ({
                       mb: 3,
                     }}
                   >
-                    <Box sx={{ width: "45%" }}>
+                    <Box sx={{ width: "40%" }}>
                       <CardMedia
                         component="img"
                         image={imageUrl}
@@ -774,242 +775,9 @@ const FragranceModal = ({
                     </Stack>
                   </Box>
 
-                  {/* THREE COLUMN LAYOUT FOR DESKTOP - Notes, Performance, Occasions */}
-                  <Grid container spacing={3} sx={{ mb: 3 }}>
-                    {/* COLUMN 1: Fragrance Notes */}
-                    <Grid item xs={12} md={4}>
-                      <FragranceNotes fragrance={f} />
-                    </Grid>
-
-                    {/* COLUMN 2: Performance */}
-                    <Grid item xs={12} md={4}>
-                      <Card variant="outlined" sx={{ p: 2, height: "100%" }}>
-                        <Typography
-                          variant="h6"
-                          gutterBottom
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          Performance
-                        </Typography>
-                        <Stack spacing={2}>
-                          <Box>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                mb: 1,
-                              }}
-                            >
-                              <VolumeUp fontSize="small" color="primary" />
-                              <Typography variant="subtitle2">
-                                Projection
-                              </Typography>
-                            </Box>
-                            <Typography variant="body2" fontWeight="medium">
-                              {performanceInfo.intensity.label}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              {performanceInfo.intensity.description}
-                            </Typography>
-                          </Box>
-                          <Box>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                mb: 1,
-                              }}
-                            >
-                              <AccessTime fontSize="small" color="primary" />
-                              <Typography variant="subtitle2">
-                                Longevity
-                              </Typography>
-                            </Box>
-                            <Typography variant="body2" fontWeight="medium">
-                              {performanceInfo.longevity.label}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              {performanceInfo.longevity.description}
-                            </Typography>
-                          </Box>
-                        </Stack>
-                      </Card>
-                    </Grid>
-
-                    {/* COLUMN 3: Occasions & Details */}
-                    <Grid item xs={12} md={4}>
-                      <Card variant="outlined" sx={{ p: 2, height: "100%" }}>
-                        <Typography
-                          variant="h6"
-                          gutterBottom
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          Occasions & Details
-                        </Typography>
-
-                        {/* Accords */}
-                        {(f.accords || []).length > 0 && (
-                          <Box sx={{ mb: 2 }}>
-                            <Typography
-                              variant="subtitle2"
-                              color="text.secondary"
-                              gutterBottom
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                mt: 1,
-                              }}
-                            >
-                              🎵 Main Accords
-                            </Typography>
-                            <Stack direction="row" gap={0.5} flexWrap="wrap">
-                              {(f.accords || []).slice(0, 3).map((a, i) => (
-                                <Chip
-                                  key={`acc-${i}`}
-                                  label={humanizeName(a)}
-                                  size="small"
-                                  color="primary"
-                                  variant="filled"
-                                />
-                              ))}
-                            </Stack>
-                          </Box>
-                        )}
-
-                        {/* Season & Occasion */}
-                        {(f.season || f.occasion) && (
-                          <Box>
-                            <Typography
-                              variant="subtitle2"
-                              color="text.secondary"
-                              gutterBottom
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                mt: 2,
-                              }}
-                            >
-                              📅 Ideal For
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 1.5,
-                              }}
-                            >
-                              {f.season && f.season.length > 0 && (
-                                <Box>
-                                  <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    display="block"
-                                  >
-                                    Season
-                                  </Typography>
-                                  <Stack
-                                    direction="row"
-                                    gap={0.5}
-                                    flexWrap="wrap"
-                                    sx={{ mt: 0.5 }}
-                                  >
-                                    {f.season.map((season, i) => (
-                                      <Chip
-                                        key={`season-${i}`}
-                                        label={season}
-                                        size="small"
-                                        variant="outlined"
-                                        color="secondary"
-                                      />
-                                    ))}
-                                  </Stack>
-                                </Box>
-                              )}
-                              {f.occasion && f.occasion.length > 0 && (
-                                <Box>
-                                  <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    display="block"
-                                  >
-                                    Occasion
-                                  </Typography>
-                                  <Stack
-                                    direction="row"
-                                    gap={0.5}
-                                    flexWrap="wrap"
-                                    sx={{ mt: 0.5 }}
-                                  >
-                                    {f.occasion.map((occ, i) => (
-                                      <Chip
-                                        key={`occ-${i}`}
-                                        label={occ}
-                                        size="small"
-                                        variant="outlined"
-                                        color="secondary"
-                                      />
-                                    ))}
-                                  </Stack>
-                                </Box>
-                              )}
-                            </Box>
-                          </Box>
-                        )}
-                      </Card>
-                    </Grid>
-                  </Grid>
-                </Box>
-
-                {/* EXTERNAL LINKS SECTION */}
-                <Box
-                  sx={{
-                    p: { xs: 2, sm: 3 },
-                    borderTop: `1px solid ${theme.palette.divider}`,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: 2,
-                      flexWrap: "wrap",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {f.sourceUrl && (
-                      <Button
-                        variant="outlined"
-                        size={isMobile ? "medium" : "large"}
-                        href={f.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        startIcon={<span>📖</span>}
-                      >
-                        Fragrantica Reviews
-                      </Button>
-                    )}
-
-                    <Button
-                      variant="contained"
-                      size={isMobile ? "medium" : "large"}
-                      href={`https://www.google.com/search?q=where+to+buy+${encodeURIComponent(
-                        `${humanizeName(f.brand)} ${humanizeName(f.name)}`
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      startIcon={<span>🛒</span>}
-                    >
-                      Where to Buy
-                    </Button>
+                  {/* Fragrance Notes & Performance Section */}
+                  <Box sx={{ mb: 3 }}>
+                    <FragranceNotes fragrance={f} />
                   </Box>
                 </Box>
               </>
