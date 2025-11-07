@@ -1,14 +1,18 @@
 import { Box } from "@mui/material";
 import AboutHero from "../../components/AboutHero";
-import AboutMission from "../../components/AboutMission";
-import AboutTeam from "../../components/AboutTeam";
+import AboutStory from "../../components/AboutStory";
+import AboutFeatures from "../../components/AboutFeatures";
+import AboutVision from "../../components/AboutVision";
+import AboutContact from "../../components/AboutContact";
 
 const AboutPage = () => {
   return (
     <Box sx={{ minHeight: "80vh" }}>
       <AboutHero />
-      <AboutMission />
-      <AboutTeam />
+      <AboutStory />
+      <AboutFeatures />
+      <AboutVision />
+      <AboutContact />
     </Box>
   );
 };

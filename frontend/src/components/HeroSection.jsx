@@ -5,15 +5,27 @@ const HeroSection = () => {
   return (
     <Box
       sx={{
-        background: (theme) =>
-          `linear-gradient(135deg, ${alpha(
-            theme.palette.primary.main,
-            0.9
-          )} 0%, ${alpha(theme.palette.primary.dark, 0.95)} 100%)`,
-        color: "white",
-        py: { xs: 6, md: 10 }, // Reduced from { xs: 8, md: 12 }
+        background: (theme) => {
+          if (theme.palette.mode === "light") {
+            return `linear-gradient(135deg, 
+              ${alpha(theme.palette.primary.main, 0.08)} 0%, 
+              ${alpha(theme.palette.background.paper, 0.9)} 50%,
+              ${alpha(theme.palette.secondary.main, 0.05)} 100%
+            )`;
+          } else {
+            return `linear-gradient(135deg, 
+              ${alpha(theme.palette.primary.dark, 0.15)} 0%, 
+              ${alpha(theme.palette.background.default, 0.9)} 50%,
+              ${alpha(theme.palette.secondary.dark, 0.1)} 100%
+            )`;
+          }
+        },
+        color: "text.primary",
+        py: { xs: 6, md: 10 },
         position: "relative",
         overflow: "hidden",
+        borderBottom: (theme) =>
+          `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         "&::before": {
           content: '""',
           position: "absolute",
@@ -21,8 +33,11 @@ const HeroSection = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background:
-            "radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)",
+          background: (theme) =>
+            `radial-gradient(circle at 70% 30%, ${alpha(
+              theme.palette.primary.main,
+              0.03
+            )} 0%, transparent 50%)`,
         },
       }}
     >
@@ -42,15 +57,32 @@ const HeroSection = () => {
           sx={{
             fontWeight: 700,
             fontSize: { xs: "2.5rem", md: "3.5rem", lg: "4rem" },
-            background: "linear-gradient(45deg, #FFFFFF 30%, #F0F0F0 90%)",
+            background: (theme) =>
+              `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
             backgroundClip: "text",
             WebkitBackgroundClip: "text",
             color: "transparent",
-            textShadow: "0 4px 8px rgba(0,0,0,0.1)",
-            mt: { xs: 0, md: 0 }, // Ensures no extra margin on top
+            textShadow: "0 4px 8px rgba(0,0,0,0.05)",
+            mt: { xs: 0, md: 0 },
+            lineHeight: 1.2, // Increased from 1.1 to fix cut-off letters
+            minHeight: { xs: "140px", md: "180px", lg: "200px" }, // Ensure enough space for text
           }}
         >
-          Discover Your Signature Scent
+          Discover Your
+          <Box
+            component="span"
+            sx={{
+              display: "block",
+              background: (theme) =>
+                `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              color: "transparent",
+              lineHeight: 1.2, // Slightly more line height for the second line
+            }}
+          >
+            Signature Scent
+          </Box>
         </Typography>
 
         <Typography
@@ -58,11 +90,12 @@ const HeroSection = () => {
           sx={{
             maxWidth: 600,
             mx: "auto",
-            mb: 3, // Reduced from 4
-            opacity: 0.95,
+            mb: 3,
+            opacity: 0.9,
             fontWeight: 300,
             lineHeight: 1.6,
-            fontSize: { xs: "1.1rem", md: "1.25rem" }, // Slightly smaller on mobile
+            fontSize: { xs: "1.1rem", md: "1.25rem" },
+            color: "text.secondary",
           }}
         >
           Explore thousands of fragrances, read authentic reviews, and find your
@@ -75,19 +108,21 @@ const HeroSection = () => {
           component={Link}
           to="/fragrances"
           sx={{
-            bgcolor: "white",
-            color: "primary.main",
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
             fontWeight: "bold",
             px: 4,
             py: 1.5,
-            mb: 3, // Reduced from 4
+            mb: 3,
             borderRadius: 2,
             fontSize: "1.1rem",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            boxShadow: (theme) =>
+              `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`,
             "&:hover": {
-              bgcolor: "grey.50",
+              bgcolor: "primary.dark",
               transform: "translateY(-2px)",
-              boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+              boxShadow: (theme) =>
+                `0 6px 16px ${alpha(theme.palette.primary.main, 0.4)}`,
             },
             transition: "all 0.3s ease",
           }}
@@ -95,29 +130,35 @@ const HeroSection = () => {
           Explore All Fragrances
         </Button>
 
-        {/* Larger Quiz Box */}
         <Box
           sx={{
             maxWidth: 550,
             mx: "auto",
-            bgcolor: "rgba(255,255,255,0.15)",
-            p: { xs: 3, md: 4 }, // Reduced padding on mobile
-            borderRadius: 2,
+            bgcolor: (theme) => alpha(theme.palette.primary.main, 0.03),
+            p: { xs: 3, md: 4 },
+            borderRadius: 3,
             backdropFilter: "blur(10px)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            mt: 1, // Small top margin to separate from button
+            border: (theme) =>
+              `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+            mt: 1,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
           }}
         >
           <Typography
             variant="h6"
             sx={{
               mb: 2,
-              opacity: 0.95,
               fontWeight: 600,
-              fontSize: { xs: "1.1rem", md: "1.2rem" }, // Slightly smaller on mobile
+              fontSize: { xs: "1.1rem", md: "1.2rem" },
+              color: "primary.main",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
             }}
           >
-            🎯 Not sure where to start?
+            <Box component="span">🎯</Box>
+            Not sure where to start?
           </Typography>
           <Typography
             variant="body1"
@@ -125,7 +166,8 @@ const HeroSection = () => {
               opacity: 0.9,
               lineHeight: 1.6,
               mb: 3,
-              fontSize: { xs: "1rem", md: "1.05rem" }, // Slightly smaller on mobile
+              fontSize: { xs: "1rem", md: "1.05rem" },
+              color: "text.secondary",
             }}
           >
             Take our 2-minute quiz to find your perfect fragrance match based on
@@ -138,17 +180,18 @@ const HeroSection = () => {
             component={Link}
             to="/find-your-fragrance"
             sx={{
-              borderColor: "white",
-              color: "white",
+              borderColor: "primary.main",
+              color: "primary.main",
               fontWeight: "bold",
               borderWidth: 2,
               fontSize: "1rem",
               px: 3,
               "&:hover": {
-                bgcolor: "rgba(255,255,255,0.15)",
-                borderColor: "white",
+                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                borderColor: "primary.dark",
                 transform: "translateY(-2px)",
-                boxShadow: "0 4px 12px rgba(255,255,255,0.2)",
+                boxShadow: (theme) =>
+                  `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`,
               },
               transition: "all 0.3s ease",
             }}

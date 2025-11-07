@@ -4,23 +4,23 @@ export const lightTheme = createTheme({
   palette: {
     mode: "light",
     background: {
-      default: "#F8F7F4", // Warmer, softer off-white
+      default: "#F8F7F4",
       paper: "#FFFFFF",
     },
     text: {
-      primary: "#2A2A2A", // Softer black
-      secondary: "#6B6B6B", // Warmer gray
+      primary: "#2A2A2A",
+      secondary: "#6B6B6B",
     },
     primary: {
-      main: "#9C7C5C", // Rich, warm bronze/amber
-      light: "#B59676",
+      main: "#9C7C5C",
+      light: "#B8A08A",
       dark: "#7D6145",
       contrastText: "#FFFFFF",
     },
     secondary: {
-      main: "#5D4037", // Warm brown
-      light: "#8B6B61",
-      dark: "#3E2723",
+      main: "#8B7355",
+      light: "#A89277",
+      dark: "#6D5A3E",
       contrastText: "#FFFFFF",
     },
     grey: {
@@ -57,13 +57,13 @@ export const lightTheme = createTheme({
     },
   },
   shape: {
-    borderRadius: 12, // Slightly more rounded for modern look
+    borderRadius: 12,
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: "none", // More modern - no uppercase
+          textTransform: "none",
           fontWeight: 600,
         },
       },
@@ -82,21 +82,21 @@ export const darkTheme = createTheme({
   palette: {
     mode: "dark",
     background: {
-      default: "#1A1816", // Deep charcoal with warm undertones
-      paper: "#26221E", // Rich dark brown
+      default: "#1A1816",
+      paper: "#26221E",
     },
     text: {
-      primary: "#F0EDE9", // Warm off-white
-      secondary: "#C4BDB5", // Muted warm gray
+      primary: "#F0EDE9",
+      secondary: "#C4BDB5",
     },
     primary: {
-      main: "#C8A97E", // Warm golden beige
+      main: "#C8A97E",
       light: "#DBC4A4",
       dark: "#A88B61",
       contrastText: "#1A1816",
     },
     secondary: {
-      main: "#8B7355", // Muted bronze
+      main: "#8B7355",
       light: "#A89277",
       dark: "#6D5A3E",
       contrastText: "#F0EDE9",
@@ -150,7 +150,7 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 16,
-          backgroundImage: "none", // Remove default gradient
+          backgroundImage: "none",
         },
       },
     },
