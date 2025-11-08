@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -10,8 +10,10 @@ import {
 import FragranceCard from "../../components/FragranceCard";
 import FragranceModal from "../../components/FragranceModal";
 import FragranceFilter from "../../components/FragranceFilter";
+import LoadingSpinner from "../../components/LoadingSpinner";
 import { getAllFragrances } from "../../services/fragranceService";
-import { filterFragrances } from "../../utils/fragranceUtils";
+import { filterFragrances } from "../../utils/filterFragrances";
+import { humanizeName } from "../../utils/humanizeName";
 
 const FragrancesPage = () => {
   const theme = useTheme();
@@ -19,13 +21,16 @@ const FragrancesPage = () => {
   const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   const location = useLocation();
+  const navigate = useNavigate();
   const { slug } = useParams();
   const params = new URLSearchParams(location.search);
   const queryParam = params.get("query") || params.get("search") || "";
 
-  const allFragrances = useMemo(() => getAllFragrances(), []);
-
+  const [allFragrances, setAllFragrances] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(queryParam);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(queryParam);
+  const [filtering, setFiltering] = useState(false);
   const [filters, setFilters] = useState({
     seasons: [],
     occasions: [],
@@ -36,147 +41,235 @@ const FragrancesPage = () => {
   const [visibleCount, setVisibleCount] = useState(20);
   const [selected, setSelected] = useState(null);
 
-  // Calculate scrollbar width to prevent layout shift
+  // Check if we're in a modal context
+  const isModal = !!location.state?.background;
+
+  // Debounce search term - 300ms delay
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchTerm]);
+
+  // Load fragrances
+  useEffect(() => {
+    const loadFragrances = async () => {
+      setLoading(true);
+      try {
+        const data = getAllFragrances();
+        setAllFragrances(data);
+      } catch (error) {
+        console.error("Error loading fragrances:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFragrances();
+  }, []);
+
+  // Async filtering function
+  const performFiltering = useCallback(
+    async (fragrances, search, filterOptions) => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          let items = filterFragrances(fragrances, search);
+
+          const { seasons, occasions, genders, performance, sortBy } =
+            filterOptions;
+
+          if (seasons.length > 0) {
+            items = items.filter((f) =>
+              seasons.some((season) =>
+                (f.season || []).some((fSeason) =>
+                  fSeason.toLowerCase().includes(season.toLowerCase())
+                )
+              )
+            );
+          }
+
+          if (occasions.length > 0) {
+            items = items.filter((f) =>
+              occasions.some((occasion) =>
+                (f.occasion || []).some((fOccasion) =>
+                  fOccasion.toLowerCase().includes(occasion.toLowerCase())
+                )
+              )
+            );
+          }
+
+          if (genders.length > 0) {
+            items = items.filter((f) => {
+              const genderTokens = (f.genderProfile || "")
+                .toLowerCase()
+                .split(/[\s/,&]+/)
+                .map((t) => t.trim())
+                .filter(Boolean);
+              return genders.some((g) =>
+                genderTokens.includes(g.toLowerCase())
+              );
+            });
+          }
+
+          if (performance.length > 0) {
+            items = items.filter((f) => {
+              const fragranceLongevity = (f.longevity || "").toLowerCase();
+              const fragranceProjection = (f.intensity || "").toLowerCase();
+              return performance.some((perf) => {
+                const perfLower = perf.toLowerCase();
+                return (
+                  fragranceLongevity.includes(perfLower) ||
+                  fragranceProjection.includes(perfLower)
+                );
+              });
+            });
+          }
+
+          // Sorting
+          const getRating = (f) => Number(f.rating) || 0;
+          const getPopularity = (f) => Number(f.ratingCount) || 0;
+
+          switch (sortBy) {
+            case "relevance":
+              items.sort((a, b) => {
+                const aScore = getRating(a) * Math.log(1 + getPopularity(a));
+                const bScore = getRating(b) * Math.log(1 + getPopularity(b));
+                return bScore - aScore;
+              });
+              break;
+            case "name-asc":
+              items.sort((a, b) => a.name.localeCompare(b.name));
+              break;
+            case "name-desc":
+              items.sort((a, b) => b.name.localeCompare(a.name));
+              break;
+            case "rating-desc":
+              items.sort((a, b) => getRating(b) - getRating(a));
+              break;
+            case "rating-asc":
+              items.sort((a, b) => getRating(a) - getRating(b));
+              break;
+            case "popularity-desc":
+              items.sort((a, b) => getPopularity(b) - getPopularity(a));
+              break;
+            case "popularity-asc":
+              items.sort((a, b) => getPopularity(a) - getPopularity(b));
+              break;
+            default:
+              break;
+          }
+
+          resolve(items);
+        }, 0);
+      });
+    },
+    []
+  );
+
+  // Filtered results with async processing
+  const [filteredResults, setFilteredResults] = useState([]);
+
+  useEffect(() => {
+    if (loading || allFragrances.length === 0) return;
+
+    const filterData = async () => {
+      setFiltering(true);
+      try {
+        const results = await performFiltering(
+          allFragrances,
+          debouncedSearchTerm,
+          filters
+        );
+        setFilteredResults(results);
+      } catch (error) {
+        console.error("Error filtering fragrances:", error);
+      } finally {
+        setFiltering(false);
+      }
+    };
+
+    filterData();
+  }, [allFragrances, debouncedSearchTerm, filters, loading, performFiltering]);
+
   const scrollbarWidth = useMemo(() => {
     if (typeof window === "undefined") return 0;
     return window.innerWidth - document.documentElement.clientWidth;
   }, []);
 
-  // Prevent body scroll and maintain layout when modal is open
   useEffect(() => {
-    if (selected) {
-      // Store current body styles
+    if (selected && !isModal) {
       const originalStyle = window.getComputedStyle(document.body).overflow;
       const originalPaddingRight = document.body.style.paddingRight;
 
-      // Prevent body scrolling and maintain scrollbar space
       document.body.style.overflow = "hidden";
       document.body.style.paddingRight = `${scrollbarWidth}px`;
 
       return () => {
-        // Restore original styles
         document.body.style.overflow = originalStyle;
         document.body.style.paddingRight = originalPaddingRight;
       };
     }
-  }, [selected, scrollbarWidth]);
+  }, [selected, scrollbarWidth, isModal]);
 
-  // Update search term if query in URL changes
   useEffect(() => {
-    setSearchTerm(queryParam);
+    if (queryParam) {
+      setSearchTerm(queryParam);
+      setDebouncedSearchTerm(queryParam);
+    } else {
+      setSearchTerm("");
+      setDebouncedSearchTerm("");
+    }
   }, [queryParam]);
 
-  // Open modal automatically when a slug is present in the URL
+  // Handle fragrance selection - use modal pattern
   useEffect(() => {
-    if (!slug) return;
+    if (!slug || loading || allFragrances.length === 0) return;
+
     const match = allFragrances.find(
-      (f) => f.slug === slug || `id-${f.id}` === slug
+      (f) =>
+        f.slug === slug ||
+        `${f.brand}-${f.name}`.toLowerCase().replace(/\s+/g, "-") === slug
     );
+
     if (match) {
       setSelected(match);
     }
-  }, [slug, allFragrances]);
+  }, [slug, allFragrances, loading]);
 
-  // Enhanced filtering logic with combined performance filter
-  const filteredResults = useMemo(() => {
-    let items = filterFragrances(allFragrances, searchTerm);
+  const handleCardClick = (f) => {
+    const fragranceSlug =
+      f.slug || `${f.brand}-${f.name}`.toLowerCase().replace(/\s+/g, "-");
 
-    const { seasons, occasions, genders, performance, sortBy } = filters;
+    // Navigate to fragrance with background location for modal behavior
+    navigate(`/fragrances/${fragranceSlug}`, {
+      state: { background: location },
+    });
+  };
 
-    // Season filtering (OR logic within category)
-    if (seasons.length > 0) {
-      items = items.filter((f) =>
-        seasons.some((season) =>
-          (f.season || []).some((fSeason) =>
-            fSeason.toLowerCase().includes(season.toLowerCase())
-          )
-        )
-      );
+  const handleClose = () => {
+    // Go back to the background location (search results)
+    if (location.state?.background) {
+      navigate(location.state.background);
+    } else {
+      // Fallback: navigate to fragrances page
+      navigate("/fragrances");
     }
-
-    // Occasion filtering (OR logic within category)
-    if (occasions.length > 0) {
-      items = items.filter((f) =>
-        occasions.some((occasion) =>
-          (f.occasion || []).some((fOccasion) =>
-            fOccasion.toLowerCase().includes(occasion.toLowerCase())
-          )
-        )
-      );
-    }
-
-    // Gender filtering (token-based OR logic)
-    if (genders.length > 0) {
-      items = items.filter((f) => {
-        const genderTokens = (f.genderProfile || "")
-          .toLowerCase()
-          .split(/[\s/,&]+/) // split by spaces, slashes, commas, ampersands
-          .map((t) => t.trim())
-          .filter(Boolean);
-
-        return genders.some((g) => genderTokens.includes(g.toLowerCase()));
-      });
-    }
-
-    // Performance filtering (OR logic between longevity AND projection)
-    if (performance.length > 0) {
-      items = items.filter((f) => {
-        const fragranceLongevity = (f.longevity || "").toLowerCase();
-        const fragranceProjection = (f.intensity || "").toLowerCase();
-
-        return performance.some((perf) => {
-          const perfLower = perf.toLowerCase();
-          // Check both longevity AND projection fields with OR logic
-          return (
-            fragranceLongevity.includes(perfLower) ||
-            fragranceProjection.includes(perfLower)
-          );
-        });
-      });
-    }
-
-    // Enhanced sorting
-    const getRating = (f) => Number(f.rating) || 0;
-    const getPopularity = (f) => Number(f.ratingCount) || 0;
-
-    switch (sortBy) {
-      case "relevance":
-        items.sort((a, b) => {
-          const aScore = getRating(a) * Math.log(1 + getPopularity(a));
-          const bScore = getRating(b) * Math.log(1 + getPopularity(b));
-          return bScore - aScore;
-        });
-        break;
-      case "name-asc":
-        items.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "name-desc":
-        items.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-      case "rating-desc":
-        items.sort((a, b) => getRating(b) - getRating(a));
-        break;
-      case "rating-asc":
-        items.sort((a, b) => getRating(a) - getRating(b));
-        break;
-      case "popularity-desc":
-        items.sort((a, b) => getPopularity(b) - getPopularity(a));
-        break;
-      case "popularity-asc":
-        items.sort((a, b) => getPopularity(a) - getPopularity(b));
-        break;
-      default:
-        break;
-    }
-
-    return items;
-  }, [allFragrances, searchTerm, filters]);
-
-  const handleCardClick = (f) => setSelected(f);
-  const handleClose = () => setSelected(null);
+    setSelected(null);
+  };
 
   const headerText = useMemo(() => {
-    if (searchTerm) return `Searched for "${searchTerm}"`;
+    if (loading) return "Loading Fragrances...";
+    if (filtering) return "Searching...";
+
+    if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
+      const displayTerm =
+        humanizeName(debouncedSearchTerm) || debouncedSearchTerm;
+      return `Searched for "${displayTerm}"`;
+    }
 
     const activeFilters = Object.entries(filters)
       .filter(([key, value]) => key !== "sortBy" && value.length > 0)
@@ -189,31 +282,54 @@ const FragrancesPage = () => {
     }
 
     return "All Fragrances";
-  }, [searchTerm, filters]);
+  }, [debouncedSearchTerm, filters, loading, filtering]);
 
-  // Calculate grid columns based on screen size and sidebar
   const getGridColumns = () => {
-    if (isMobile) return 2; // 2 columns on mobile
-    if (isTablet) return 3; // 3 columns on tablet
-    return 4; // 4 columns on desktop with sidebar
+    if (isMobile) return 2;
+    if (isTablet) return 3;
+    return 4;
   };
 
   const gridColumns = getGridColumns();
 
+  // If we're in modal mode and have a selected fragrance, only render the modal
+  if (isModal && selected) {
+    return (
+      <FragranceModal
+        fragrance={selected}
+        open={true}
+        onClose={handleClose}
+        disableRouting={true}
+      />
+    );
+  }
+
+  if (loading && !isModal) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          minHeight: "80vh",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <LoadingSpinner size="large" />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
-      {/* Main Content - with right padding to account for fixed sidebar */}
       <Box
         sx={{
           flex: 1,
           px: { xs: 2, sm: 3, md: 4 },
           py: 4,
           pb: isMobile ? 10 : 4,
-          // Add right padding on desktop to prevent content from being hidden behind fixed sidebar
           pr: { md: `calc(320px + ${theme.spacing(4)})` },
         }}
       >
-        {/* Header - Centered on both mobile and desktop */}
         <Typography
           variant="h4"
           sx={{
@@ -226,7 +342,12 @@ const FragrancesPage = () => {
           {headerText}
         </Typography>
 
-        {/* Mobile Filter Component (renders floating button) */}
+        {filtering && (
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <LoadingSpinner size="small" />
+          </Box>
+        )}
+
         {isMobile && (
           <FragranceFilter
             onFilterChange={setFilters}
@@ -239,14 +360,12 @@ const FragrancesPage = () => {
           />
         )}
 
-        {/* Results Grid */}
-        {filteredResults.length === 0 ? (
+        {filteredResults.length === 0 && !filtering ? (
           <Typography color="text.secondary" textAlign="center" sx={{ mt: 8 }}>
             No fragrances found. Try adjusting your filters or search terms.
           </Typography>
         ) : (
           <>
-            {/* Showing text - Centered on both mobile and desktop */}
             <Typography
               variant="body2"
               color="text.secondary"
@@ -280,7 +399,6 @@ const FragrancesPage = () => {
               ))}
             </Box>
 
-            {/* Load More Button */}
             {visibleCount < filteredResults.length && (
               <Box sx={{ textAlign: "center", mt: 4 }}>
                 <Button
@@ -295,15 +413,16 @@ const FragrancesPage = () => {
           </>
         )}
 
-        {/* Fragrance Modal */}
-        <FragranceModal
-          fragrance={selected}
-          open={!!selected}
-          onClose={handleClose}
-        />
+        {/* Regular modal for non-route usage */}
+        {!isModal && (
+          <FragranceModal
+            fragrance={selected}
+            open={!!selected}
+            onClose={handleClose}
+          />
+        )}
       </Box>
 
-      {/* Desktop Sidebar - FIXED POSITION with scrollbar compensation */}
       {!isMobile && (
         <Box
           sx={{
@@ -316,7 +435,6 @@ const FragrancesPage = () => {
             bgcolor: "background.paper",
             overflowY: "auto",
             zIndex: 1000,
-            // Add scrollbar compensation when modal is open
             ...(selected && {
               paddingRight: `${scrollbarWidth}px`,
             }),
@@ -324,9 +442,6 @@ const FragrancesPage = () => {
         >
           <FragranceFilter
             onFilterChange={setFilters}
-            seasons={[]}
-            occasions={[]}
-            genders={[]}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             sortBy={filters.sortBy}

@@ -1,5 +1,4 @@
-// src/components/Navbar.jsx
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -24,11 +23,12 @@ import {
   Menu as MenuIcon,
   Close as CloseIcon,
   AccountCircle,
+  Clear,
 } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
 import { useThemeContext } from "../contexts/ThemeContext";
-import { searchFragrances } from "../services/fragranceService";
-import FragranceModal from "./FragranceModal";
+import { getAllFragrances } from "../services/fragranceService";
+import { filterFragrances } from "../utils/filterFragrances";
 import { humanizeName } from "../utils/humanizeName";
 import { motion } from "framer-motion";
 
@@ -37,21 +37,48 @@ const Navbar = () => {
   const { mode, toggleTheme } = useThemeContext();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
-  const [selectedFragrance, setSelectedFragrance] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [allFragrances, setAllFragrances] = useState([]);
   const navigate = useNavigate();
+
+  // Refs for click outside detection
+  const searchRef = useRef(null);
+  const inputRef = useRef(null);
 
   const navLinks = [
     { label: "Home", path: "/" },
     { label: "Fragrances", path: "/fragrances" },
     { label: "Find Your Fragrance", path: "/find-your-fragrance" },
-    // { label: "Wishlist", path: "/wishlist" },
-    // { label: "Favorites", path: "/favorites" },
     { label: "Learn", path: "/learn" },
     { label: "Library", path: "/library" },
     { label: "About", path: "/about" },
     { label: "FAQ", path: "/faq" },
   ];
+
+  // Load fragrances on component mount
+  useEffect(() => {
+    const loadFragrances = () => {
+      const data = getAllFragrances();
+      setAllFragrances(data);
+    };
+    loadFragrances();
+  }, []);
+
+  // Close search when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setResults([]);
+        setSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const getDisplayLabel = (f) => {
     if (!f) return "Unknown";
@@ -69,18 +96,29 @@ const Navbar = () => {
   const handleChange = (e) => {
     const val = e.target.value;
     setQuery(val);
-    if (!val.trim()) {
+
+    // Only search if we have at least 3 characters (letters, numbers, or symbols)
+    if (val.trim().length >= 3) {
+      setSearchOpen(true);
+      // Use the exact same search logic as FragrancesPage
+      const filtered = filterFragrances(allFragrances, val);
+      setResults(filtered.slice(0, 6));
+    } else {
+      // Clear results if less than 3 characters
       setResults([]);
-      return;
+      setSearchOpen(false);
     }
-    const filtered = searchFragrances(val);
-    setResults(filtered.slice(0, 6));
   };
 
   const handleSearchSubmit = () => {
-    if (!query.trim()) return;
+    if (!query.trim() || query.trim().length < 3) return;
+
+    // Use raw query for searching - same as FragrancesPage
     navigate(`/fragrances?query=${encodeURIComponent(query.trim())}`);
+
     setResults([]);
+    setSearchOpen(false);
+    setQuery("");
   };
 
   const onKeyDown = (e) => {
@@ -88,14 +126,31 @@ const Navbar = () => {
   };
 
   const handleResultClick = (f) => {
-    const fragranceSlug =
-      f.slug || `${f.brand}-${f.name}`.toLowerCase().replace(/\s+/g, "-");
-
-    // Navigate to the fragrance URL - let the URL system handle opening the modal
-    navigate(`/fragrances/${fragranceSlug}`);
-
+    // Use the actual fragrance name for navigation - same as FragrancesPage
+    const searchName = f.name || "";
+    navigate(`/fragrances?query=${encodeURIComponent(searchName)}`);
     setResults([]);
+    setSearchOpen(false);
     setQuery("");
+  };
+
+  const handleClearSearch = () => {
+    setQuery("");
+    setResults([]);
+    setSearchOpen(false);
+    // Focus back on input after clear
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  const handleSearchFocus = () => {
+    // Only show search if we have at least 3 characters
+    if (query.trim().length >= 3) {
+      setSearchOpen(true);
+      const filtered = filterFragrances(allFragrances, query);
+      setResults(filtered.slice(0, 6));
+    }
   };
 
   return (
@@ -156,6 +211,7 @@ const Navbar = () => {
           >
             {/* Search */}
             <Box
+              ref={searchRef}
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -177,33 +233,63 @@ const Navbar = () => {
                     theme.palette.mode === "light"
                       ? "0 2px 6px rgba(0,0,0,0.06)"
                       : "0 2px 6px rgba(255,255,255,0.03)",
+                  border: searchOpen
+                    ? `1px solid ${theme.palette.primary.main}`
+                    : "none",
+                  transition: "border 0.2s ease",
                 }}
               >
                 <InputBase
+                  ref={inputRef}
                   placeholder="Search fragrances..."
                   value={query}
                   onChange={handleChange}
                   onKeyDown={onKeyDown}
+                  onFocus={handleSearchFocus}
                   sx={{
                     color: "text.primary",
                     width: "100%",
                     fontSize: { xs: "0.9rem", md: "1rem" },
                     px: 0.5,
+                    flex: 1,
                   }}
                 />
+
+                {/* Clear button (X) - shows when there's text */}
+                {query && (
+                  <IconButton
+                    onClick={handleClearSearch}
+                    aria-label="Clear search"
+                    sx={{
+                      p: 0.4,
+                      mr: 0.5,
+                      color: "text.secondary",
+                      "&:hover": { color: "text.primary" },
+                    }}
+                    size="small"
+                  >
+                    <Clear sx={{ fontSize: "1.1rem" }} />
+                  </IconButton>
+                )}
+
                 <IconButton
                   onClick={handleSearchSubmit}
                   aria-label="Search"
-                  sx={{ p: { xs: 0.4, md: 0.6 } }}
+                  disabled={!query.trim() || query.trim().length < 3}
+                  sx={{
+                    p: { xs: 0.4, md: 0.6 },
+                    color:
+                      query && query.trim().length >= 3
+                        ? "primary.main"
+                        : "text.secondary",
+                  }}
                 >
-                  <Search
-                    sx={{ color: "text.secondary", fontSize: "1.2rem" }}
-                  />
+                  <Search sx={{ fontSize: "1.2rem" }} />
                 </IconButton>
               </Box>
 
               {/* Search results */}
-              {results.length > 0 && (
+              {searchOpen && results.length > 0 && (
                 <Paper
                   sx={{
                     position: "absolute",
@@ -214,6 +300,8 @@ const Navbar = () => {
                     boxShadow: 4,
                     zIndex: 1400,
                     overflow: "hidden",
+                    maxHeight: "400px",
+                    overflowY: "auto",
                   }}
                 >
                   {results.map((r) => (
@@ -228,11 +316,16 @@ const Navbar = () => {
                         py: 1,
                         cursor: "pointer",
                         "&:hover": { bgcolor: "action.hover" },
+                        borderBottom: `1px solid ${theme.palette.divider}`,
+                        "&:last-child": { borderBottom: "none" },
                       }}
                     >
                       <img
-                        src={r.image}
+                        src={r.image || "/images/no-image.png"}
                         alt={r.name}
+                        onError={(e) => {
+                          e.target.src = "/images/no-image.png";
+                        }}
                         style={{
                           width: 40,
                           height: 40,
@@ -240,14 +333,26 @@ const Navbar = () => {
                           borderRadius: 6,
                         }}
                       />
-                      <Box>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
                         <MuiTypography
-                          sx={{ fontWeight: 700, fontSize: "0.92rem" }}
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: "0.92rem",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
                         >
                           {getDisplayLabel(r)}
                         </MuiTypography>
                         <MuiTypography
-                          sx={{ fontSize: "0.75rem", color: "text.secondary" }}
+                          sx={{
+                            fontSize: "0.75rem",
+                            color: "text.secondary",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
                         >
                           {humanizeName(r.brand)}
                         </MuiTypography>
@@ -256,6 +361,30 @@ const Navbar = () => {
                   ))}
                 </Paper>
               )}
+
+              {/* No results message */}
+              {searchOpen &&
+                query &&
+                query.trim().length >= 3 &&
+                results.length === 0 && (
+                  <Paper
+                    sx={{
+                      position: "absolute",
+                      top: "calc(100% + 8px)",
+                      right: 0,
+                      width: "100%",
+                      borderRadius: 2,
+                      boxShadow: 4,
+                      zIndex: 1400,
+                      p: 2,
+                      textAlign: "center",
+                    }}
+                  >
+                    <MuiTypography color="text.secondary">
+                      No fragrances found
+                    </MuiTypography>
+                  </Paper>
+                )}
             </Box>
 
             {/* Nav links */}

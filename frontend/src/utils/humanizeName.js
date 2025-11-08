@@ -1,10 +1,41 @@
-/**
- * Helper function to convert names like "pride-edition-man" or "bruno-bananini"
- * into "Pride Edition Man" or "Bruno Bananini"
- */
-export const humanizeName = (str) => {
-  if (!str) return "Unknown";
-  return str
-    .replace(/[-_]/g, " ") // replace - or _ with space
-    .replace(/\b\w/g, (c) => c.toUpperCase()); // capitalize first letter of each word
+export const humanizeName = (input) => {
+  if (input === null || input === undefined) return "Unknown";
+  if (!String(input).trim()) return "";
+
+  let str = String(input).toLowerCase();
+
+  // Replace separators with spaces
+  str = str.replace(/[-_]+/g, " ").trim();
+
+  // Edge case replacements
+  const edgeCases = {
+    "don t": "don't",
+    "can t": "can't",
+    "i m": "I'm",
+    "you re": "you're",
+    "we re": "we're",
+    "they re": "they're",
+    "o clock": "o'clock",
+    "rock n": "rock'n",
+  };
+
+  for (const [pattern, replacement] of Object.entries(edgeCases)) {
+    const regex = new RegExp(`\\b${pattern}\\b`, "gi");
+    str = str.replace(regex, replacement);
+  }
+
+  // Capitalize each word
+  str = str
+    .split(" ")
+    .map((word) => {
+      if (!word) return "";
+      if (word.includes("'")) {
+        const [before, after] = word.split("'");
+        return before.charAt(0).toUpperCase() + before.slice(1) + "'" + after;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
+
+  return str.trim();
 };

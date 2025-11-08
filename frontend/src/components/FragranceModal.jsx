@@ -1,13 +1,11 @@
-import React, { useEffect, useRef, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   Modal,
   Backdrop,
   Fade,
   Box,
   Typography,
-  Button,
   Chip,
-  Divider,
   Rating,
   CardMedia,
   Stack,
@@ -15,8 +13,6 @@ import {
   CircularProgress,
   useTheme,
   useMediaQuery,
-  Grid,
-  Card,
   Menu,
   MenuItem,
   ListItemIcon,
@@ -27,8 +23,6 @@ import {
 } from "@mui/material";
 import {
   Close,
-  AccessTime,
-  VolumeUp,
   Favorite,
   FavoriteBorder,
   PlaylistAdd,
@@ -36,18 +30,9 @@ import {
   Bookmark,
   BookmarkBorder,
 } from "@mui/icons-material";
-import { useNavigate, useLocation } from "react-router-dom";
 import { humanizeName } from "../utils/humanizeName";
 import FragranceNotes from "./FragranceNotes";
 import FragranceDescription from "./FragranceDescription";
-
-// Helper to check if we're in quiz context
-const useIsQuizContext = () => {
-  const location = useLocation();
-  return (
-    location.pathname.includes("quiz") || location.search.includes("quiz=true")
-  );
-};
 
 // Performance indicators
 const getPerformanceInfo = (fragrance) => {
@@ -153,11 +138,7 @@ const FragranceModal = ({
   open,
   onClose,
   disableRouting = false,
-  noNavigate = false,
 }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const prevRef = useRef(null);
   const scrollPositionRef = useRef(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -165,7 +146,6 @@ const FragranceModal = ({
   const [saveMenuAnchor, setSaveMenuAnchor] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const isQuizContext = disableRouting || useIsQuizContext();
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -222,28 +202,43 @@ const FragranceModal = ({
     }
   }, [f, isMobile]);
 
-  // Store scroll position before opening modal
+  // Store scroll position and prevent scroll jump when modal opens
   useEffect(() => {
     if (open) {
+      // Store current scroll position
       scrollPositionRef.current =
         window.pageYOffset || document.documentElement.scrollTop;
+
+      // Prevent body scroll but maintain position
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollPositionRef.current}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.overflow = "hidden";
+    } else {
+      // Restore scroll when modal closes
+      const scrollY = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.overflow = "";
+
+      // Restore scroll position
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || "0") * -1);
+      }
     }
+
+    return () => {
+      // Cleanup on unmount
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.overflow = "";
+    };
   }, [open]);
-
-  // Update URL when modal opens
-  useEffect(() => {
-    if (open && f && !isQuizContext && !disableRouting) {
-      prevRef.current = location.pathname + location.search;
-
-      const fragranceSlug =
-        f.slug || `${f.brand}-${f.name}`.toLowerCase().replace(/\s+/g, "-");
-
-      navigate(`/fragrances/${fragranceSlug}`, {
-        replace: true,
-        state: { noScroll: true },
-      });
-    }
-  }, [open, f, isQuizContext, disableRouting, navigate, location]);
 
   // Reset loading when fragrance changes
   useEffect(() => {
@@ -264,7 +259,6 @@ const FragranceModal = ({
         localStorage.getItem("fragranceWishlist") || "[]"
       );
 
-      // Check if current fragrance is in either list (handle both old and new formats)
       setIsFavorited(
         favorites.some((item) =>
           typeof item === "object" ? item.id === f.id : item === f.id
@@ -279,25 +273,11 @@ const FragranceModal = ({
   }, [f]);
 
   const handleClose = () => {
-    // Restore previous URL if we're not in quiz context AND routing is not disabled
-    if (!noNavigate && !isQuizContext && !disableRouting && prevRef.current) {
-      navigate(prevRef.current, {
-        replace: true,
-        state: { noScroll: true },
-      });
-    }
-
-    setTimeout(() => {
-      if (scrollPositionRef.current > 0) {
-        window.scrollTo(0, scrollPositionRef.current);
-      }
-    }, 50);
-
     if (onClose) onClose();
   };
 
   const handleBackdropClick = (event) => {
-    if (isQuizContext || disableRouting) {
+    if (disableRouting) {
       event.stopPropagation();
       return;
     }
@@ -372,7 +352,13 @@ const FragranceModal = ({
   };
 
   const handleShare = async () => {
-    const shareUrl = window.location.href;
+    if (!f) return;
+
+    // Generate canonical URL for sharing
+    const fragranceSlug =
+      f.slug || `${f.brand}-${f.name}`.toLowerCase().replace(/\s+/g, "-");
+    const shareUrl = `${window.location.origin}/fragrances/${fragranceSlug}`;
+
     const shareText = `Check out ${humanizeName(f.brand)} ${humanizeName(
       f.name
     )} on Fragrance Finder`;
@@ -407,7 +393,7 @@ const FragranceModal = ({
     <>
       <Modal
         open={open}
-        onClose={isQuizContext || disableRouting ? undefined : handleClose}
+        onClose={disableRouting ? undefined : handleClose}
         closeAfterTransition
         disableScrollLock={false}
         slots={{ backdrop: Backdrop }}

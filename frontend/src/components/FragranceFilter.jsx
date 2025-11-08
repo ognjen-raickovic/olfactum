@@ -29,7 +29,7 @@ import {
   Search as SearchIcon,
 } from "@mui/icons-material";
 
-// Simplified filter options
+// Filter options
 const FILTER_CATEGORIES = {
   seasons: {
     label: "Seasons",
@@ -80,9 +80,10 @@ const FilterSidebar = ({
   };
 
   const getActiveFilterCount = () => {
-    return Object.values(filters).reduce((count, categoryFilters) => {
-      return count + (categoryFilters?.length || 0);
-    }, 0);
+    return Object.values(filters).reduce(
+      (count, categoryFilters) => count + (categoryFilters?.length || 0),
+      0
+    );
   };
 
   const clearSearch = () => onSearchChange?.("");
@@ -90,7 +91,7 @@ const FilterSidebar = ({
   return (
     <Box
       sx={{
-        width: isMobile ? "100%" : "100%",
+        width: "100%",
         height: isMobile ? "80vh" : "auto",
         display: "flex",
         flexDirection: "column",
@@ -114,13 +115,13 @@ const FilterSidebar = ({
         >
           <Typography variant="h6">Filters</Typography>
           {isMobile && (
-            <Button onClick={onClose} size="small">
+            <IconButton onClick={onClose} size="small">
               <Close />
-            </Button>
+            </IconButton>
           )}
         </Box>
 
-        {/* Search Bar - Only show in desktop or when explicitly provided */}
+        {/* Desktop search only */}
         {!isMobile && searchTerm !== undefined && onSearchChange && (
           <TextField
             variant="outlined"
@@ -128,9 +129,7 @@ const FilterSidebar = ({
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             size="small"
-            sx={{
-              width: "100%",
-            }}
+            sx={{ width: "100%" }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -158,7 +157,36 @@ const FilterSidebar = ({
           pb: isMobile ? 8 : 2,
         }}
       >
-        {/* Sort Dropdown - Show in both mobile and desktop */}
+        {/* Mobile search bar */}
+        {isMobile && searchTerm !== undefined && onSearchChange && (
+          <>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search fragrances..."
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+              sx={{ mb: 3 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: "text.primary" }} />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <InputAdornment position="end">
+                    <IconButton onClick={clearSearch} edge="end" size="small">
+                      <Close sx={{ color: "text.primary", fontSize: 18 }} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <Divider sx={{ mb: 2 }} />
+          </>
+        )}
+
+        {/* Sort Dropdown */}
         {(isMobile || sortBy !== undefined) && (
           <>
             <FormControl fullWidth size="small" sx={{ mb: 3 }}>
@@ -257,10 +285,6 @@ const FilterSidebar = ({
 
 const FragranceFilter = ({
   onFilterChange,
-  seasons,
-  occasions,
-  genders,
-  // New props for search and sort
   searchTerm,
   onSearchChange,
   sortBy,
@@ -295,14 +319,14 @@ const FragranceFilter = ({
   };
 
   const getActiveFilterCount = () => {
-    return Object.values(filters).reduce((count, categoryFilters) => {
-      return (
-        count + (Array.isArray(categoryFilters) ? categoryFilters.length : 0)
-      );
-    }, 0);
+    return Object.values(filters).reduce(
+      (count, categoryFilters) =>
+        count + (Array.isArray(categoryFilters) ? categoryFilters.length : 0),
+      0
+    );
   };
 
-  // Desktop: Permanent sidebar with search and sort
+  // Desktop sidebar
   if (!isMobile) {
     return (
       <FilterSidebar
@@ -318,10 +342,9 @@ const FragranceFilter = ({
     );
   }
 
-  // Mobile: Bottom sheet drawer
+  // Mobile drawer
   return (
     <>
-      {/* Mobile Filter Button with Badge */}
       <Box
         sx={{
           position: "fixed",
@@ -380,6 +403,8 @@ const FragranceFilter = ({
           onClearFilters={handleClearFilters}
           isMobile={true}
           onClose={() => setMobileOpen(false)}
+          searchTerm={searchTerm}
+          onSearchChange={onSearchChange}
           sortBy={sortBy}
           onSortChange={onSortChange}
         />
