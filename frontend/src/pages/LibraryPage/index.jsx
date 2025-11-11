@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { Favorite, BookmarkBorder } from "@mui/icons-material";
 import LibraryGrid from "../../components/LibraryGrid";
-import FragranceModal from "../../components/FragranceModal";
+import FragranceModal from "../../components/FragranceModal/FragranceModal";
 import useFragranceLibrary from "../../hooks/useFragranceLibrary";
 
 const LibraryPage = () => {

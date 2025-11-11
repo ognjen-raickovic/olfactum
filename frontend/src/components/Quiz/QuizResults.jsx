@@ -14,9 +14,9 @@ import {
 } from "@mui/material";
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecommendedFragrances } from "../utils/fragranceUtils";
-import FragranceModal from "./FragranceModal";
-import FragranceCard from "./FragranceCard";
+import { getRecommendedFragrances } from "../../utils/fragranceUtils";
+import FragranceModal from "../FragranceModal/FragranceModal";
+import FragranceCard from "../FragranceCard";
 import { motion, AnimatePresence } from "framer-motion";
 
 const QuizResults = ({ answers, onRestart }) => {

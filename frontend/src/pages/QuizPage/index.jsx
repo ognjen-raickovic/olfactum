@@ -8,9 +8,9 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { useEffect, useState, useRef } from "react"; // ← ADD useRef here
-import QuizQuestions from "../../components/QuizQuestions";
-import QuizResults from "../../components/QuizResults";
+import { useEffect, useState, useRef } from "react";
+import QuizQuestions from "../../components/Quiz/QuizQuestions";
+import QuizResults from "../../components/Quiz/QuizResults";
 
 const QuizPage = () => {
   const quizSteps = [

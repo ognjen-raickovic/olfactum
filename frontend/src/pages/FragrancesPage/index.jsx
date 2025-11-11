@@ -8,7 +8,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import FragranceCard from "../../components/FragranceCard";
-import FragranceModal from "../../components/FragranceModal";
+import FragranceModal from "../../components/FragranceModal/FragranceModal";
 import FragranceFilter from "../../components/FragranceFilter";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { getAllFragrances } from "../../services/fragranceService";

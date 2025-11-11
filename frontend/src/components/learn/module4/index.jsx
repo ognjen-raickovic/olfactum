@@ -26,7 +26,7 @@ import {
 import { useState, useEffect } from "react";
 import FamilyOverview from "./FamilyOverview";
 import FamilyModal from "./FamilyModal";
-import FragranceModal from "../../FragranceModal";
+import FragranceModal from "../../FragranceModal/FragranceModal";
 import ModuleNavigation from "../ModuleNavigation";
 import ModuleCompletion from "../ModuleCompletion";
 

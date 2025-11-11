@@ -1,9 +1,9 @@
 import { Box } from "@mui/material";
-import AboutHero from "../../components/AboutHero";
-import AboutStory from "../../components/AboutStory";
-import AboutFeatures from "../../components/AboutFeatures";
-import AboutVision from "../../components/AboutVision";
-import AboutContact from "../../components/AboutContact";
+import AboutHero from "../../components/About/AboutHero";
+import AboutStory from "../../components/About/AboutStory";
+import AboutFeatures from "../../components/About/AboutFeatures";
+import AboutVision from "../../components/About/AboutVision";
+import AboutContact from "../../components/About/AboutContact";
 
 const AboutPage = () => {
   return (

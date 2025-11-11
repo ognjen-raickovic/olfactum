@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Typography, Box } from "@mui/material";
-import { humanizeName } from "../utils/humanizeName";
+import { humanizeName } from "../../utils/humanizeName";
 
 const FragranceDescription = ({ fragrance }) => {
   const description = useMemo(() => {
@@ -150,13 +150,15 @@ const FragranceDescription = ({ fragrance }) => {
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
         Overview
       </Typography>
       <Typography
-        variant="body1"
+        variant="body2"
         sx={{
-          lineHeight: 1.7,
+          lineHeight: 1.8,
+          color: "text.secondary",
+          fontSize: "0.9rem",
         }}
       >
         {description}
