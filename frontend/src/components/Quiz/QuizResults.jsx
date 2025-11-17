@@ -11,6 +11,7 @@ import {
   useTheme,
   useMediaQuery,
   Container,
+  Alert,
 } from "@mui/material";
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,32 +19,63 @@ import { getRecommendedFragrances } from "../../utils/fragranceUtils";
 import FragranceModal from "../FragranceModal/FragranceModal";
 import FragranceCard from "../FragranceCard";
 import { motion, AnimatePresence } from "framer-motion";
+import QuizCountdownTimer from "./QuizCountdownTimer";
+import { clearQuizResults } from "../../utils/quizStorage";
 
-const QuizResults = ({ answers, onRestart }) => {
+const QuizResults = ({
+  answers,
+  onRestart,
+  quizTimestamp,
+  expiryTimestamp,
+}) => {
   const [selectedFragrance, setSelectedFragrance] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(8);
   const [sortMode, setSortMode] = useState("balanced");
+  const [isExpired, setIsExpired] = useState(false);
 
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
+
+  // Ensure your timer always re-starts when page returns
+  useEffect(() => {
+    if (expiryTimestamp) {
+      const now = Date.now();
+      if (now >= expiryTimestamp) setIsExpired(true);
+    }
+  }, [expiryTimestamp]);
+
   useEffect(() => {
     setVisibleCount(8);
-  }, [sortMode]); // This runs every time sortMode changes
-  // Memoize recommendations with updated algorithm
+  }, [sortMode]);
+
+  // Check if results are expired on component mount
+  useEffect(() => {
+    if (expiryTimestamp && new Date().getTime() > expiryTimestamp) {
+      handleExpire();
+    }
+  }, [expiryTimestamp]);
+
+  const handleExpire = () => {
+    setIsExpired(true);
+    // clearQuizResults();
+  };
+
+  // Memoize recommendations
   const recommendations = useMemo(() => {
+    if (isExpired) return [];
     return getRecommendedFragrances(answers, sortMode, 40);
-  }, [answers, sortMode]);
+  }, [answers, sortMode, isExpired]);
 
   const visibleFragrances = recommendations.slice(0, visibleCount);
 
-  // Calculate grid columns based on screen size - SAME AS FRAGRANCES PAGE
+  // Calculate grid columns
   const getGridColumns = () => {
-    if (isMobile) return 2; // 2 columns on mobile
-    if (isTablet) return 3; // 3 columns on tablet
-    return 4; // 4 columns on desktop
+    if (isMobile) return 2;
+    if (isTablet) return 3;
+    return 4;
   };
 
   const gridColumns = getGridColumns();
@@ -60,7 +92,6 @@ const QuizResults = ({ answers, onRestart }) => {
 
     let profile = [];
 
-    // Scent style
     const styleMap = {
       fresh: "fresh & approachable",
       sweet: "sweet & comforting",
@@ -72,7 +103,6 @@ const QuizResults = ({ answers, onRestart }) => {
       profile.push(styleMap[scentStyle]);
     }
 
-    // Climate
     const climateMap = {
       warmClimate: "warm weather",
       coolClimate: "cool weather",
@@ -83,7 +113,6 @@ const QuizResults = ({ answers, onRestart }) => {
       profile.push(climateMap[weatherClimate]);
     }
 
-    // Occasion
     const occasionMap = {
       dayCasual: "daytime casual",
       nightOut: "night out",
@@ -95,7 +124,6 @@ const QuizResults = ({ answers, onRestart }) => {
       profile.push(occasionMap[occasionTime]);
     }
 
-    // Strength
     const strengthMap = {
       subtle: "subtle intimacy",
       balanced: "balanced presence",
@@ -105,7 +133,6 @@ const QuizResults = ({ answers, onRestart }) => {
       profile.push(strengthMap[strengthLongevity]);
     }
 
-    // Mood
     const moodMap = {
       romantic: "romantic vibe",
       confident: "confident presence",
@@ -133,7 +160,6 @@ const QuizResults = ({ answers, onRestart }) => {
       mood,
     } = answers;
 
-    // Scent Preferences
     if (scentPreferences && Array.isArray(scentPreferences)) {
       const prefMap = {
         freshClean: "Fresh & Clean",
@@ -148,7 +174,6 @@ const QuizResults = ({ answers, onRestart }) => {
       });
     }
 
-    // Scent Style
     if (scentStyle) {
       const styleMap = {
         fresh: "Fresh style",
@@ -160,7 +185,6 @@ const QuizResults = ({ answers, onRestart }) => {
       criteria.push(styleMap[scentStyle]);
     }
 
-    // Weather/Climate
     if (weatherClimate) {
       const climateMap = {
         warmClimate: "Warm climate",
@@ -171,7 +195,6 @@ const QuizResults = ({ answers, onRestart }) => {
       criteria.push(climateMap[weatherClimate]);
     }
 
-    // Occasion/Time
     if (occasionTime) {
       const occasionMap = {
         dayCasual: "Daytime casual",
@@ -183,7 +206,6 @@ const QuizResults = ({ answers, onRestart }) => {
       criteria.push(occasionMap[occasionTime]);
     }
 
-    // Strength/Longevity
     if (strengthLongevity) {
       criteria.push(
         `${
@@ -196,14 +218,12 @@ const QuizResults = ({ answers, onRestart }) => {
       );
     }
 
-    // Notes
     if (notes && Array.isArray(notes)) {
       notes.slice(0, 3).forEach((note) => {
         criteria.push(`${note.charAt(0).toUpperCase() + note.slice(1)} notes`);
       });
     }
 
-    // Mood
     if (mood) {
       criteria.push(`${mood.charAt(0).toUpperCase() + mood.slice(1)} vibe`);
     }
@@ -212,6 +232,7 @@ const QuizResults = ({ answers, onRestart }) => {
   };
 
   const handleFragranceClick = (fragrance) => {
+    if (isExpired) return;
     setSelectedFragrance(fragrance);
     setModalOpen(true);
   };
@@ -220,11 +241,80 @@ const QuizResults = ({ answers, onRestart }) => {
     navigate("/fragrances");
   };
 
+  const handleRetakeAfterExpiry = () => {
+    clearQuizResults();
+    onRestart();
+  };
+
   const matchedCriteria = getMatchedCriteria();
+
+  // If results are expired, show expired state
+  if (isExpired) {
+    return (
+      <Box sx={{ width: "100%", minHeight: "100vh", py: 4 }}>
+        <Container maxWidth="sm">
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 8,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 3,
+            }}
+          >
+            <Box
+              sx={{
+                bgcolor: "warning.light",
+                color: "warning.contrastText",
+                p: 3,
+                borderRadius: 2,
+                width: "100%",
+              }}
+            >
+              <Typography variant="h5" gutterBottom>
+                ⏰ Results Expired
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                Your quiz results have expired. Fragrance preferences can
+                change, and we want to make sure you get the most current
+                recommendations!
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              size="large"
+              onClick={handleRetakeAfterExpiry}
+              sx={{ minWidth: 200 }}
+            >
+              Retake Quiz
+            </Button>
+
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={handleBrowseAllFragrances}
+            >
+              Browse All Fragrances
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ width: "100%", minHeight: "100vh", py: 4 }}>
-      {/* Header  */}
+      {/* Countdown Timer */}
+      {expiryTimestamp && (
+        <QuizCountdownTimer
+          expiryTimestamp={expiryTimestamp}
+          onExpire={handleExpire}
+        />
+      )}
+
+      {/* Header */}
       <Box sx={{ textAlign: "center", mb: 2, px: { xs: 2, sm: 3, md: 4 } }}>
         <Typography
           variant="h4"
@@ -424,7 +514,7 @@ const QuizResults = ({ answers, onRestart }) => {
       <Box
         sx={{
           display: "flex",
-          flexDirection: { xs: "column", sm: "row" }, // Column on mobile, row on larger screens
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "center",
           alignItems: "center",
           gap: { xs: 1.5, sm: 2 },
@@ -451,7 +541,6 @@ const QuizResults = ({ answers, onRestart }) => {
             size="large"
             onClick={() => {
               setVisibleCount(8);
-              // Smooth scroll to the top of the fragrance results
               window.scrollTo({
                 top: 0,
                 behavior: "smooth",

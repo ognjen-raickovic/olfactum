@@ -11,6 +11,12 @@ import {
 import { useEffect, useState, useRef } from "react";
 import QuizQuestions from "../../components/Quiz/QuizQuestions";
 import QuizResults from "../../components/Quiz/QuizResults";
+import {
+  loadQuizResults,
+  clearQuizResults,
+  saveQuizResults,
+} from "../../utils/quizStorage";
+import { useLocation } from "react-router-dom";
 
 const QuizPage = () => {
   const quizSteps = [
@@ -23,29 +29,34 @@ const QuizPage = () => {
     "Your Results",
   ];
 
-  // Load saved quiz from LocalStorage
-  const savedQuiz = JSON.parse(localStorage.getItem("fragranceQuiz") || "null");
+  // Load saved quiz from new storage system
+  const [savedQuiz, setSavedQuiz] = useState(loadQuizResults());
+
   // State initialization
   const [currentStep, setCurrentStep] = useState(
     savedQuiz ? quizSteps.length - 1 : 0
   );
-  const [answers, setAnswers] = useState(savedQuiz || {});
+  const [answers, setAnswers] = useState(savedQuiz?.answers || {});
+  const [quizData, setQuizData] = useState(savedQuiz || null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
-  // ADD THIS: Create a ref for the results section
   const resultsRef = useRef(null);
+  const location = useLocation();
 
-  // Scroll to top on question change
+  // Reload result data if navigating back to quiz page
+  useEffect(() => {
+    setSavedQuiz(loadQuizResults());
+  }, [location.pathname]);
+
+  // Scroll to top on step change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentStep]);
 
-  // REPLACE the current scroll effect with this:
+  // Scroll to results if saved quiz exists
   useEffect(() => {
     if (savedQuiz && resultsRef.current) {
-      // Small delay to ensure the component is rendered
       setTimeout(() => {
         resultsRef.current.scrollIntoView({
           behavior: "smooth",
@@ -53,55 +64,69 @@ const QuizPage = () => {
         });
       }, 100);
     }
-  }, []); // run only once on mount
+  }, []);
 
   const handleNext = () => {
     setCurrentStep((prev) => {
       const next = prev + 1;
 
-      // Save answers when reaching the results page
       if (next === quizSteps.length - 1) {
-        localStorage.setItem("fragranceQuiz", JSON.stringify(answers));
+        const savedData = saveQuizResults(answers);
+        setQuizData(savedData);
+        setSavedQuiz(savedData);
       }
 
       return next;
     });
   };
+
   const handleBack = () => setCurrentStep((prev) => prev - 1);
 
-  // FIXED: Update handleAnswer to support multiple selection
   const handleAnswer = (questionId, answer, isMultiple = false) => {
     setAnswers((prev) => {
       if (isMultiple) {
         const currentAnswers = prev[questionId] || [];
-        if (currentAnswers.includes(answer)) {
-          return {
-            ...prev,
-            [questionId]: currentAnswers.filter((a) => a !== answer),
-          };
-        } else {
-          return {
-            ...prev,
-            [questionId]: [...currentAnswers, answer],
-          };
-        }
-      } else {
         return {
           ...prev,
-          [questionId]: answer,
+          [questionId]: currentAnswers.includes(answer)
+            ? currentAnswers.filter((a) => a !== answer)
+            : [...currentAnswers, answer],
         };
+      } else {
+        return { ...prev, [questionId]: answer };
       }
     });
   };
 
-  // Updated handleRestart to clear LocalStorage
+  // Restart quiz
   const handleRestart = () => {
-    setCurrentStep(0);
+    clearQuizResults();
+    setSavedQuiz(null);
     setAnswers({});
-    localStorage.removeItem("fragranceQuiz");
+    setCurrentStep(0);
+    setQuizData(null);
   };
 
   const isResultStep = currentStep === quizSteps.length - 1;
+
+  // Update saved quiz when switching to results
+  useEffect(() => {
+    if (isResultStep) {
+      setSavedQuiz(loadQuizResults());
+    }
+  }, [isResultStep]);
+
+  // // 🔥 REAL-TIME EXPIRATION CHECKER (fixes your issue)
+  // useEffect(() => {
+  //   if (!isResultStep) return;
+
+  //   const interval = setInterval(() => {
+  //     const latest = loadQuizResults();
+  //     setSavedQuiz(latest);
+  //   }, 1000);
+
+  //   return () => clearInterval(interval);
+  // }, [isResultStep]);
 
   return (
     <Box
@@ -128,13 +153,13 @@ const QuizPage = () => {
           width: "100%",
         }}
       >
-        {/* Header - Reduced bottom margin even more */}
+        {/* Header */}
         <Box sx={{ textAlign: "center", mb: 1 }}>
           <Typography
             variant="h3"
             sx={{
               fontWeight: 700,
-              mb: 4, // Kept this at 4 to maintain space between title and stepper
+              mb: 4,
               color: "text.primary",
               fontSize: {
                 xs: "1.75rem",
@@ -148,17 +173,14 @@ const QuizPage = () => {
               : "Find Your Perfect Scent"}
           </Typography>
 
-          {/* Simple Mobile Stepper - No connectors, clean circles */}
+          {/* Stepper */}
           <Stepper
             activeStep={currentStep}
             alternativeLabel
             sx={{
-              mb: 1, // Reduced from mb: 2 to mb: 1
+              mb: 1,
               "& .MuiStepConnector-root": {
                 display: isMobile ? "none" : "block",
-              },
-              "& .MuiStep-root": {
-                padding: isMobile ? "0 8px" : "0 12px",
               },
             }}
           >
@@ -205,10 +227,15 @@ const QuizPage = () => {
           )}
         </Box>
 
-        {/* ADD THE REF TO THIS BOX */}
+        {/* Content */}
         <Box ref={resultsRef} sx={{ width: "100%", flexGrow: 1 }}>
           {isResultStep ? (
-            <QuizResults answers={answers} onRestart={handleRestart} />
+            <QuizResults
+              answers={answers}
+              onRestart={handleRestart}
+              quizTimestamp={quizData?.timestamp}
+              expiryTimestamp={quizData?.expiry}
+            />
           ) : (
             <QuizQuestions
               step={currentStep}

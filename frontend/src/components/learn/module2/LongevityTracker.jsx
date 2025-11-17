@@ -838,15 +838,13 @@ export default function LongevityTracker() {
         />
       </Box>
 
-      {/* Factors Grid */}
-      <StyledBox
+      {/* Factors Grid - REMOVED SCROLLING */}
+      <Box
         sx={{
           width: "100%",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          maxHeight: 400,
-          overflowY: "auto",
           px: 1,
         }}
       >
@@ -866,7 +864,11 @@ export default function LongevityTracker() {
         <Grid
           container
           spacing={3}
-          sx={{ maxWidth: 800, justifyContent: "center" }}
+          sx={{
+            maxWidth: 800,
+            justifyContent: "center",
+            // Remove any fixed heights that cause scrolling
+          }}
         >
           {factors.map((factor, index) => (
             <Grid
@@ -892,10 +894,9 @@ export default function LongevityTracker() {
                       ? theme.palette.grey[800]
                       : theme.palette.background.paper,
                   width: 260, // ✅ fixed width
-                  height: isMobile ? 180 : 220,
+                  height: 220, // ✅ fixed height for consistency
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "space-between",
                 }}
                 onClick={() => toggleFactor(index)}
               >
@@ -918,9 +919,9 @@ export default function LongevityTracker() {
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
-                      width: 48, // ✅ normalize icon box width
-                      height: 48, // ✅ normalize icon box height
-                      mx: "auto", // center horizontally
+                      width: 48,
+                      height: 48,
+                      mx: "auto",
                     }}
                   >
                     {React.cloneElement(factor.icon, { fontSize: "large" })}
@@ -966,7 +967,7 @@ export default function LongevityTracker() {
             </Grid>
           ))}
         </Grid>
-      </StyledBox>
+      </Box>
     </Paper>
   );
 }

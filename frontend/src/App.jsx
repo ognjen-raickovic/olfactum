@@ -23,6 +23,7 @@ import ContactPage from "./pages/ContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import ScrollToTop from "./components/ScrollToTop";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function AppRoutes() {
   const location = useLocation();
@@ -33,7 +34,7 @@ function AppRoutes() {
       <Routes location={background || location}>
         <Route path="/" element={<HomePage />} />
         <Route path="/fragrances" element={<FragrancesPage />} />
-        <Route path="/browse" element={<FragrancesPage />} />
+        {/* <Route path="/browse" element={<FragrancesPage />} /> */}
         <Route path="/learn" element={<LearnPage />} />
         <Route path="/learn/module1" element={<Module1 />} />
         <Route path="/learn/module2" element={<Module2 />} />
@@ -48,6 +49,7 @@ function AppRoutes() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
       {/* Show modal when background is present */}

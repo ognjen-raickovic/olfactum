@@ -23,7 +23,7 @@ import { useState } from "react";
 export default function ConcentrationExplorer() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [selectedConcentration, setSelectedConcentration] = useState(2); // Start with Eau de Parfum
+  const [selectedConcentration, setSelectedConcentration] = useState(2);
 
   const concentrations = [
     {
@@ -83,16 +83,14 @@ export default function ConcentrationExplorer() {
     },
   ];
 
-  const getAbbreviation = (id) => {
-    const abbreviations = {
+  const getAbbreviation = (id) =>
+    ({
       cologne: "Cologne",
       "eau-de-toilette": "EDT",
       "eau-de-parfum": "EDP",
       parfum: "Parfum",
       elixir: "Elixir",
-    };
-    return abbreviations[id];
-  };
+    }[id]);
 
   const getIntensityLevel = (id) =>
     ({
@@ -120,10 +118,6 @@ export default function ConcentrationExplorer() {
       parfum: 80,
       elixir: 95,
     }[id]);
-
-  const handleSliderChange = (event, newValue) => {
-    setSelectedConcentration(newValue);
-  };
 
   const marks = concentrations.map((conc, index) => ({
     value: index,
@@ -164,20 +158,11 @@ export default function ConcentrationExplorer() {
         mx: "auto",
       }}
     >
-      {/* Header */}
+      {/* HEADER */}
       <Box sx={{ textAlign: "center", mb: 4 }}>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          gap={2}
-          mb={2}
-        >
+        <Box display="flex" justifyContent="center" alignItems="center" gap={2}>
           <LocalBar color="primary" sx={{ fontSize: 32 }} />
-          <Typography
-            variant="h4"
-            sx={{ fontWeight: "bold", color: "primary.main" }}
-          >
+          <Typography variant="h4" sx={{ fontWeight: "bold" }}>
             Concentration Explorer
           </Typography>
         </Box>
@@ -190,12 +175,13 @@ export default function ConcentrationExplorer() {
         </Typography>
       </Box>
 
-      <Grid container spacing={4} alignItems="stretch">
-        {/* Slider Section */}
+      <Grid container spacing={4}>
+        {/* LEFT: SLIDER */}
         <Grid item xs={12} lg={4}>
           <Box
             sx={{ height: "100%", display: "flex", flexDirection: "column" }}
           >
+            {/* Title */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                 Concentration Spectrum
@@ -205,42 +191,43 @@ export default function ConcentrationExplorer() {
               </Typography>
             </Box>
 
+            {/* Slider */}
             <Box
               sx={{
                 px: { xs: 1, md: 2 },
                 pb: 2,
                 flexGrow: 1,
                 display: "flex",
-                justifyContent: "center",
-                flexDirection: "column",
+                alignItems: "center",
               }}
             >
               <Slider
                 value={selectedConcentration}
-                onChange={handleSliderChange}
+                onChange={(e, v) => setSelectedConcentration(v)}
                 min={0}
                 max={concentrations.length - 1}
                 step={1}
                 marks={marks}
                 sx={{
                   height: 8,
-                  "& .MuiSlider-track": {
-                    background:
-                      theme.palette.mode === "dark"
-                        ? "linear-gradient(90deg, #C8A97E 0%, #DBC4A4 100%)"
-                        : "linear-gradient(90deg, #9C7C5C 0%, #B59676 100%)",
-                    border: "none",
-                  },
                   "& .MuiSlider-thumb": {
                     height: 22,
                     width: 22,
                     backgroundColor: theme.palette.background.paper,
                     border: `3px solid ${theme.palette.primary.main}`,
                   },
+                  "& .MuiSlider-track": {
+                    border: "none",
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "linear-gradient(90deg, #C8A97E, #DBC4A4)"
+                        : "linear-gradient(90deg, #9C7C5C, #B59676)",
+                  },
                 }}
               />
             </Box>
 
+            {/* Selected Box */}
             <Paper
               sx={{
                 p: 3,
@@ -249,10 +236,7 @@ export default function ConcentrationExplorer() {
                 textAlign: "center",
               }}
             >
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: "bold", opacity: 0.9, mb: 1 }}
-              >
+              <Typography variant="body2" sx={{ fontWeight: "bold", mb: 1 }}>
                 Selected:
               </Typography>
               <Typography
@@ -265,22 +249,21 @@ export default function ConcentrationExplorer() {
           </Box>
         </Grid>
 
-        {/* Details Section */}
+        {/* RIGHT: DETAILS */}
         <Grid item xs={12} lg={8}>
           <Box
             sx={{ height: "100%", display: "flex", flexDirection: "column" }}
           >
+            {/* TITLE + DESCRIPTION */}
             <Box sx={{ mb: 3 }}>
               <Typography
                 variant="h5"
-                sx={{
-                  fontWeight: "bold",
-                  color: "primary.main",
-                  lineHeight: 1.3,
-                }}
+                sx={{ fontWeight: "bold", color: "primary.main" }}
               >
                 {currentConcentration.name}
               </Typography>
+
+              {/* FIXED DESCRIPTION HEIGHT */}
               <Typography
                 variant="body1"
                 color="text.secondary"
@@ -289,6 +272,7 @@ export default function ConcentrationExplorer() {
                   lineHeight: 1.6,
                   whiteSpace: "pre-line",
                   wordBreak: "break-word",
+                  minHeight: 110,
                 }}
               >
                 {currentConcentration.description}
@@ -296,8 +280,9 @@ export default function ConcentrationExplorer() {
             </Box>
 
             <Grid container spacing={3}>
+              {/* KEY SPECS */}
               <Grid item xs={12} md={6}>
-                <Box sx={{ mb: 2 }}>
+                <Box sx={{ mb: 2, minHeight: 260 }}>
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
                     <ConcentrationIcon color="primary" />
                     <Typography variant="h6" sx={{ fontWeight: "bold" }}>
@@ -349,7 +334,7 @@ export default function ConcentrationExplorer() {
                           <Typography
                             variant="body1"
                             color="primary.main"
-                            sx={{ fontWeight: "bold", textAlign: "left" }}
+                            sx={{ fontWeight: "bold" }}
                           >
                             {value}
                           </Typography>
@@ -359,6 +344,7 @@ export default function ConcentrationExplorer() {
                   </Box>
                 </Box>
 
+                {/* BEST FOR BOX (FIXED HEIGHT) */}
                 <Box sx={{ display: "flex", justifyContent: "center" }}>
                   <Paper
                     variant="outlined"
@@ -366,18 +352,18 @@ export default function ConcentrationExplorer() {
                       p: 2,
                       width: "100%",
                       maxWidth: 400,
+                      minHeight: 90,
                       backgroundColor: alpha(theme.palette.primary.main, 0.05),
                       borderColor: theme.palette.primary.main,
                       textAlign: "center",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
                     <Typography
                       variant="body2"
-                      sx={{
-                        fontStyle: "italic",
-                        color: "text.primary",
-                        lineHeight: 1.5,
-                      }}
+                      sx={{ fontStyle: "italic", lineHeight: 1.5 }}
                     >
                       <strong>Best for:</strong> {currentConcentration.bestFor}
                     </Typography>
@@ -385,9 +371,9 @@ export default function ConcentrationExplorer() {
                 </Box>
               </Grid>
 
-              {/* Performance Metrics */}
+              {/* PERFORMANCE METRICS */}
               <Grid item xs={12} md={6}>
-                <Box sx={{ mb: 2 }}>
+                <Box sx={{ mb: 2, minHeight: 260 }}>
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
                     <Whatshot color="primary" />
                     <Typography variant="h6" sx={{ fontWeight: "bold" }}>
@@ -396,10 +382,7 @@ export default function ConcentrationExplorer() {
                   </Box>
 
                   {[
-                    {
-                      label: "Intensity & Projection",
-                      value: intensityLevel,
-                    },
+                    { label: "Intensity & Projection", value: intensityLevel },
                     { label: "Longevity", value: longevityLevel },
                     { label: "Price Range", value: priceLevel },
                   ].map(({ label, value }) => (
@@ -412,6 +395,7 @@ export default function ConcentrationExplorer() {
                           {value}%
                         </Typography>
                       </Box>
+
                       <LinearProgress
                         variant="determinate"
                         value={value}
@@ -425,8 +409,8 @@ export default function ConcentrationExplorer() {
                           "& .MuiLinearProgress-bar": {
                             background:
                               theme.palette.mode === "dark"
-                                ? "linear-gradient(90deg, #C8A97E 0%, #DBC4A4 100%)"
-                                : "linear-gradient(90deg, #9C7C5C 0%, #B59676 100%)",
+                                ? "linear-gradient(90deg, #C8A97E, #DBC4A4)"
+                                : "linear-gradient(90deg, #9C7C5C, #B59676)",
                           },
                         }}
                       />
@@ -434,12 +418,14 @@ export default function ConcentrationExplorer() {
                   ))}
                 </Box>
 
+                {/* CHIPS (FIXED HEIGHT) */}
                 <Box
                   sx={{
                     display: "flex",
                     flexWrap: "wrap",
                     gap: 1,
                     justifyContent: "center",
+                    minHeight: 50,
                   }}
                 >
                   <Chip
