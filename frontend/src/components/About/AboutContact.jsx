@@ -1,4 +1,4 @@
-import {
+/*import {
   Container,
   Typography,
   Box,
@@ -80,8 +80,11 @@ const AboutContact = () => {
             Olfactum's future
           </Typography>
         </Box>
-
-        {/* Clean 2x2 Grid */}
+*/
+{
+  /* Clean 2x2 Grid */
+}
+/*
         <Grid container spacing={4} sx={{ maxWidth: 800, mx: "auto" }}>
           {contactMethods.map((method, index) => (
             <Grid item xs={12} sm={6} key={index}>
@@ -161,8 +164,11 @@ const AboutContact = () => {
             </Grid>
           ))}
         </Grid>
-
-        {/* Email Section */}
+*/
+{
+  /* Email Section */
+}
+/*
         <Box
           sx={{
             textAlign: "center",
@@ -227,3 +233,4 @@ const AboutContact = () => {
 };
 
 export default AboutContact;
+*/

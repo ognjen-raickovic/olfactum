@@ -3,7 +3,7 @@ import AboutHero from "../../components/About/AboutHero";
 import AboutStory from "../../components/About/AboutStory";
 import AboutFeatures from "../../components/About/AboutFeatures";
 import AboutVision from "../../components/About/AboutVision";
-import AboutContact from "../../components/About/AboutContact";
+// import AboutContact from "../../components/About/AboutContact";
 
 const AboutPage = () => {
   return (
@@ -12,7 +12,7 @@ const AboutPage = () => {
       <AboutStory />
       <AboutFeatures />
       <AboutVision />
-      <AboutContact />
+      {/*<AboutContact />*/}
     </Box>
   );
 };
