@@ -16,17 +16,16 @@ const QuizModal = ({ open, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  // In QuizModal.js, update the quizSteps array:
   const quizSteps = [
     "Experience Level",
-    "Who's Wearing",
+    "Target Gender",
     "Scent Preferences",
-    "Scent Style",
-    "Weather & Climate",
-    "Occasion & Time",
-    "Strength & Longevity",
-    "Favorite Notes",
-    "Desired Vibe",
+    "Fragrance Style",
+    "Climate & Season",
+    "Occasion",
+    "Intensity",
+    "Preferred Notes",
+    "Desired Mood",
     "Results",
   ];
 

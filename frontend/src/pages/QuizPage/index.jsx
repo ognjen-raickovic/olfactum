@@ -20,24 +20,26 @@ import { useLocation } from "react-router-dom";
 
 const QuizPage = () => {
   const quizSteps = [
+    "Experience Level",
+    "Target Gender",
     "Scent Preferences",
-    "Season & Occasion",
+    "Fragrance Style",
+    "Climate & Season",
+    "Occasion",
     "Intensity",
-    "Favorite Notes",
-    "Personality",
-    "Mood & Personality",
-    "Your Results",
+    "Preferred Notes",
+    "Desired Mood",
+    "Results",
   ];
 
-  // Load saved quiz from new storage system
+  // Load saved quiz
   const [savedQuiz, setSavedQuiz] = useState(loadQuizResults());
 
   // State initialization
   const [currentStep, setCurrentStep] = useState(
-    savedQuiz ? quizSteps.length - 1 : 0
+    savedQuiz ? quizSteps.length - 1 : 0,
   );
   const [answers, setAnswers] = useState(savedQuiz?.answers || {});
-  const [quizData, setQuizData] = useState(savedQuiz || null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -71,9 +73,8 @@ const QuizPage = () => {
       const next = prev + 1;
 
       if (next === quizSteps.length - 1) {
-        const savedData = saveQuizResults(answers);
-        setQuizData(savedData);
-        setSavedQuiz(savedData);
+        saveQuizResults(answers);
+        setSavedQuiz(loadQuizResults());
       }
 
       return next;
@@ -104,7 +105,6 @@ const QuizPage = () => {
     setSavedQuiz(null);
     setAnswers({});
     setCurrentStep(0);
-    setQuizData(null);
   };
 
   const isResultStep = currentStep === quizSteps.length - 1;
@@ -115,18 +115,6 @@ const QuizPage = () => {
       setSavedQuiz(loadQuizResults());
     }
   }, [isResultStep]);
-
-  // // 🔥 REAL-TIME EXPIRATION CHECKER (fixes your issue)
-  // useEffect(() => {
-  //   if (!isResultStep) return;
-
-  //   const interval = setInterval(() => {
-  //     const latest = loadQuizResults();
-  //     setSavedQuiz(latest);
-  //   }, 1000);
-
-  //   return () => clearInterval(interval);
-  // }, [isResultStep]);
 
   return (
     <Box
@@ -173,69 +161,72 @@ const QuizPage = () => {
               : "Find Your Perfect Scent"}
           </Typography>
 
-          {/* Stepper */}
-          <Stepper
-            activeStep={currentStep}
-            alternativeLabel
-            sx={{
-              mb: 1,
-              "& .MuiStepConnector-root": {
-                display: isMobile ? "none" : "block",
-              },
-            }}
-          >
-            {quizSteps.map((label) => (
-              <Step key={label}>
-                <StepLabel
+          {isMobile && !isResultStep ? (
+            // Mobile: simple progress indicator
+            <Box sx={{ width: "100%" }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                align="center"
+                sx={{ mb: 1 }}
+              >
+                Question {currentStep + 1} of {quizSteps.length - 1}
+              </Typography>
+              <Box
+                sx={{
+                  width: "100%",
+                  height: 6,
+                  backgroundColor: "grey.200",
+                  borderRadius: 3,
+                  overflow: "hidden",
+                }}
+              >
+                <Box
                   sx={{
-                    "& .MuiStepLabel-label": {
-                      fontSize: isMobile ? "0.75rem" : "0.875rem",
-                      fontWeight: 600,
-                      mt: 0.5,
-                    },
+                    height: "100%",
+                    backgroundColor: "primary.main",
+                    width: `${((currentStep + 1) / (quizSteps.length - 1)) * 100}%`,
+                    transition: "width 0.3s ease",
+                    borderRadius: 3,
                   }}
-                >
-                  {isMobile
-                    ? label
-                        .split(" ")
-                        .map((word) => word[0])
-                        .join("") +
-                      (label.includes("Preferences") ? "Pref" : "")
-                    : label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-
-          {!isResultStep && (
-            <Box
+                />
+              </Box>
+            </Box>
+          ) : (
+            // Desktop: full stepper
+            <Stepper
+              activeStep={currentStep}
+              alternativeLabel
               sx={{
-                bgcolor: "primary.main",
-                color: "white",
-                py: 1.5,
-                px: 3,
-                borderRadius: 2,
-                width: "fit-content",
-                mx: "auto",
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                textTransform: "uppercase",
+                mb: 1,
+                "& .MuiStepConnector-root": {
+                  display: "block",
+                },
               }}
             >
-              Question {currentStep + 1} of {quizSteps.length - 1}
-            </Box>
+              {quizSteps.map((label) => (
+                <Step key={label}>
+                  <StepLabel
+                    sx={{
+                      "& .MuiStepLabel-label": {
+                        fontSize: "0.875rem",
+                        fontWeight: 600,
+                        mt: 0.5,
+                      },
+                    }}
+                  >
+                    {label}
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
           )}
         </Box>
 
         {/* Content */}
         <Box ref={resultsRef} sx={{ width: "100%", flexGrow: 1 }}>
           {isResultStep ? (
-            <QuizResults
-              answers={answers}
-              onRestart={handleRestart}
-              quizTimestamp={quizData?.timestamp}
-              expiryTimestamp={quizData?.expiry}
-            />
+            <QuizResults answers={answers} onRestart={handleRestart} />
           ) : (
             <QuizQuestions
               step={currentStep}

@@ -10,8 +10,6 @@ import {
   Stack,
   useTheme,
   useMediaQuery,
-  Container,
-  Alert,
 } from "@mui/material";
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -19,59 +17,29 @@ import { getRecommendedFragrances } from "../../utils/fragranceUtils";
 import FragranceModal from "../FragranceModal/FragranceModal";
 import FragranceCard from "../FragranceCard";
 import { motion, AnimatePresence } from "framer-motion";
-import QuizCountdownTimer from "./QuizCountdownTimer";
 import { clearQuizResults } from "../../utils/quizStorage";
 
-const QuizResults = ({
-  answers,
-  onRestart,
-  quizTimestamp,
-  expiryTimestamp,
-}) => {
+const QuizResults = ({ answers, onRestart }) => {
   const [selectedFragrance, setSelectedFragrance] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(8);
   const [sortMode, setSortMode] = useState("balanced");
-  const [isExpired, setIsExpired] = useState(false);
 
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
 
-  // Ensure your timer always re-starts when page returns
-  useEffect(() => {
-    if (expiryTimestamp) {
-      const now = Date.now();
-      if (now >= expiryTimestamp) setIsExpired(true);
-    }
-  }, [expiryTimestamp]);
-
   useEffect(() => {
     setVisibleCount(8);
   }, [sortMode]);
 
-  // Check if results are expired on component mount
-  useEffect(() => {
-    if (expiryTimestamp && new Date().getTime() > expiryTimestamp) {
-      handleExpire();
-    }
-  }, [expiryTimestamp]);
-
-  const handleExpire = () => {
-    setIsExpired(true);
-    // clearQuizResults();
-  };
-
-  // Memoize recommendations
   const recommendations = useMemo(() => {
-    if (isExpired) return [];
     return getRecommendedFragrances(answers, sortMode, 40);
-  }, [answers, sortMode, isExpired]);
+  }, [answers, sortMode]);
 
   const visibleFragrances = recommendations.slice(0, visibleCount);
 
-  // Calculate grid columns
   const getGridColumns = () => {
     if (isMobile) return 2;
     if (isTablet) return 3;
@@ -80,7 +48,6 @@ const QuizResults = ({
 
   const gridColumns = getGridColumns();
 
-  // Get user-friendly description
   const getUserProfileDescription = () => {
     const {
       scentStyle,
@@ -147,7 +114,6 @@ const QuizResults = ({
     return profile.slice(0, 3).join(", ");
   };
 
-  // Get matched criteria for display
   const getMatchedCriteria = () => {
     const criteria = [];
     const {
@@ -212,9 +178,9 @@ const QuizResults = ({
           strengthLongevity === "subtle"
             ? "Subtle"
             : strengthLongevity === "balanced"
-            ? "Balanced"
-            : "Strong"
-        } strength`
+              ? "Balanced"
+              : "Strong"
+        } strength`,
       );
     }
 
@@ -232,7 +198,6 @@ const QuizResults = ({
   };
 
   const handleFragranceClick = (fragrance) => {
-    if (isExpired) return;
     setSelectedFragrance(fragrance);
     setModalOpen(true);
   };
@@ -241,79 +206,15 @@ const QuizResults = ({
     navigate("/fragrances");
   };
 
-  const handleRetakeAfterExpiry = () => {
+  const handleRetakeQuiz = () => {
     clearQuizResults();
     onRestart();
   };
 
   const matchedCriteria = getMatchedCriteria();
 
-  // If results are expired, show expired state
-  if (isExpired) {
-    return (
-      <Box sx={{ width: "100%", minHeight: "100vh", py: 4 }}>
-        <Container maxWidth="sm">
-          <Box
-            sx={{
-              textAlign: "center",
-              py: 8,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 3,
-            }}
-          >
-            <Box
-              sx={{
-                bgcolor: "warning.light",
-                color: "warning.contrastText",
-                p: 3,
-                borderRadius: 2,
-                width: "100%",
-              }}
-            >
-              <Typography variant="h5" gutterBottom>
-                ⏰ Results Expired
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                Your quiz results have expired. Fragrance preferences can
-                change, and we want to make sure you get the most current
-                recommendations!
-              </Typography>
-            </Box>
-
-            <Button
-              variant="contained"
-              size="large"
-              onClick={handleRetakeAfterExpiry}
-              sx={{ minWidth: 200 }}
-            >
-              Retake Quiz
-            </Button>
-
-            <Button
-              variant="outlined"
-              size="large"
-              onClick={handleBrowseAllFragrances}
-            >
-              Browse All Fragrances
-            </Button>
-          </Box>
-        </Container>
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ width: "100%", minHeight: "100vh", py: 4 }}>
-      {/* Countdown Timer */}
-      {expiryTimestamp && (
-        <QuizCountdownTimer
-          expiryTimestamp={expiryTimestamp}
-          onExpire={handleExpire}
-        />
-      )}
-
       {/* Header */}
       <Box sx={{ textAlign: "center", mb: 2, px: { xs: 2, sm: 3, md: 4 } }}>
         <Typography
@@ -358,7 +259,6 @@ const QuizResults = ({
             {getUserProfileDescription()}.
           </Typography>
 
-          {/* Matched Criteria Chips */}
           {matchedCriteria.length > 0 && (
             <Stack
               direction="row"
@@ -397,13 +297,7 @@ const QuizResults = ({
           px: { xs: 2, sm: 3, md: 4 },
         }}
       >
-        <FormControl
-          size="small"
-          sx={{
-            minWidth: { xs: 150, sm: 200 },
-            flexShrink: 0,
-          }}
-        >
+        <FormControl size="small" sx={{ minWidth: { xs: 150, sm: 200 } }}>
           <InputLabel>Sort by</InputLabel>
           <Select
             value={sortMode}
@@ -415,37 +309,13 @@ const QuizResults = ({
             <MenuItem value="proven">Proven popular picks</MenuItem>
           </Select>
         </FormControl>
-
-        <Box
-          sx={{
-            color: "text.secondary",
-            maxWidth: 400,
-            fontSize: { xs: "0.75rem", sm: "0.875rem" },
-            textAlign: { xs: "center", sm: "left" },
-            lineHeight: 1.4,
-          }}
-        >
-          <Typography variant="body2" component="div">
-            🔹 <strong>Best match</strong> = more tailored to your answers
-          </Typography>
-          <Typography variant="body2" component="div">
-            🔹 <strong>Proven</strong> = higher-rated, popular picks
-          </Typography>
-          <Typography variant="body2" component="div">
-            🔹 <strong>Balanced</strong> = mix of both
-          </Typography>
-        </Box>
       </Box>
 
       {/* Results Count */}
       <Typography
         variant="body2"
         color="text.secondary"
-        sx={{
-          mb: 2,
-          textAlign: "center",
-          px: { xs: 2, sm: 3, md: 4 },
-        }}
+        sx={{ mb: 2, textAlign: "center" }}
       >
         Showing {Math.min(visibleCount, recommendations.length)} of{" "}
         {recommendations.length} fragrances
@@ -459,130 +329,52 @@ const QuizResults = ({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.4 }}
-          style={{ width: "100%" }}
         >
-          <Box
-            sx={{
-              px: { xs: 1, sm: 3, md: 4 },
-              width: "100%",
-            }}
-          >
-            {recommendations.length === 0 ? (
-              <Typography
-                color="text.secondary"
-                textAlign="center"
-                sx={{ mt: 8 }}
-              >
-                No fragrances found. Try adjusting your quiz answers.
-              </Typography>
-            ) : (
-              <>
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
-                    gap: { xs: 2, md: 3 },
-                    justifyItems: "stretch",
-                  }}
-                >
-                  {visibleFragrances.map((fragrance) => (
-                    <FragranceCard
-                      key={fragrance.id}
-                      fragrance={fragrance}
-                      onClick={handleFragranceClick}
-                      sx={{
-                        minHeight: { xs: 210, sm: 240 },
-                        "& .MuiCardContent-root": {
-                          minHeight: { xs: 70, sm: 90 },
-                        },
-                        transition: "all 0.2s ease-in-out",
-                        "&:hover": {
-                          transform: isMobile ? "none" : "translateY(-4px)",
-                          boxShadow: isMobile ? 1 : 3,
-                        },
-                      }}
-                    />
-                  ))}
-                </Box>
-              </>
-            )}
+          <Box sx={{ px: { xs: 1, sm: 3, md: 4 } }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+                gap: { xs: 2, md: 3 },
+              }}
+            >
+              {visibleFragrances.map((fragrance) => (
+                <FragranceCard
+                  key={fragrance.id}
+                  fragrance={fragrance}
+                  onClick={handleFragranceClick}
+                />
+              ))}
+            </Box>
           </Box>
         </motion.div>
       </AnimatePresence>
 
-      {/* Action Buttons */}
+      {/* Actions */}
       <Box
         sx={{
           display: "flex",
           flexDirection: { xs: "column", sm: "row" },
           justifyContent: "center",
-          alignItems: "center",
-          gap: { xs: 1.5, sm: 2 },
-          mt: 2,
-          px: { xs: 2, sm: 3, md: 4 },
+          gap: 2,
+          mt: 3,
         }}
       >
-        {/* Load More / Show Less */}
-        {visibleCount < recommendations.length ? (
-          <Button
-            variant="outlined"
-            size="large"
-            onClick={() => setVisibleCount((prev) => prev + 8)}
-            sx={{
-              width: { xs: "100%", sm: "auto" },
-              minWidth: { xs: "auto", sm: 140 },
-            }}
-          >
-            Load More ({recommendations.length - visibleCount} remaining)
+        {visibleCount < recommendations.length && (
+          <Button onClick={() => setVisibleCount((prev) => prev + 8)}>
+            Load More
           </Button>
-        ) : visibleCount > 8 ? (
-          <Button
-            variant="outlined"
-            size="large"
-            onClick={() => {
-              setVisibleCount(8);
-              window.scrollTo({
-                top: 0,
-                behavior: "smooth",
-              });
-            }}
-            sx={{
-              width: { xs: "100%", sm: "auto" },
-              minWidth: { xs: "auto", sm: 140 },
-            }}
-          >
-            Show Less
-          </Button>
-        ) : null}
+        )}
 
-        {/* Retake Quiz Button */}
-        <Button
-          variant="outlined"
-          onClick={onRestart}
-          size="large"
-          sx={{
-            width: { xs: "100%", sm: "auto" },
-            minWidth: { xs: "auto", sm: 140 },
-          }}
-        >
+        <Button variant="outlined" onClick={handleRetakeQuiz}>
           Retake Quiz
         </Button>
 
-        {/* Browse All Fragrances Button */}
-        <Button
-          variant="contained"
-          size="large"
-          onClick={handleBrowseAllFragrances}
-          sx={{
-            width: { xs: "100%", sm: "auto" },
-            minWidth: { xs: "auto", sm: 180 },
-          }}
-        >
+        <Button variant="contained" onClick={handleBrowseAllFragrances}>
           Browse All Fragrances
         </Button>
       </Box>
 
-      {/* Fragrance Modal */}
       <FragranceModal
         fragrance={selectedFragrance}
         open={modalOpen}
