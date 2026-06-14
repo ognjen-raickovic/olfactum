@@ -47,13 +47,14 @@ const Navbar = () => {
   const inputRef = useRef(null);
 
   const navLinks = [
-    { label: "Home", path: "/" },
+    // { label: "Home", path: "/" },
     { label: "Fragrances", path: "/fragrances" },
     { label: "Find Your Fragrance", path: "/find-your-fragrance" },
     { label: "Learn", path: "/learn" },
     { label: "Library", path: "/library" },
     { label: "About", path: "/about" },
     { label: "FAQ", path: "/faq" },
+    { label: "Contact", path: "/contact" },
   ];
 
   // Load fragrances on component mount

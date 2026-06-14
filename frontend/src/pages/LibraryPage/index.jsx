@@ -7,6 +7,8 @@ import {
   Fade,
   CircularProgress,
   Container,
+  useTheme,
+  alpha,
 } from "@mui/material";
 import { Favorite, BookmarkBorder } from "@mui/icons-material";
 import LibraryGrid from "../../components/LibraryGrid";
@@ -14,6 +16,7 @@ import FragranceModal from "../../components/FragranceModal/FragranceModal";
 import useFragranceLibrary from "../../hooks/useFragranceLibrary";
 
 const LibraryPage = () => {
+  const theme = useTheme();
   const [tab, setTab] = useState(0);
   const [selectedFragrance, setSelectedFragrance] = useState(null);
 
@@ -63,135 +66,162 @@ const LibraryPage = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: { xs: 3, md: 4 } }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography
-          variant="h3"
-          gutterBottom
-          sx={{
-            fontWeight: 700,
-            background: "linear-gradient(45deg, #1976d2, #7b1fa2)",
-            backgroundClip: "text",
-            WebkitBackgroundClip: "text",
-            color: "transparent",
-            textAlign: "center",
-          }}
-        >
-          My Library
-        </Typography>
-        <Typography variant="h6" color="text.secondary" textAlign="center">
-          Manage your favorite fragrances and wishlist
-        </Typography>
-      </Box>
-
-      {/* Tabs */}
-      <Tabs
-        value={tab}
-        onChange={handleTabChange}
-        textColor="primary"
-        indicatorColor="primary"
-        centered
+    <Box sx={{ width: "100%" }}>
+      <Box
         sx={{
-          mb: 4,
-          borderBottom: 1,
-          borderColor: "divider",
+          background: `
+            linear-gradient(135deg,
+              ${alpha(theme.palette.primary.main, 0.1)} 0%,
+              ${alpha(theme.palette.secondary.main, 0.05)} 50%,
+              ${alpha(theme.palette.background.paper, 0.9)} 100%
+            )
+          `,
+          py: { xs: 10, md: 14 },
+          width: "100%",
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         }}
       >
-        <Tab
-          icon={<Favorite />}
-          iconPosition="start"
-          label={
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              Favorites
-              {favorites.length > 0 && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    bgcolor: "error.main",
-                    color: "white",
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 10,
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  {favorites.length}
-                </Typography>
-              )}
-            </Box>
-          }
-        />
-        <Tab
-          icon={<BookmarkBorder />}
-          iconPosition="start"
-          label={
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              Wishlist
-              {wishlist.length > 0 && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    bgcolor: "primary.main",
-                    color: "white",
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: 10,
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  {wishlist.length}
-                </Typography>
-              )}
-            </Box>
-          }
-        />
-      </Tabs>
+        <Container maxWidth="lg" sx={{ textAlign: "center" }}>
+          <Typography
+            variant="h1"
+            component="h1"
+            gutterBottom
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: "2.75rem", md: "4rem" },
+              mb: 3,
+              color: "text.primary",
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            My Library
+          </Typography>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 500,
+              lineHeight: 1.3,
+              color: "text.secondary",
+              fontSize: { xs: "1.25rem", md: "1.75rem" },
+              maxWidth: 760,
+              mx: "auto",
+            }}
+          >
+            Manage your favorite fragrances and wishlist in one place.
+          </Typography>
+        </Container>
+      </Box>
 
-      {/* Favorites Tab */}
-      <Fade in={tab === 0} timeout={500}>
-        <Box hidden={tab !== 0}>
-          <LibraryGrid
-            fragrances={favorites}
-            variant="favorite"
-            onFragranceClick={handleFragranceClick}
-            onRemoveFragrance={handleRemoveFragrance}
-            emptyMessage="No favorites yet"
-            emptyIcon={
-              <Favorite sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
+      <Container maxWidth="xl" sx={{ py: { xs: 3, md: 4 } }}>
+        <Tabs
+          value={tab}
+          onChange={handleTabChange}
+          textColor="primary"
+          indicatorColor="primary"
+          centered
+          sx={{
+            mb: 4,
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
+        >
+          <Tab
+            icon={<Favorite />}
+            iconPosition="start"
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                Favorites
+                {favorites.length > 0 && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      bgcolor: "error.main",
+                      color: "white",
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 10,
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {favorites.length}
+                  </Typography>
+                )}
+              </Box>
             }
           />
-        </Box>
-      </Fade>
-
-      {/* Wishlist Tab */}
-      <Fade in={tab === 1} timeout={500}>
-        <Box hidden={tab !== 1}>
-          <LibraryGrid
-            fragrances={wishlist}
-            variant="wishlist"
-            onFragranceClick={handleFragranceClick}
-            onRemoveFragrance={handleRemoveFragrance}
-            emptyMessage="Wishlist is empty"
-            emptyIcon={
-              <BookmarkBorder
-                sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
-              />
+          <Tab
+            icon={<BookmarkBorder />}
+            iconPosition="start"
+            label={
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                Wishlist
+                {wishlist.length > 0 && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      bgcolor: "primary.main",
+                      color: "white",
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 10,
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {wishlist.length}
+                  </Typography>
+                )}
+              </Box>
             }
           />
-        </Box>
-      </Fade>
+        </Tabs>
 
-      {/* Fragrance Modal - ADD disableRouting TO PREVENT URL CHANGES */}
-      <FragranceModal
-        fragrance={selectedFragrance}
-        open={!!selectedFragrance}
-        onClose={handleCloseModal}
-        disableRouting={true} // prevents URL changes in library context
-      />
-    </Container>
+        <Fade in={tab === 0} timeout={500}>
+          <Box hidden={tab !== 0}>
+            <LibraryGrid
+              fragrances={favorites}
+              variant="favorite"
+              onFragranceClick={handleFragranceClick}
+              onRemoveFragrance={handleRemoveFragrance}
+              emptyMessage="No favorites yet"
+              emptyIcon={
+                <Favorite
+                  sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
+                />
+              }
+            />
+          </Box>
+        </Fade>
+
+        <Fade in={tab === 1} timeout={500}>
+          <Box hidden={tab !== 1}>
+            <LibraryGrid
+              fragrances={wishlist}
+              variant="wishlist"
+              onFragranceClick={handleFragranceClick}
+              onRemoveFragrance={handleRemoveFragrance}
+              emptyMessage="Wishlist is empty"
+              emptyIcon={
+                <BookmarkBorder
+                  sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
+                />
+              }
+            />
+          </Box>
+        </Fade>
+
+        <FragranceModal
+          fragrance={selectedFragrance}
+          open={!!selectedFragrance}
+          onClose={handleCloseModal}
+          disableRouting={true}
+        />
+      </Container>
+    </Box>
   );
 };
 

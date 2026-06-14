@@ -92,51 +92,57 @@ const FAQ = () => {
   let panelIndex = 0;
 
   return (
-    <Box
-      sx={{
-        py: 8,
-        px: { xs: 2, sm: 3 },
-        background: `linear-gradient(135deg, ${alpha(
-          theme.palette.background.default,
-          0.6,
-        )} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
-        minHeight: "100vh",
-      }}
-    >
-      <Container maxWidth="md">
-        {/* Header */}
-        <Box sx={{ textAlign: "center", mb: 6 }}>
+    <Box sx={{ width: "100%" }}>
+      <Box
+        sx={{
+          background: `
+            linear-gradient(135deg,
+              ${alpha(theme.palette.primary.main, 0.1)} 0%,
+              ${alpha(theme.palette.secondary.main, 0.05)} 50%,
+              ${alpha(theme.palette.background.paper, 0.9)} 100%
+            )
+          `,
+          py: { xs: 10, md: 14 },
+          width: "100%",
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        }}
+      >
+        <Container maxWidth="lg" sx={{ textAlign: "center" }}>
           <Typography
+            variant="h1"
             component="h1"
+            gutterBottom
             sx={{
               fontWeight: 700,
-              fontSize: { xs: "2rem", sm: "2.6rem", md: "3.4rem" },
+              fontSize: { xs: "2.75rem", md: "4rem" },
+              mb: 3,
+              color: "text.primary",
               background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              mb: 3,
             }}
           >
             Frequently Asked Questions
           </Typography>
-
           <Typography
+            variant="h4"
             sx={{
+              fontWeight: 500,
+              lineHeight: 1.3,
               color: "text.secondary",
-              maxWidth: 600,
+              fontSize: { xs: "1.25rem", md: "1.75rem" },
+              maxWidth: 760,
               mx: "auto",
-              fontWeight: 400,
-              lineHeight: 1.6,
-              fontSize: { xs: "1rem", sm: "1.1rem" },
             }}
           >
             Everything you need to know about Olfactum and how to get the most
             out of your fragrance journey.
           </Typography>
-        </Box>
+        </Container>
+      </Box>
 
-        {/* FAQ Sections */}
+      <Container maxWidth="md" sx={{ py: { xs: 6, md: 8 } }}>
         <Box sx={{ mt: 4 }}>
           {faqSections.map((section, sectionIndex) => (
             <Box key={sectionIndex} sx={{ mb: 6 }}>
@@ -235,7 +241,6 @@ const FAQ = () => {
           ))}
         </Box>
 
-        {/* Help Section */}
         <Box
           sx={{
             mt: 8,

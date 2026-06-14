@@ -49,55 +49,58 @@ export default function Contact() {
   ];
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        py: { xs: 6, md: 10 },
-        background: `linear-gradient(135deg, ${alpha(
-          theme.palette.background.default,
-          0.9,
-        )} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
-      }}
-    >
-      <Container
-        maxWidth="xl"
+    <Box sx={{ width: "100%" }}>
+      <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          background: `
+            linear-gradient(135deg,
+              ${alpha(theme.palette.primary.main, 0.1)} 0%,
+              ${alpha(theme.palette.secondary.main, 0.05)} 50%,
+              ${alpha(theme.palette.background.paper, 0.9)} 100%
+            )
+          `,
+          py: { xs: 10, md: 14 },
+          width: "100%",
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         }}
       >
-        {/* Header */}
-        <Box sx={{ textAlign: "center", mb: { xs: 5, md: 7 } }}>
+        <Container maxWidth="lg" sx={{ textAlign: "center" }}>
           <Typography
-            variant="h3"
+            variant="h1"
+            component="h1"
+            gutterBottom
             sx={{
               fontWeight: 700,
-              mb: 2,
-              fontSize: { xs: "2rem", sm: "2.4rem", md: "3rem" },
+              fontSize: { xs: "2.75rem", md: "4rem" },
+              mb: 3,
+              color: "text.primary",
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
           >
             Get In Touch
           </Typography>
 
           <Typography
-            variant="h6"
+            variant="h4"
             sx={{
+              fontWeight: 500,
+              lineHeight: 1.3,
               color: "text.secondary",
-              maxWidth: 720,
+              fontSize: { xs: "1.25rem", md: "1.75rem" },
+              maxWidth: 760,
               mx: "auto",
-              fontSize: { xs: "1rem", sm: "1.1rem" },
             }}
           >
             This is a passion project — your feedback helps shape Olfactum's
             future.
           </Typography>
-        </Box>
+        </Container>
+      </Box>
 
-        {/* Contact Cards */}
+      <Container maxWidth="xl" sx={{ py: { xs: 6, md: 10 } }}>
         <Grid
           container
           spacing={{ xs: 3, md: 5 }}
@@ -200,7 +203,6 @@ export default function Contact() {
           ))}
         </Grid>
 
-        {/* Email Section */}
         <Box
           sx={{
             textAlign: "center",
@@ -209,6 +211,7 @@ export default function Contact() {
             borderRadius: 3,
             background: alpha(theme.palette.primary.main, 0.04),
             maxWidth: 700,
+            mx: "auto",
           }}
         >
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
@@ -243,7 +246,6 @@ export default function Contact() {
           </Typography>
         </Box>
 
-        {/* Footer */}
         <Box
           sx={{
             textAlign: "center",

@@ -91,7 +91,7 @@ export default function LearningNav() {
   useEffect(() => {
     const updateModuleProgress = () => {
       const completedModules = JSON.parse(
-        localStorage.getItem("completedModules") || "{}"
+        localStorage.getItem("completedModules") || "{}",
       );
 
       const updatedModules = initialModules.map((module, index) => {
@@ -155,7 +155,7 @@ export default function LearningNav() {
   // Function to mark a module as complete from the learn page
   const markModuleAsComplete = (moduleId) => {
     const completedModules = JSON.parse(
-      localStorage.getItem("completedModules") || "{}"
+      localStorage.getItem("completedModules") || "{}",
     );
     completedModules[moduleId] = true;
     localStorage.setItem("completedModules", JSON.stringify(completedModules));
@@ -178,47 +178,7 @@ export default function LearningNav() {
   };
 
   return (
-    <Paper
-      sx={{
-        p: { xs: 2, sm: 4 },
-        mb: 6,
-        borderRadius: 2,
-        backgroundColor: "background.paper",
-        border: `1px solid ${theme.palette.divider}`,
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
-      <Typography
-        variant="h4"
-        component="h2"
-        textAlign="center"
-        gutterBottom
-        sx={{
-          fontWeight: "bold",
-          color: "text.primary",
-          fontSize: { xs: "1.75rem", sm: "2.125rem" },
-        }}
-      >
-        Start Your Learning Journey
-      </Typography>
-      <Typography
-        variant="body1"
-        textAlign="center"
-        color="text.secondary"
-        sx={{
-          mb: 4,
-          maxWidth: 600,
-          mx: "auto",
-          fontSize: { xs: "0.9rem", sm: "1rem" },
-        }}
-      >
-        Follow our structured learning path to become a fragrance expert.
-        Complete each module to unlock the next!
-      </Typography>
-
+    <>
       <Grid container spacing={3} justifyContent="center">
         {modules.map((module) => (
           <Grid
@@ -417,22 +377,23 @@ export default function LearningNav() {
       </Grid>
 
       {/* Reset Progress Button - Centered below modules */}
-      <Button
-        variant="outlined"
-        color="warning"
-        size="large"
-        onClick={openResetDialog}
-        sx={{
-          mt: 4,
-          px: 4,
-          py: 1,
-          fontSize: { xs: "0.9rem", sm: "1rem" },
-          fontWeight: "bold",
-          minWidth: { xs: 200, sm: 240 },
-        }}
-      >
-        Reset Progress
-      </Button>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <Button
+          variant="outlined"
+          color="warning"
+          size="large"
+          onClick={openResetDialog}
+          sx={{
+            px: 4,
+            py: 1,
+            fontSize: { xs: "0.9rem", sm: "1rem" },
+            fontWeight: "bold",
+            minWidth: { xs: 200, sm: 240 },
+          }}
+        >
+          Reset Progress
+        </Button>
+      </Box>
 
       {/* Reset Progress Confirmation Dialog */}
       <Dialog
@@ -484,6 +445,6 @@ export default function LearningNav() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </>
   );
 }
