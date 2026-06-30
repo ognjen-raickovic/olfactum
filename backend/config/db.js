@@ -1,5 +1,6 @@
 // We use mysql2/promise to work with async/await.
 // A pool manages multiple connections efficiently.
+
 const mysql = require("mysql2/promise");
 require("dotenv").config(); // loads variables from .env
 
