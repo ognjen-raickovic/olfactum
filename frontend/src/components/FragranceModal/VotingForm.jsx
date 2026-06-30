@@ -12,11 +12,19 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   useMediaQuery,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Link,
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import StarHalfIcon from "@mui/icons-material/StarHalf";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
+// Allowed scent categories (max 3)
 const SCENT_CATEGORIES = [
   "Fresh",
   "Citrus",
@@ -33,6 +41,7 @@ const SCENT_CATEGORIES = [
   "Aromatic",
 ];
 
+// Maps star level to descriptive text for each rating category
 const getRatingDescription = (category, value) => {
   const descriptions = {
     scent: {
@@ -57,46 +66,39 @@ const getRatingDescription = (category, value) => {
       5: "Massive - Leaves a trail",
     },
   };
-
   const starLevel = Math.ceil(value);
   return descriptions[category]?.[starLevel] || "Click stars to rate";
 };
 
+// Precise 5‑star rating component (supports half‑star hover/click)
 const PreciseStarRating = ({ value, onChange, label }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [hoverValue, setHoverValue] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
 
-  const handleStarClick = (clickedValue) => {
-    onChange(clickedValue);
-  };
-
+  const handleStarClick = (clickedValue) => onChange(clickedValue);
   const handleStarHover = (hoveredValue) => {
     setHoverValue(hoveredValue);
     setIsHovering(true);
   };
-
   const handleMouseLeave = () => {
     setIsHovering(false);
     setHoverValue(0);
   };
 
+  // Determine which value to display (hover vs actual)
   const displayValue = isHovering ? hoverValue : value;
   const numericValue = ((displayValue / 5) * 10).toFixed(1);
-
-  // Always show descriptive text, never star counts
   const currentDescription = getRatingDescription(
     label.toLowerCase(),
-    displayValue
+    displayValue,
   );
 
+  // Render a single star (full, half, or empty)
   const renderStar = (position) => {
-    const starValue = position;
-    const isActive = displayValue >= starValue;
-    const isHalfActive =
-      displayValue >= starValue - 0.5 && displayValue < starValue;
-
+    const isActive = displayValue >= position;
+    const isHalf = displayValue >= position - 0.5 && displayValue < position;
     return (
       <Box
         key={position}
@@ -106,21 +108,19 @@ const PreciseStarRating = ({ value, onChange, label }) => {
           fontSize: isMobile ? "1.6rem" : "1.8rem",
           color: isActive
             ? theme.palette.warning.main
-            : isHalfActive
-            ? theme.palette.warning.main
-            : theme.palette.text.disabled,
+            : isHalf
+              ? theme.palette.warning.main
+              : theme.palette.text.disabled,
           position: "relative",
-          "&:hover": {
-            transform: "scale(1.1)",
-          },
+          "&:hover": { transform: "scale(1.1)" },
           transition: "all 0.2s ease",
         }}
-        onClick={() => handleStarClick(starValue)}
-        onMouseEnter={() => handleStarHover(starValue)}
+        onClick={() => handleStarClick(position)}
+        onMouseEnter={() => handleStarHover(position)}
       >
         {isActive ? (
           <StarIcon fontSize="inherit" />
-        ) : isHalfActive ? (
+        ) : isHalf ? (
           <StarHalfIcon fontSize="inherit" />
         ) : (
           <StarBorderIcon fontSize="inherit" />
@@ -130,6 +130,7 @@ const PreciseStarRating = ({ value, onChange, label }) => {
   };
 
   return (
+    // Container with FIXED width to prevent layout shift
     <Box
       sx={{
         textAlign: "center",
@@ -138,6 +139,11 @@ const PreciseStarRating = ({ value, onChange, label }) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        width: 220, // fixed width – no more size changes
+        maxWidth: 220,
+        minWidth: 220,
+        mx: "auto", // center horizontally
+        overflow: "hidden",
       }}
     >
       <Typography
@@ -151,6 +157,7 @@ const PreciseStarRating = ({ value, onChange, label }) => {
         {label}
       </Typography>
 
+      {/* Star icons */}
       <Box
         sx={{
           display: "flex",
@@ -164,6 +171,7 @@ const PreciseStarRating = ({ value, onChange, label }) => {
         {[1, 2, 3, 4, 5].map(renderStar)}
       </Box>
 
+      {/* Numeric score */}
       <Typography
         variant={isMobile ? "body1" : "h6"}
         sx={{
@@ -177,14 +185,13 @@ const PreciseStarRating = ({ value, onChange, label }) => {
         {value > 0 ? `${numericValue}/10` : "Not rated"}
       </Typography>
 
-      {/* Description with fixed height to prevent layout shift */}
+      {/* Description – fixed width + nowrap to stay on one line */}
       <Box
         sx={{
-          minHeight: isMobile ? "48px" : "54px",
+          width: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: "100%",
           px: 1,
         }}
       >
@@ -195,7 +202,9 @@ const PreciseStarRating = ({ value, onChange, label }) => {
             fontSize: isMobile ? "0.75rem" : "0.8rem",
             textAlign: "center",
             lineHeight: 1.3,
-            width: "100%",
+            whiteSpace: "nowrap", // keep on one line
+            overflow: "hidden",
+            textOverflow: "ellipsis", // just in case, but not needed with 220px
           }}
         >
           {currentDescription}
@@ -209,44 +218,34 @@ const VotingForm = ({ fragrance }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [scores, setScores] = useState({
-    scent: 0,
-    longevity: 0,
-    sillage: 0,
-  });
+  const [scores, setScores] = useState({ scent: 0, longevity: 0, sillage: 0 });
   const [gender, setGender] = useState("");
   const [review, setReview] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  const handleScoreChange = (key) => (newValue) => {
+  // Where to Buy dropdown state
+  const [buyMenuAnchor, setBuyMenuAnchor] = useState(null);
+
+  const handleScoreChange = (key) => (newValue) =>
     setScores((old) => ({ ...old, [key]: newValue }));
-  };
-
   const handleGenderChange = (event, newGender) => {
-    if (newGender !== null) {
-      setGender(newGender);
-    }
+    if (newGender !== null) setGender(newGender);
   };
-
   const handleCategoryChange = (event, newValue) => {
-    if (newValue.length <= 3) {
-      setSelectedCategories(newValue);
-    }
+    if (newValue.length <= 3) setSelectedCategories(newValue);
   };
 
-  const isFormValid = () => {
-    return (
-      scores.scent > 0 &&
-      scores.longevity > 0 &&
-      scores.sillage > 0 &&
-      gender &&
-      review.trim().length > 0
-    );
-  };
+  // Form is valid only when all required fields are filled
+  const isFormValid = () =>
+    scores.scent > 0 &&
+    scores.longevity > 0 &&
+    scores.sillage > 0 &&
+    gender &&
+    review.trim().length > 0;
 
+  // Submit handler (currently logs to console)
   const handleSubmit = () => {
     if (!isFormValid()) return;
-
     const submission = {
       scores: {
         scent: ((scores.scent / 5) * 10).toFixed(1),
@@ -262,8 +261,17 @@ const VotingForm = ({ fragrance }) => {
     setSnackbarOpen(true);
   };
 
+  // Purchase links (fallback to Google search)
+  const purchaseLinks = fragrance?.purchaseLinks || [];
+  const defaultSearchUrl = `https://www.google.com/search?q=where+to+buy+${encodeURIComponent(
+    `${fragrance?.brand} ${fragrance?.name}`,
+  )}`;
+  const handleBuyMenuOpen = (event) => setBuyMenuAnchor(event.currentTarget);
+  const handleBuyMenuClose = () => setBuyMenuAnchor(null);
+
   return (
     <>
+      {/* Review card */}
       <Box
         sx={{
           background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
@@ -283,6 +291,7 @@ const VotingForm = ({ fragrance }) => {
           Review this fragrance
         </Typography>
 
+        {/* Scent categories autocomplete (max 3) */}
         <Autocomplete
           multiple
           freeSolo
@@ -301,23 +310,38 @@ const VotingForm = ({ fragrance }) => {
           getOptionDisabled={() => selectedCategories.length >= 3}
         />
 
-        {/* Star Ratings with better spacing */}
+        {/* Star ratings for scent, longevity, sillage */}
         <Grid container spacing={isMobile ? 2 : 3} justifyContent="center">
-          <Grid item xs={12} sm={4}>
+          <Grid
+            item
+            xs={12}
+            sm={4}
+            sx={{ display: "flex", justifyContent: "center" }}
+          >
             <PreciseStarRating
               value={scores.scent}
               onChange={handleScoreChange("scent")}
               label="Scent"
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid
+            item
+            xs={12}
+            sm={4}
+            sx={{ display: "flex", justifyContent: "center" }}
+          >
             <PreciseStarRating
               value={scores.longevity}
               onChange={handleScoreChange("longevity")}
               label="Longevity"
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid
+            item
+            xs={12}
+            sm={4}
+            sx={{ display: "flex", justifyContent: "center" }}
+          >
             <PreciseStarRating
               value={scores.sillage}
               onChange={handleScoreChange("sillage")}
@@ -326,7 +350,7 @@ const VotingForm = ({ fragrance }) => {
           </Grid>
         </Grid>
 
-        {/* Gender Selection */}
+        {/* Gender selection */}
         <Box
           sx={{
             textAlign: "center",
@@ -343,7 +367,6 @@ const VotingForm = ({ fragrance }) => {
           >
             Gender
           </Typography>
-
           <ToggleButtonGroup
             value={gender}
             exclusive
@@ -382,7 +405,6 @@ const VotingForm = ({ fragrance }) => {
               Female
             </ToggleButton>
           </ToggleButtonGroup>
-
           <Typography
             variant="body2"
             sx={{
@@ -397,7 +419,7 @@ const VotingForm = ({ fragrance }) => {
           </Typography>
         </Box>
 
-        {/* Review Field - Now Required */}
+        {/* Review textarea (required) */}
         <TextField
           label="Review *"
           placeholder="Share your thoughts about this fragrance..."
@@ -420,6 +442,7 @@ const VotingForm = ({ fragrance }) => {
           }
         />
 
+        {/* Submit button (disabled until form is valid) */}
         <Button
           variant="contained"
           color={isFormValid() ? "primary" : "inherit"}
@@ -447,7 +470,7 @@ const VotingForm = ({ fragrance }) => {
         </Button>
       </Box>
 
-      {/* Fragrantica Reviews and Where to Buy Buttons */}
+      {/* External links: Fragrantica Reviews + Where to Buy dropdown */}
       <Box
         sx={{
           display: "flex",
@@ -479,21 +502,69 @@ const VotingForm = ({ fragrance }) => {
         <Button
           variant="contained"
           size={isMobile ? "medium" : "large"}
-          href={`https://www.google.com/search?q=where+to+buy+${encodeURIComponent(
-            `${fragrance?.brand} ${fragrance?.name}`
-          )}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          startIcon={<span>🛒</span>}
+          onClick={handleBuyMenuOpen}
+          startIcon={<ShoppingCartIcon />}
           sx={{
             flex: { xs: "1 1 100%", sm: "0 1 auto" },
             fontSize: isMobile ? "0.8rem" : "0.9rem",
+            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+            "&:hover": {
+              background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
+            },
           }}
         >
           Where to Buy
         </Button>
+
+        {/* Dropdown with purchase links (or Google search fallback) */}
+        <Menu
+          anchorEl={buyMenuAnchor}
+          open={Boolean(buyMenuAnchor)}
+          onClose={handleBuyMenuClose}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+          PaperProps={{ sx: { minWidth: 220, borderRadius: 2, mt: 1 } }}
+        >
+          {purchaseLinks.length > 0
+            ? purchaseLinks.map((link, index) => (
+                <MenuItem
+                  key={index}
+                  component={Link}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleBuyMenuClose}
+                >
+                  <ListItemIcon>
+                    <ShoppingCartIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={link.store || "Buy online"}
+                    secondary={link.price || ""}
+                  />
+                  <OpenInNewIcon fontSize="small" />
+                </MenuItem>
+              ))
+            : [
+                <MenuItem
+                  key="default"
+                  component={Link}
+                  href={defaultSearchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleBuyMenuClose}
+                >
+                  <ListItemIcon>
+                    <ShoppingCartIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Search on Google" />
+                  <OpenInNewIcon fontSize="small" />
+                </MenuItem>,
+              ]}
+        </Menu>
       </Box>
 
+      {/* Success snackbar */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}

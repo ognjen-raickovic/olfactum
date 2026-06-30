@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
 
+// Color mapping for scent categories
 const SCENT_CATEGORY_COLORS = {
   Fresh: "#4FC3F7",
   Citrus: "#FFF176",
@@ -35,7 +36,7 @@ const ScentProfileBars = ({ fragrance }) => {
     .slice(0, 5);
 
   return (
-    <Box sx={{ mb: 3, width: "100%" }}>
+    <Box sx={{ mb: 3, width: "100%", textAlign: "center" }}>
       <Typography variant="subtitle1" fontWeight={700} gutterBottom>
         Scent profile
       </Typography>
@@ -45,15 +46,16 @@ const ScentProfileBars = ({ fragrance }) => {
           key={label}
           sx={{
             position: "relative",
-            height: isMobile ? 30 : 35, // Slightly smaller on mobile
+            height: isMobile ? 30 : 40, // thicker on desktop
             borderRadius: 1,
             bgcolor: theme.palette.action.hover,
             overflow: "hidden",
             mb: isMobile ? 1.5 : 2,
             width: "100%",
+            maxWidth: 500, // wider
+            mx: "auto",
           }}
         >
-          {/* Colored bar that extends based on percentage */}
           <Box
             sx={{
               height: "100%",
@@ -64,7 +66,7 @@ const ScentProfileBars = ({ fragrance }) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "flex-start",
-              px: isMobile ? 1 : 2, // Less padding on mobile
+              px: isMobile ? 1 : 2,
               transition: "width 0.6s ease",
               minWidth: "fit-content",
             }}
@@ -74,9 +76,9 @@ const ScentProfileBars = ({ fragrance }) => {
               sx={{
                 fontWeight: 600,
                 color: theme.palette.getContrastText(
-                  SCENT_CATEGORY_COLORS[label] || theme.palette.primary.main
+                  SCENT_CATEGORY_COLORS[label] || theme.palette.primary.main,
                 ),
-                fontSize: isMobile ? "0.7rem" : "0.85rem", // Smaller font on mobile
+                fontSize: isMobile ? "0.7rem" : "0.9rem",
                 whiteSpace: "nowrap",
               }}
             >

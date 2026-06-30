@@ -38,9 +38,11 @@ const FragranceContent = ({ fragrance }) => {
   return (
     <Box
       sx={{
-        p: { xs: 1, sm: 3 },
+        p: { xs: 2, sm: 3 },
         maxHeight: "calc(92vh - 120px)",
         overflowY: "auto",
+        textAlign: "center",
+        background: `linear-gradient(180deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
         "&::-webkit-scrollbar": { width: "8px" },
         "&::-webkit-scrollbar-track": {
           background: theme.palette.background.paper,
@@ -52,20 +54,19 @@ const FragranceContent = ({ fragrance }) => {
         },
       }}
     >
-      {/* Main Content Grid */}
-      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: 2 }}>
-        {/* Left column: Image + Gender Stats - Centered */}
-        <Grid item xs={12} md={2.5}>
-          <Box sx={{ display: "flex", justifyContent: "center" }}>
+      {/* Mobile – Notes now after Overview */}
+      {isMobile ? (
+        <Grid container spacing={2} direction="column" alignItems="center">
+          {/* 1. Image + Gender */}
+          <Grid item xs={12}>
             <Card
               sx={{
-                p: { xs: 1, sm: 2 },
+                p: 3,
+                maxWidth: 450,
+                mx: "auto",
                 background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
                 border: `1px solid ${theme.palette.divider}`,
                 boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                height: "fit-content",
-                width: "100%",
-                maxWidth: isMobile ? "300px" : "100%",
               }}
             >
               <img
@@ -75,8 +76,8 @@ const FragranceContent = ({ fragrance }) => {
                   borderRadius: 8,
                   objectFit: "contain",
                   width: "100%",
-                  maxHeight: 300,
-                  minHeight: isMobile ? 200 : 250,
+                  maxHeight: 360,
+                  minHeight: 250,
                 }}
                 onError={(e) => {
                   e.target.src = "/images/no-image.png";
@@ -84,108 +85,116 @@ const FragranceContent = ({ fragrance }) => {
               />
               <GenderStats fragrance={fragrance} />
             </Card>
-          </Box>
+          </Grid>
+
+          {/* 2. Scent Profile */}
+          <Grid item xs={12} sx={{ width: "100%", maxWidth: 500 }}>
+            <ScentProfileBars fragrance={fragrance} />
+          </Grid>
+
+          {/* 3. Overall (Performance) */}
+          <Grid item xs={12} sx={{ width: "100%", maxWidth: 500 }}>
+            <PerformanceStats fragrance={fragrance} />
+          </Grid>
+
+          {/* 4. Overview / Description */}
+          <Grid item xs={12} sx={{ width: "100%", maxWidth: 600 }}>
+            <FragranceDescription fragrance={fragrance} />
+          </Grid>
+
+          {/* 5. Notes (now after overview) */}
+          <Grid item xs={12} sx={{ width: "100%", maxWidth: 500 }}>
+            <Box
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+                p: 2,
+                backgroundColor: theme.palette.background.paper,
+              }}
+            >
+              <FragranceNotes fragrance={fragrance} />
+            </Box>
+          </Grid>
+
+          {/* 6. Voting */}
+          <Grid item xs={12} sx={{ width: "100%", maxWidth: 600 }}>
+            <VotingForm fragrance={fragrance} />
+          </Grid>
         </Grid>
-
-        {/* Middle and Right Columns */}
-        {isMobile ? (
-          // Mobile Layout: Centered with proper spacing
-          <>
-            <Grid item xs={12}>
-              <Box
-                sx={{
-                  display: "flex",
+      ) : (
+        /* Desktop – unchanged from previous (big image, etc.) */
+        <Grid container spacing={3} justifyContent="center">
+          <Grid item xs={12} md={6}>
+            <Card
+              sx={{
+                p: 5,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
+                border: `1px solid ${theme.palette.divider}`,
+                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+              }}
+            >
+              <img
+                src={imageUrl}
+                alt={fragrance?.name || "Fragrance"}
+                style={{
+                  borderRadius: 12,
+                  objectFit: "contain",
                   width: "100%",
-                  justifyContent: "space-between",
-                  gap: 4, // Increased gap significantly
-                }}
-              >
-                {/* Scent Profile - Centered content */}
-                <Box
-                  sx={{
-                    width: "48%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
-                  <ScentProfileBars fragrance={fragrance} />
-                </Box>
-
-                {/* Performance Stats - Centered content */}
-                <Box
-                  sx={{
-                    width: "48%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
-                  <PerformanceStats fragrance={fragrance} />
-                </Box>
-              </Box>
-            </Grid>
-
-            {/* Fragrance Notes - Full width and centered */}
-            <Grid item xs={12}>
-              <Box
-                sx={{
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 2,
-                  p: 2,
-                  backgroundColor: theme.palette.background.paper,
+                  maxHeight: 520,
                   minHeight: 400,
-                  mt: 2,
-                  width: "100%",
-                  display: "flex",
-                  justifyContent: "center",
+                  marginBottom: 32,
                 }}
-              >
-                <Box sx={{ width: "100%", maxWidth: "100%" }}>
-                  <FragranceNotes fragrance={fragrance} />
-                </Box>
-              </Box>
-            </Grid>
-          </>
-        ) : (
-          // Desktop Layout
-          <>
-            {/* Middle column: Scent Profile + Performance Stats */}
-            <Grid item xs={12} md={4}>
-              <Box sx={{ mb: 3 }}>
-                <ScentProfileBars fragrance={fragrance} />
-              </Box>
+                onError={(e) => {
+                  e.target.src = "/images/no-image.png";
+                }}
+              />
+              <GenderStats fragrance={fragrance} />
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                height: "100%",
+                justifyContent: "space-evenly",
+              }}
+            >
+              <ScentProfileBars fragrance={fragrance} />
               <PerformanceStats fragrance={fragrance} />
-            </Grid>
+            </Box>
+          </Grid>
 
-            {/* Right column: Fragrance Notes - Full width */}
-            <Grid item xs={12} md={5.5}>
-              <Box
-                sx={{
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 2,
-                  p: 2,
-                  backgroundColor: theme.palette.background.paper,
-                  height: "100%",
-                  minHeight: 400,
-                  display: "flex",
-                  flexDirection: "column",
-                  width: "100%",
-                }}
-              >
-                <FragranceNotes fragrance={fragrance} />
-              </Box>
-            </Grid>
-          </>
-        )}
-      </Grid>
+          <Grid item xs={12}>
+            <FragranceDescription fragrance={fragrance} />
+          </Grid>
 
-      {/* Description and Voting Form */}
-      <Box sx={{ mb: 3 }}>
-        <FragranceDescription fragrance={fragrance} />
-      </Box>
+          <Grid item xs={12}>
+            <Box
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 3,
+                p: 3,
+                backgroundColor: theme.palette.background.paper,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+              }}
+            >
+              <FragranceNotes fragrance={fragrance} />
+            </Box>
+          </Grid>
 
-      <VotingForm fragrance={fragrance} />
+          <Grid item xs={12}>
+            <VotingForm fragrance={fragrance} />
+          </Grid>
+        </Grid>
+      )}
     </Box>
   );
 };

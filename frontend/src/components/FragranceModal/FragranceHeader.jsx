@@ -46,14 +46,10 @@ const FragranceHeader = ({
   const handleSaveMenuOpen = (event) => setSaveMenuAnchor(event.currentTarget);
   const handleSaveMenuClose = () => setSaveMenuAnchor(null);
 
-  // 1) compute abbreviation from the fragrance.type (EDP/EDT/Extrait/..)
   const fragranceTypeAbbrev = useMemo(
     () => getFragranceTypeAbbreviation(fragrance?.type),
-    [fragrance]
+    [fragrance],
   );
-
-  // 2) detect whether the *original* name/slug actually contains a concentration term
-  // If neither the name nor the slug contains any concentration terms, we will NOT show the abbreviation.
   const shouldShowTypeAbbrev = useMemo(() => {
     const rawName = fragrance?.name || "";
     const slug = fragrance?.slug || "";
@@ -61,21 +57,15 @@ const FragranceHeader = ({
       nameIncludesConcentration(rawName) || nameIncludesConcentration(slug)
     );
   }, [fragrance]);
-
-  // 3) clean the name (remove embedded concentration words so the humanized name is nice)
   const cleanedName = useMemo(
     () => cleanFragranceName(fragrance?.name || "", fragrance?.type),
-    [fragrance]
+    [fragrance],
   );
-
   const brandPart = useMemo(
     () => getBrandDisplayName(fragrance?.brand || "", isMobile),
-    [fragrance, isMobile]
+    [fragrance, isMobile],
   );
-
   const namePart = useMemo(() => humanizeName(cleanedName), [cleanedName]);
-
-  // Compose: Only append the type abbreviation if shouldShowTypeAbbrev is true
   const displayTitle = useMemo(() => {
     const parts = [];
     if (brandPart) parts.push(brandPart);
@@ -85,7 +75,9 @@ const FragranceHeader = ({
     return parts.join(" ");
   }, [brandPart, namePart, fragranceTypeAbbrev, shouldShowTypeAbbrev]);
 
+  // Always show review count, fallback to 0
   const ratingValue = fragrance?.rating || fragrance?.ratingValue || 4.2;
+  const reviewCount = fragrance?.reviewCount || fragrance?.totalReviews || 0;
 
   return (
     <Box
@@ -102,7 +94,7 @@ const FragranceHeader = ({
         borderTopRightRadius: 12,
       }}
     >
-      {/* Desktop layout */}
+      {/* Desktop */}
       {!isMobile && (
         <Box
           sx={{
@@ -169,6 +161,14 @@ const FragranceHeader = ({
                 color="primary"
                 sx={{ fontWeight: 600 }}
               />
+              {/* Review count ALWAYS shown */}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: "0.8rem", fontWeight: 500, ml: 0.5 }}
+              >
+                ({reviewCount} {reviewCount === 1 ? "review" : "reviews"})
+              </Typography>
             </Box>
           </Box>
 
@@ -191,7 +191,6 @@ const FragranceHeader = ({
                 <PlaylistAdd />
               </IconButton>
             </Tooltip>
-
             <Tooltip title="Close">
               <IconButton
                 onClick={onClose}
@@ -214,7 +213,7 @@ const FragranceHeader = ({
         </Box>
       )}
 
-      {/* Mobile layout */}
+      {/* Mobile */}
       {isMobile && (
         <Box sx={{ textAlign: "center" }}>
           <Typography
@@ -276,6 +275,14 @@ const FragranceHeader = ({
                 color="primary"
                 sx={{ fontWeight: 600, height: 22 }}
               />
+              {/* Review count ALWAYS shown */}
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ ml: 0.5 }}
+              >
+                ({reviewCount})
+              </Typography>
             </Box>
 
             <Tooltip title="Save to list">
@@ -296,7 +303,6 @@ const FragranceHeader = ({
                 <PlaylistAdd fontSize="small" />
               </IconButton>
             </Tooltip>
-
             <Tooltip title="Close">
               <IconButton
                 onClick={onClose}
@@ -343,7 +349,6 @@ const FragranceHeader = ({
             {isFavorited ? "Remove from Favorites" : "Add to Favorites"}
           </ListItemText>
         </MenuItem>
-
         <MenuItem
           onClick={() => {
             onWishlist();

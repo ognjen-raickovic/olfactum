@@ -1,6 +1,14 @@
 import React from "react";
-import { Modal, Backdrop, Fade, Box, Snackbar, Alert } from "@mui/material";
-import { useTheme, useMediaQuery } from "@mui/material";
+import {
+  Modal,
+  Backdrop,
+  Fade,
+  Box,
+  Snackbar,
+  Alert,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import FragranceHeader from "./FragranceHeader";
 import FragranceContent from "./FragranceContent";
 import {
@@ -31,18 +39,12 @@ const FragranceModal = ({
   useScrollLock(open);
 
   const handleClose = (event, reason) => {
-    if (disableRouting && reason === "backdropClick") {
-      return;
-    }
-    if (onClose) {
-      onClose();
-    }
+    if (disableRouting && reason === "backdropClick") return;
+    if (onClose) onClose();
   };
 
   const handleBackdropClick = (event) => {
-    if (disableRouting) {
-      event.stopPropagation();
-    }
+    if (disableRouting) event.stopPropagation();
   };
 
   if (!fragrance) return null;
@@ -55,10 +57,7 @@ const FragranceModal = ({
         closeAfterTransition
         slots={{ backdrop: Backdrop }}
         slotProps={{
-          backdrop: {
-            timeout: 300,
-            onClick: handleBackdropClick,
-          },
+          backdrop: { timeout: 300, onClick: handleBackdropClick },
         }}
         sx={{
           display: "flex",
@@ -71,19 +70,19 @@ const FragranceModal = ({
           <Box
             sx={{
               position: "relative",
-              width: { xs: "98%", sm: "95%", md: "1200px" }, // Increased mobile width to 98%
+              width: { xs: "98%", sm: "95%", md: "1350px" }, // slightly wider
               maxHeight: "92vh",
               bgcolor: "background.paper",
-              borderRadius: 3,
-              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+              borderRadius: 4,
+              boxShadow: "0 30px 60px rgba(0,0,0,0.25)",
               overflow: "hidden",
               outline: "none",
               mx: "auto",
               my: "auto",
               background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
-              border: `1px solid ${theme.palette.divider}`,
-              display: "flex",
-              flexDirection: "column",
+              border: `2px solid ${theme.palette.primary.main}20`,
+              transition: "box-shadow 0.3s ease",
+              "&:hover": { boxShadow: "0 35px 70px rgba(0,0,0,0.3)" },
             }}
           >
             <FragranceHeader

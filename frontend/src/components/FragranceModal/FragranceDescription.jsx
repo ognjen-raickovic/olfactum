@@ -1,11 +1,20 @@
 import React, { useMemo } from "react";
-import { Typography, Box } from "@mui/material";
+import { Typography, Box, Paper, useTheme } from "@mui/material";
 import { humanizeName } from "../../utils/humanizeName";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import PersonIcon from "@mui/icons-material/Person";
+import PublicIcon from "@mui/icons-material/Public";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import WbSunnyIcon from "@mui/icons-material/WbSunny";
+import CelebrationIcon from "@mui/icons-material/Celebration";
 
 const FragranceDescription = ({ fragrance }) => {
+  const theme = useTheme();
+
+  // Build a rich natural‑language description from fragrance data
   const description = useMemo(() => {
     if (!fragrance) return "No description available.";
-
+    // ... same logic as before
     const {
       brand,
       name,
@@ -22,143 +31,223 @@ const FragranceDescription = ({ fragrance }) => {
       occasion = [],
     } = fragrance;
 
-    // Format notes properly
     const formatNotes = (notes) => {
       if (!notes.length) return null;
-      const humanizedNotes = notes.map((note) => humanizeName(note));
-
-      if (humanizedNotes.length === 1) return humanizedNotes[0];
-      if (humanizedNotes.length === 2) return humanizedNotes.join(" and ");
-
+      const humanized = notes.map((n) => humanizeName(n));
+      if (humanized.length === 1) return humanized[0];
+      if (humanized.length === 2) return humanized.join(" and ");
       return (
-        humanizedNotes.slice(0, -1).join(", ") +
+        humanized.slice(0, -1).join(", ") +
         ", and " +
-        humanizedNotes[humanizedNotes.length - 1]
+        humanized[humanized.length - 1]
       );
     };
 
-    // Build description parts naturally
     const parts = [];
-
-    // Opening line
     let opening = `${humanizeName(name)} by ${humanizeName(brand)}`;
     if (year) opening += `, launched in ${year}`;
-
-    // Add perfumer if available and not "Unknown"
-    if (perfumer && perfumer !== "Unknown") {
-      opening += `, was crafted by ${humanizeName(perfumer)}`;
-    }
-
-    // Add location if available
-    if (country) {
-      opening += ` in ${country}`;
-    }
-
+    if (perfumer && perfumer !== "Unknown")
+      opening += `, crafted by ${humanizeName(perfumer)}`;
+    if (country) opening += ` in ${country}`;
     parts.push(opening + ".");
 
-    // Type and gender - handle gracefully
     const genderText = humanizeName(genderProfile.toLowerCase());
     const typeText =
       type.toLowerCase() === "eau de parfum"
         ? "Eau de Parfum"
         : humanizeName(type);
-
     parts.push(
-      `This ${genderText} ${typeText} presents a sophisticated blend that evolves beautifully over time.`
+      `This ${genderText} ${typeText} presents a sophisticated blend that evolves beautifully over time.`,
     );
 
-    // Notes description
-    const topNotesStr = formatNotes(topNotes);
-    const middleNotesStr = formatNotes(middleNotes);
-    const baseNotesStr = formatNotes(baseNotes);
-
-    if (topNotesStr) {
+    const topStr = formatNotes(topNotes);
+    const midStr = formatNotes(middleNotes);
+    const baseStr = formatNotes(baseNotes);
+    if (topStr)
       parts.push(
-        `It opens with ${topNotesStr}, creating an inviting first impression.`
+        `It opens with ${topStr}, creating an inviting first impression.`,
       );
-    }
-
-    if (middleNotesStr) {
+    if (midStr)
       parts.push(
-        `The heart reveals ${middleNotesStr}, developing into a complex and engaging character.`
+        `The heart reveals ${midStr}, developing into a complex and engaging character.`,
       );
-    }
-
-    if (baseNotesStr) {
+    if (baseStr)
       parts.push(
-        `Finally, it settles into a warm base of ${baseNotesStr}, leaving a memorable trail that lingers.`
+        `Finally, it settles into a warm base of ${baseStr}, leaving a memorable trail that lingers.`,
       );
-    }
 
-    // Accords
     if (accords.length > 0) {
-      const mainAccords = accords
-        .slice(0, 3)
-        .map((accord) => humanizeName(accord));
+      const mainAccords = accords.slice(0, 3).map((a) => humanizeName(a));
       const accordText =
         mainAccords.length === 1
           ? mainAccords[0]
           : mainAccords.length === 2
-          ? mainAccords.join(" and ")
-          : mainAccords.slice(0, -1).join(", ") +
-            ", and " +
-            mainAccords[mainAccords.length - 1];
-
+            ? mainAccords.join(" and ")
+            : mainAccords.slice(0, -1).join(", ") +
+              ", and " +
+              mainAccords[mainAccords.length - 1];
       parts.push(
-        `Characterized by ${accordText.toLowerCase()} accords, this composition offers a refined and distinctive scent profile.`
+        `Characterized by ${accordText.toLowerCase()} accords, this composition offers a refined and distinctive scent profile.`,
       );
     }
 
-    // Season and occasion
     if (season.length > 0 || occasion.length > 0) {
-      const seasonStr =
-        season.length > 0
-          ? season.length === 1
-            ? season[0].toLowerCase()
-            : season.map((s) => s.toLowerCase()).join(", ")
-          : "";
-
-      const occasionStr =
+      const s =
+        season.length > 0 ? season.map((x) => x.toLowerCase()).join(", ") : "";
+      const o =
         occasion.length > 0
-          ? occasion.length === 1
-            ? occasion[0].toLowerCase()
-            : occasion.map((o) => o.toLowerCase()).join(", ")
+          ? occasion.map((x) => x.toLowerCase()).join(", ")
           : "";
-
-      if (seasonStr && occasionStr) {
-        parts.push(`Ideal for ${seasonStr} wear and ${occasionStr} occasions.`);
-      } else if (seasonStr) {
-        parts.push(`Perfect for ${seasonStr} seasons.`);
-      } else if (occasionStr) {
-        parts.push(`Well-suited for ${occasionStr} occasions.`);
-      }
+      if (s && o) parts.push(`Ideal for ${s} wear and ${o} occasions.`);
+      else if (s) parts.push(`Perfect for ${s} seasons.`);
+      else if (o) parts.push(`Well-suited for ${o} occasions.`);
     }
 
-    // Final impression
-    const finalAdjectives = [
-      "A sophisticated choice for the discerning fragrance enthusiast",
-      "An elegant scent that makes a lasting impression",
-      "A refined fragrance that balances complexity with wearability",
-      "A distinctive composition that stands out with subtle confidence",
+    const finals = [
+      "A sophisticated choice for the discerning fragrance enthusiast.",
+      "An elegant scent that makes a lasting impression.",
+      "A refined fragrance that balances complexity with wearability.",
+      "A distinctive composition that stands out with subtle confidence.",
     ];
-    const finalAdjective =
-      finalAdjectives[Math.floor(Math.random() * finalAdjectives.length)];
-    parts.push(`${finalAdjective}.`);
-
+    parts.push(finals[Math.floor(Math.random() * finals.length)]);
     return parts.join(" ");
   }, [fragrance]);
 
   return (
     <Box>
+      {/* Meta chips – now centered on all screen sizes */}
+      {fragrance && (
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 1.5,
+            mb: 2,
+            justifyContent: "center", // ← changed to always center
+          }}
+        >
+          {fragrance.year && (
+            <Paper
+              variant="outlined"
+              sx={{
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                background: `linear-gradient(135deg, ${theme.palette.action.hover}, transparent)`,
+              }}
+            >
+              <CalendarTodayIcon fontSize="small" color="action" />
+              <Typography variant="body2">{fragrance.year}</Typography>
+            </Paper>
+          )}
+          {fragrance.perfumer && fragrance.perfumer !== "Unknown" && (
+            <Paper
+              variant="outlined"
+              sx={{
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                background: `linear-gradient(135deg, ${theme.palette.action.hover}, transparent)`,
+              }}
+            >
+              <PersonIcon fontSize="small" color="action" />
+              <Typography variant="body2">
+                {humanizeName(fragrance.perfumer)}
+              </Typography>
+            </Paper>
+          )}
+          {fragrance.country && (
+            <Paper
+              variant="outlined"
+              sx={{
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                background: `linear-gradient(135deg, ${theme.palette.action.hover}, transparent)`,
+              }}
+            >
+              <PublicIcon fontSize="small" color="action" />
+              <Typography variant="body2">{fragrance.country}</Typography>
+            </Paper>
+          )}
+          {fragrance.type && (
+            <Paper
+              variant="outlined"
+              sx={{
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                background: `linear-gradient(135deg, ${theme.palette.action.hover}, transparent)`,
+              }}
+            >
+              <LocalOfferIcon fontSize="small" color="action" />
+              <Typography variant="body2">{fragrance.type}</Typography>
+            </Paper>
+          )}
+          {fragrance.season?.length > 0 && (
+            <Paper
+              variant="outlined"
+              sx={{
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                background: `linear-gradient(135deg, ${theme.palette.action.hover}, transparent)`,
+              }}
+            >
+              <WbSunnyIcon fontSize="small" color="action" />
+              <Typography variant="body2">
+                {fragrance.season.map((s) => s.toLowerCase()).join(", ")}
+              </Typography>
+            </Paper>
+          )}
+          {fragrance.occasion?.length > 0 && (
+            <Paper
+              variant="outlined"
+              sx={{
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                background: `linear-gradient(135deg, ${theme.palette.action.hover}, transparent)`,
+              }}
+            >
+              <CelebrationIcon fontSize="small" color="action" />
+              <Typography variant="body2">
+                {fragrance.occasion.map((o) => o.toLowerCase()).join(", ")}
+              </Typography>
+            </Paper>
+          )}
+        </Box>
+      )}
+
+      {/* Generated description paragraph */}
       <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
-        Overview
+        ✨ Overview
       </Typography>
       <Typography
         variant="body2"
         sx={{
-          lineHeight: 1.8,
+          lineHeight: 1.9,
           color: "text.secondary",
-          fontSize: "0.9rem",
+          fontSize: "0.95rem",
+          fontStyle: "italic",
         }}
       >
         {description}

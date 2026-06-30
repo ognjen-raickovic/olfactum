@@ -23,15 +23,17 @@ const PerformanceStats = ({ fragrance }) => {
     const description = `${value}/${max} - ${getStatDescription(value)}`;
 
     return (
-      <Box sx={{ mb: 3.5 }}>
+      <Box sx={{ mb: 3.5, width: "100%", maxWidth: 500, mx: "auto" }}>
+        {" "}
+        {/* wider */}
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "center",
             alignItems: "center",
-            mb: 1.5,
+            mb: 1,
             flexDirection: isMobile ? "column" : "row",
-            gap: isMobile ? 0.5 : 2,
+            gap: isMobile ? 0.5 : 1,
           }}
         >
           <Typography
@@ -40,34 +42,29 @@ const PerformanceStats = ({ fragrance }) => {
             sx={{
               textTransform: "capitalize",
               fontSize: "0.95rem",
-              minWidth: isMobile ? "100%" : "90px",
-              textAlign: isMobile ? "left" : "left",
+              minWidth: "80px",
             }}
           >
             {label}
           </Typography>
-
           <Typography
             variant="body2"
             sx={{
               fontSize: "0.85rem",
               color: theme.palette.text.secondary,
               fontWeight: 500,
-              minWidth: isMobile ? "100%" : "140px",
-              textAlign: isMobile ? "left" : "right",
             }}
           >
             {description}
           </Typography>
         </Box>
-
         <Box
           sx={{
-            height: 12,
+            height: 16, // thicker bar
             borderRadius: 1,
             bgcolor: theme.palette.action.hover,
             overflow: "hidden",
-            position: "relative",
+            width: "100%",
           }}
         >
           <Box
@@ -85,7 +82,10 @@ const PerformanceStats = ({ fragrance }) => {
   };
 
   return (
-    <Box>
+    <Box sx={{ textAlign: "center" }}>
+      <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+        Overall
+      </Typography>
       {Object.entries(stats).map(([key, stat]) => (
         <StatBar key={key} label={key} value={stat.value} max={stat.max} />
       ))}
