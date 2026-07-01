@@ -8,13 +8,16 @@ import {
   Box,
   useTheme,
   Paper,
-  Typography as MuiTypography,
   Drawer,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
   Divider,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  Button,
 } from "@mui/material";
 import {
   Search,
@@ -24,9 +27,13 @@ import {
   Close as CloseIcon,
   AccountCircle,
   Clear,
+  Dashboard as DashboardIcon,
+  Logout as LogoutIcon,
+  Person as PersonIcon,
 } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
 import { useThemeContext } from "../contexts/ThemeContext";
+import { useAuth } from "../contexts/AuthContext";
 import { getAllFragrances } from "../services/fragranceService";
 import { filterFragrances } from "../utils/filterFragrances";
 import { humanizeName } from "../utils/humanizeName";
@@ -35,6 +42,7 @@ import { motion } from "framer-motion";
 const Navbar = () => {
   const theme = useTheme();
   const { mode, toggleTheme } = useThemeContext();
+  const { user, logout } = useAuth();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -42,14 +50,33 @@ const Navbar = () => {
   const [allFragrances, setAllFragrances] = useState([]);
   const navigate = useNavigate();
 
-  // Refs for click outside detection
+  const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
+  const openProfileMenu = Boolean(profileMenuAnchor);
+
+  const handleProfileClick = (event) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    setProfileMenuAnchor(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setProfileMenuAnchor(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setProfileMenuAnchor(null);
+    navigate("/");
+  };
+
   const searchRef = useRef(null);
   const inputRef = useRef(null);
 
   const navLinks = [
-    // { label: "Home", path: "/" },
     { label: "Fragrances", path: "/fragrances" },
-    { label: "Find Your Fragrance", path: "/find-your-fragrance" },
+    { label: "Find Your Scent", path: "/find-your-fragrance" },
     { label: "Learn", path: "/learn" },
     { label: "Library", path: "/library" },
     { label: "About", path: "/about" },
@@ -57,7 +84,6 @@ const Navbar = () => {
     { label: "Contact", path: "/contact" },
   ];
 
-  // Load fragrances on component mount
   useEffect(() => {
     const loadFragrances = () => {
       const data = getAllFragrances();
@@ -66,7 +92,6 @@ const Navbar = () => {
     loadFragrances();
   }, []);
 
-  // Close search when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -74,7 +99,6 @@ const Navbar = () => {
         setSearchOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -97,15 +121,11 @@ const Navbar = () => {
   const handleChange = (e) => {
     const val = e.target.value;
     setQuery(val);
-
-    // Only search if we have at least 3 characters (letters, numbers, or symbols)
     if (val.trim().length >= 3) {
       setSearchOpen(true);
-      // Use the exact same search logic as FragrancesPage
       const filtered = filterFragrances(allFragrances, val);
       setResults(filtered.slice(0, 6));
     } else {
-      // Clear results if less than 3 characters
       setResults([]);
       setSearchOpen(false);
     }
@@ -113,10 +133,7 @@ const Navbar = () => {
 
   const handleSearchSubmit = () => {
     if (!query.trim() || query.trim().length < 3) return;
-
-    // Use raw query for searching - same as FragrancesPage
     navigate(`/fragrances?query=${encodeURIComponent(query.trim())}`);
-
     setResults([]);
     setSearchOpen(false);
     setQuery("");
@@ -127,7 +144,6 @@ const Navbar = () => {
   };
 
   const handleResultClick = (f) => {
-    // Use the actual fragrance name for navigation - same as FragrancesPage
     const searchName = f.name || "";
     navigate(`/fragrances?query=${encodeURIComponent(searchName)}`);
     setResults([]);
@@ -139,14 +155,10 @@ const Navbar = () => {
     setQuery("");
     setResults([]);
     setSearchOpen(false);
-    // Focus back on input after clear
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (inputRef.current) inputRef.current.focus();
   };
 
   const handleSearchFocus = () => {
-    // Only show search if we have at least 3 characters
     if (query.trim().length >= 3) {
       setSearchOpen(true);
       const filtered = filterFragrances(allFragrances, query);
@@ -255,8 +267,6 @@ const Navbar = () => {
                     flex: 1,
                   }}
                 />
-
-                {/* Clear button (X) - shows when there's text */}
                 {query && (
                   <IconButton
                     onClick={handleClearSearch}
@@ -272,7 +282,6 @@ const Navbar = () => {
                     <Clear sx={{ fontSize: "1.1rem" }} />
                   </IconButton>
                 )}
-
                 <IconButton
                   onClick={handleSearchSubmit}
                   aria-label="Search"
@@ -289,7 +298,7 @@ const Navbar = () => {
                 </IconButton>
               </Box>
 
-              {/* Search results */}
+              {/* Search results dropdown */}
               {searchOpen && results.length > 0 && (
                 <Paper
                   sx={{
@@ -335,7 +344,8 @@ const Navbar = () => {
                         }}
                       />
                       <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <MuiTypography
+                        <Typography
+                          variant="body2"
                           sx={{
                             fontWeight: 700,
                             fontSize: "0.92rem",
@@ -345,8 +355,9 @@ const Navbar = () => {
                           }}
                         >
                           {getDisplayLabel(r)}
-                        </MuiTypography>
-                        <MuiTypography
+                        </Typography>
+                        <Typography
+                          variant="caption"
                           sx={{
                             fontSize: "0.75rem",
                             color: "text.secondary",
@@ -356,14 +367,12 @@ const Navbar = () => {
                           }}
                         >
                           {humanizeName(r.brand)}
-                        </MuiTypography>
+                        </Typography>
                       </Box>
                     </Box>
                   ))}
                 </Paper>
               )}
-
-              {/* No results message */}
               {searchOpen &&
                 query &&
                 query.trim().length >= 3 &&
@@ -381,9 +390,9 @@ const Navbar = () => {
                       textAlign: "center",
                     }}
                   >
-                    <MuiTypography color="text.secondary">
+                    <Typography color="text.secondary">
                       No fragrances found
-                    </MuiTypography>
+                    </Typography>
                   </Paper>
                 )}
             </Box>
@@ -393,21 +402,25 @@ const Navbar = () => {
               sx={{
                 display: { xs: "none", md: "flex" },
                 alignItems: "center",
-                gap: 3.5,
+                gap: 2.5,
                 ml: 1,
               }}
             >
               {navLinks.map((link) => (
                 <Typography
                   key={link.path}
-                  variant="body1"
+                  variant="body2"
                   component={Link}
                   to={link.path}
                   sx={{
                     textDecoration: "none",
                     color: "text.primary",
                     fontWeight: 600,
-                    fontSize: { xs: "0.95rem", md: "1rem" },
+                    fontSize: "0.9rem", // uniform size for all links
+                    lineHeight: 1.2,
+                    display: "flex",
+                    alignItems: "center", // vertical centring
+                    whiteSpace: "nowrap",
                     position: "relative",
                     px: 0.25,
                     py: 0.25,
@@ -437,7 +450,6 @@ const Navbar = () => {
               display: "flex",
               alignItems: "center",
               gap: 1.5,
-              transform: "translateY(1px)",
             }}
           >
             {/* Theme toggle (desktop) */}
@@ -461,11 +473,6 @@ const Navbar = () => {
                   animate={{ rotate: 0, opacity: 1 }}
                   exit={{ rotate: 90, opacity: 0 }}
                   transition={{ duration: 0.35 }}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
                 >
                   {mode === "dark" ? (
                     <Brightness7 sx={{ fontSize: "1.75rem" }} />
@@ -476,11 +483,71 @@ const Navbar = () => {
               </IconButton>
             </Box>
 
-            {/* Profile (desktop) */}
-            <Box sx={{ display: { xs: "none", md: "flex" } }}>
-              <IconButton component={Link} to="/profile" sx={{ ml: 0.25 }}>
+            {/* Profile icon (desktop) */}
+            <Box
+              sx={{ display: { xs: "none", md: "flex" }, position: "relative" }}
+            >
+              <IconButton
+                onClick={handleProfileClick}
+                sx={{
+                  ml: 0.25,
+                  width: 42,
+                  height: 42,
+                }}
+              >
                 <AccountCircle sx={{ fontSize: "1.75rem" }} />
               </IconButton>
+              <Menu
+                anchorEl={profileMenuAnchor}
+                open={openProfileMenu}
+                onClose={handleProfileMenuClose}
+                transformOrigin={{ horizontal: "right", vertical: "top" }}
+                anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                disableScrollLock // prevents body from shifting
+                keepMounted
+                PaperProps={{
+                  elevation: 3,
+                  sx: {
+                    mt: 1,
+                    minWidth: 180,
+                    borderRadius: 2,
+                  },
+                }}
+              >
+                <MenuItem
+                  onClick={() => {
+                    handleProfileMenuClose();
+                    navigate("/profile");
+                  }}
+                >
+                  <ListItemIcon>
+                    <PersonIcon fontSize="small" />
+                  </ListItemIcon>
+                  My Profile
+                </MenuItem>
+
+                {(user?.role_id === 2 || user?.role_id === 3) && (
+                  <MenuItem
+                    onClick={() => {
+                      handleProfileMenuClose();
+                      navigate("/admin");
+                    }}
+                  >
+                    <ListItemIcon>
+                      <DashboardIcon fontSize="small" />
+                    </ListItemIcon>
+                    Dashboard
+                  </MenuItem>
+                )}
+
+                <Divider />
+                <MenuItem onClick={handleLogout}>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
+                  Logout
+                </MenuItem>
+              </Menu>
             </Box>
 
             {/* Mobile menu */}
@@ -510,7 +577,6 @@ const Navbar = () => {
             bgcolor: "background.paper",
           }}
         >
-          {/* Header */}
           <Box
             sx={{
               display: "flex",
@@ -527,7 +593,6 @@ const Navbar = () => {
             </IconButton>
           </Box>
 
-          {/* Links */}
           <List sx={{ flexGrow: 1 }}>
             {navLinks.map((link) => (
               <ListItem key={link.path} disablePadding>
@@ -544,41 +609,73 @@ const Navbar = () => {
 
           <Divider />
 
-          {/* Profile */}
-          <Box sx={{ px: 2, py: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <IconButton
+          {user ? (
+            <Box sx={{ px: 2, py: 2 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
+              >
+                <AccountCircle sx={{ fontSize: 40, color: "primary.main" }} />
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={700}>
+                    {user.username}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {user.email}
+                  </Typography>
+                </Box>
+              </Box>
+              <Button
                 component={Link}
                 to="/profile"
+                fullWidth
+                variant="outlined"
+                sx={{ textTransform: "none", mb: 1 }}
                 onClick={() => setDrawerOpen(false)}
               >
-                <AccountCircle />
-              </IconButton>
-              <Box sx={{ display: "flex", flexDirection: "column" }}>
-                <Typography
+                My Profile
+              </Button>
+              {(user.role_id === 3 || user.role_id === 4) && (
+                <Button
                   component={Link}
-                  to="/profile"
-                  sx={{
-                    textDecoration: "none",
-                    color: "text.primary",
-                    fontWeight: 700,
-                  }}
+                  to="/admin"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ textTransform: "none", mb: 1 }}
                   onClick={() => setDrawerOpen(false)}
                 >
-                  Profile
-                </Typography>
-                <Typography
-                  sx={{ fontSize: "0.85rem", color: "text.secondary" }}
-                >
-                  Manage account
-                </Typography>
-              </Box>
+                  Dashboard
+                </Button>
+              )}
+              <Button
+                onClick={() => {
+                  logout();
+                  setDrawerOpen(false);
+                }}
+                fullWidth
+                color="error"
+                variant="text"
+                sx={{ textTransform: "none" }}
+              >
+                Logout
+              </Button>
             </Box>
-          </Box>
+          ) : (
+            <Box sx={{ px: 2, py: 2 }}>
+              <Button
+                component={Link}
+                to="/login"
+                fullWidth
+                variant="contained"
+                sx={{ textTransform: "none" }}
+                onClick={() => setDrawerOpen(false)}
+              >
+                Sign In
+              </Button>
+            </Box>
+          )}
 
           <Divider />
 
-          {/* Theme toggle (mobile) */}
           <Box
             onClick={toggleTheme}
             sx={{

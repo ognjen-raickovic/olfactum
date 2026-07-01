@@ -52,13 +52,13 @@ router.post(
 
       // Insert new user. By default, role_id = 2 (user)
       const [result] = await pool.query(
-        "INSERT INTO Users (username, email, password_hash, role_id) VALUES (?, ?, ?, 2)",
+        "INSERT INTO Users (username, email, password_hash, role_id) VALUES (?, ?, ?, 1)",
         [username, email, hashedPassword],
       );
 
       // Create a JWT token so the user is automatically logged in
       const token = jwt.sign(
-        { user_id: result.insertId, username, role_id: 2 },
+        { user_id: result.insertId, username, role_id: 1 },
         process.env.JWT_SECRET,
         { expiresIn: "7d" }, // token valid for 7 days
       );

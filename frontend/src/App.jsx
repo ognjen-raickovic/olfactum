@@ -1,4 +1,5 @@
 import { ThemeProviderContext } from "./contexts/ThemeContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import {
   BrowserRouter as Router,
   Routes,
@@ -20,10 +21,14 @@ import AboutPage from "./pages/AboutPage";
 import QuizPage from "./pages/QuizPage";
 import FAQ from "./pages/FaqPage";
 import ContactPage from "./pages/ContactPage";
+import ProfilePage from "./pages/ProfilePage";
+import LoginPage from "./pages/LoginPage"; // ✅ dodan import
+import RegisterPage from "./pages/RegisterPage"; // ✅ dodan import
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import ScrollToTop from "./components/ScrollToTop";
 import NotFoundPage from "./pages/NotFoundPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function AppRoutes() {
   const location = useLocation();
@@ -42,7 +47,24 @@ function AppRoutes() {
         <Route path="/learn/module4" element={<Module4 />} />
         <Route path="/learn/module5" element={<Module5 />} />
         <Route path="/learn/module6" element={<Module6 />} />
+
+        {/* Public za sada */}
         <Route path="/library" element={<LibraryPage />} />
+
+        {/* Profile zaštićen */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Login/Register rute */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
         <Route path="/about" element={<AboutPage />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/find-your-fragrance" element={<QuizPage />} />
@@ -52,7 +74,7 @@ function AppRoutes() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
-      {/* Show modal when background is present */}
+      {/* Modal prikaz kad postoji background */}
       {background && (
         <Routes>
           <Route path="/fragrances/:slug" element={<FragrancesPage />} />
@@ -65,12 +87,14 @@ function AppRoutes() {
 function App() {
   return (
     <ThemeProviderContext>
-      <Router>
-        <ScrollToTop />
-        <MainLayout>
-          <AppRoutes />
-        </MainLayout>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <ScrollToTop />
+          <MainLayout>
+            <AppRoutes />
+          </MainLayout>
+        </Router>
+      </AuthProvider>
     </ThemeProviderContext>
   );
 }
