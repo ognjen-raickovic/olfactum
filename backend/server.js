@@ -9,6 +9,8 @@ const morgan = require("morgan");
 // Import our route files
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users"); // Handles user-related endpoints
+const adminRoutes = require("./routes/admin"); // Handles admin-related endpoints
+const referenceRoutes = require("./routes/references"); // Lookup/reference data
 // (We'll add more routes later: perfumes, reviews, etc.)
 
 const app = express();
@@ -26,6 +28,10 @@ app.use(morgan("dev"));
 // Parse JSON request bodies
 app.use(express.json());
 
+// Serve static files from the public folder
+// This lets the frontend access uploaded images like /uploads/perfumes/filename.jpg
+app.use(express.static("public"));
+
 // --- Routes ---
 // Authentication endpoints (login, register, etc.)
 app.use("/api/auth", authRoutes);
@@ -33,6 +39,12 @@ app.use("/api/auth", authRoutes);
 // User endpoints (profile, username, settings, etc.)
 // Example: PUT /api/users/username
 app.use("/api/users", userRoutes);
+
+// Admin endpoints
+app.use("/api/admin", adminRoutes);
+
+// Reference/lookup endpoints (brands, notes, accords, etc.)
+app.use("/api/references", referenceRoutes);
 
 // Simple health-check endpoint
 app.get("/", (req, res) => {

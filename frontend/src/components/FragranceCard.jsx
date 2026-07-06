@@ -27,10 +27,28 @@ import {
   FavoriteBorder,
   Bookmark,
   BookmarkBorder,
+  Edit,
+  Delete,
 } from "@mui/icons-material";
 
-const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
-  // Handle both direct fragrance objects and wrapped ones (like { fragrance, createdAt })
+const typeAbbreviations = {
+  "Eau de Parfum": "EDP",
+  "Eau de Toilette": "EDT",
+  "Eau de Cologne": "EDC",
+  Parfum: "Parfum",
+  "Extrait / Elixir / Pure Parfum": "Extrait",
+};
+const getTypeLabel = (name) => typeAbbreviations[name] || name;
+
+const FragranceCard = ({
+  fragrance,
+  onClick,
+  onViewDetails,
+  sx = {},
+  admin = false,
+  onEdit,
+  onDelete,
+}) => {
   const f = fragrance?.fragrance ? fragrance.fragrance : fragrance;
 
   const [isFavorited, setIsFavorited] = useState(false);
@@ -40,176 +58,165 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const ratingNumber =
-    f.rating != null ? Number(String(f.rating).replace(",", ".")) : null;
+    f?.rating != null ? Number(String(f.rating).replace(",", ".")) : 0;
+  const hasRating = ratingNumber > 0;
 
-  const gender = f.genderProfile?.toLowerCase();
+  // Gender mapping
+  const rawGender = (f?.gender_profile || f?.genderProfile || "")
+    .toString()
+    .toLowerCase()
+    .trim();
+  const gender =
+    rawGender === "male"
+      ? "men"
+      : rawGender === "female"
+        ? "women"
+        : rawGender === "unisex"
+          ? "unisex"
+          : "";
+
   const GenderIcon =
     gender === "men"
       ? MaleIcon
       : gender === "women"
-      ? FemaleIcon
-      : TransgenderIcon;
+        ? FemaleIcon
+        : TransgenderIcon;
 
-  // Color scheme based on gender
   const getGenderColors = () => {
     switch (gender) {
       case "men":
         return {
-          bgcolor: "rgba(33, 150, 243, 0.1)", // Light blue background
-          color: "#2196f3", // Blue icon
-          hoverBg: "rgba(33, 150, 243, 0.2)", // Darker blue on hover
+          bgcolor: "rgba(33,150,243,0.1)",
+          color: "#2196f3",
+          hoverBg: "rgba(33,150,243,0.2)",
         };
       case "women":
         return {
-          bgcolor: "rgba(233, 30, 99, 0.1)", // Light pink background
-          color: "#e91e63", // Pink icon
-          hoverBg: "rgba(233, 30, 99, 0.2)", // Darker pink on hover
+          bgcolor: "rgba(233,30,99,0.1)",
+          color: "#e91e63",
+          hoverBg: "rgba(233,30,99,0.2)",
         };
-      default: // unisex
+      default:
         return {
-          bgcolor: "rgba(76, 175, 80, 0.1)", // Light green background
-          color: "#4caf50", // Green icon
-          hoverBg: "rgba(76, 175, 80, 0.2)", // Darker green on hover
+          bgcolor: "rgba(76,175,80,0.1)",
+          color: "#4caf50",
+          hoverBg: "rgba(76,175,80,0.2)",
         };
     }
   };
-
   const genderColors = getGenderColors();
 
-  const handleOpen = (frag) => {
-    if (onClick) return onClick(frag);
-    if (onViewDetails) return onViewDetails(frag);
+  const handleOpen = () => {
+    if (onClick) onClick(f);
+    else if (onViewDetails) onViewDetails(f);
   };
 
-  // Load favorite/wishlist status from localStorage
+  // Load favorite/wishlist status from localStorage (unchanged)
   useEffect(() => {
     if (f) {
       const favorites = JSON.parse(
-        localStorage.getItem("fragranceFavorites") || "[]"
+        localStorage.getItem("fragranceFavorites") || "[]",
       );
       const wishlist = JSON.parse(
-        localStorage.getItem("fragranceWishlist") || "[]"
+        localStorage.getItem("fragranceWishlist") || "[]",
       );
-
-      // Check if current fragrance is in either list (handle both old and new formats)
+      const currentId = f.perfume_id ?? f.id;
       setIsFavorited(
-        favorites.some((item) =>
-          typeof item === "object" ? item.id === f.id : item === f.id
-        )
+        favorites.some(
+          (item) =>
+            (typeof item === "object" ? (item.id ?? item.perfume_id) : item) ===
+            currentId,
+        ),
       );
       setIsInWishlist(
-        wishlist.some((item) =>
-          typeof item === "object" ? item.id === f.id : item === f.id
-        )
+        wishlist.some(
+          (item) =>
+            (typeof item === "object" ? (item.id ?? item.perfume_id) : item) ===
+            currentId,
+        ),
       );
     }
   }, [f]);
 
-  const handleSaveMenuOpen = (event) => {
-    event.stopPropagation(); // Prevent card click when menu is opened
-    setSaveMenuAnchor(event.currentTarget);
+  const handleSaveMenuOpen = (e) => {
+    e.stopPropagation();
+    setSaveMenuAnchor(e.currentTarget);
   };
+  const handleSaveMenuClose = () => setSaveMenuAnchor(null);
 
-  const handleSaveMenuClose = (event) => {
-    event?.stopPropagation();
-    setSaveMenuAnchor(null);
-  };
-
-  const handleFavorite = (event) => {
-    event.stopPropagation();
-    if (!f) return;
-
+  const toggleFavorite = (e) => {
+    e.stopPropagation();
+    const currentId = f.perfume_id ?? f.id;
     const favorites = JSON.parse(
-      localStorage.getItem("fragranceFavorites") || "[]"
+      localStorage.getItem("fragranceFavorites") || "[]",
     );
-    let newFavorites;
-
-    if (isFavorited) {
-      newFavorites = favorites.filter((item) => item.id !== f.id);
-      setSnackbarMessage("Removed from favorites");
-    } else {
-      // Store with timestamp for chronological sorting
-      newFavorites = [
-        {
-          id: f.id,
-          addedAt: Date.now(),
-          fragranceData: f,
-        },
-        ...favorites.filter((item) => item.id !== f.id),
-      ];
-      setSnackbarMessage("Added to favorites");
-    }
-
-    localStorage.setItem("fragranceFavorites", JSON.stringify(newFavorites));
+    let newFav = isFavorited
+      ? favorites.filter(
+          (item) =>
+            (typeof item === "object" ? (item.id ?? item.perfume_id) : item) !==
+            currentId,
+        )
+      : [
+          { id: currentId, addedAt: Date.now(), fragranceData: f },
+          ...favorites.filter(
+            (item) =>
+              (typeof item === "object"
+                ? (item.id ?? item.perfume_id)
+                : item) !== currentId,
+          ),
+        ];
+    localStorage.setItem("fragranceFavorites", JSON.stringify(newFav));
     setIsFavorited(!isFavorited);
-    setSnackbarOpen(true);
-    setSaveMenuAnchor(null);
-  };
-
-  const handleWishlist = (event) => {
-    event.stopPropagation();
-    if (!f) return;
-
-    const wishlist = JSON.parse(
-      localStorage.getItem("fragranceWishlist") || "[]"
+    setSnackbarMessage(
+      isFavorited ? "Removed from favorites" : "Added to favorites",
     );
-    let newWishlist;
-
-    if (isInWishlist) {
-      newWishlist = wishlist.filter((item) => item.id !== f.id);
-      setSnackbarMessage("Removed from wishlist");
-    } else {
-      // Store with timestamp for chronological sorting
-      newWishlist = [
-        {
-          id: f.id,
-          addedAt: Date.now(),
-          fragranceData: f,
-        },
-        ...wishlist.filter((item) => item.id !== f.id),
-      ];
-      setSnackbarMessage("Added to wishlist");
-    }
-
-    localStorage.setItem("fragranceWishlist", JSON.stringify(newWishlist));
-    setIsInWishlist(!isInWishlist);
     setSnackbarOpen(true);
     setSaveMenuAnchor(null);
   };
 
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
+  const toggleWishlist = (e) => {
+    e.stopPropagation();
+    const currentId = f.perfume_id ?? f.id;
+    const wishlist = JSON.parse(
+      localStorage.getItem("fragranceWishlist") || "[]",
+    );
+    let newWl = isInWishlist
+      ? wishlist.filter(
+          (item) =>
+            (typeof item === "object" ? (item.id ?? item.perfume_id) : item) !==
+            currentId,
+        )
+      : [
+          { id: currentId, addedAt: Date.now(), fragranceData: f },
+          ...wishlist.filter(
+            (item) =>
+              (typeof item === "object"
+                ? (item.id ?? item.perfume_id)
+                : item) !== currentId,
+          ),
+        ];
+    localStorage.setItem("fragranceWishlist", JSON.stringify(newWl));
+    setIsInWishlist(!isInWishlist);
+    setSnackbarMessage(
+      isInWishlist ? "Removed from wishlist" : "Added to wishlist",
+    );
+    setSnackbarOpen(true);
+    setSaveMenuAnchor(null);
   };
 
-  const splitOccasions =
-    f.occasion
-      ?.flatMap((o) =>
-        String(o)
-          .split("/")
-          .map((x) => x.trim())
-      )
-      .filter(Boolean) || [];
-
-  const splitSeasons =
-    f.season
-      ?.flatMap((s) =>
-        String(s)
-          .split("/")
-          .map((x) => x.trim())
-      )
-      .filter(Boolean) || [];
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   const imageSrc =
-    f.image && f.image !== "/images/default.jpg"
+    f?.image && f.image !== "/images/default.jpg"
       ? f.image
       : "/images/no-image.png";
 
   return (
     <>
       <Card
-        onClick={() => handleOpen(f)}
+        onClick={handleOpen}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") handleOpen(f);
+          if (e.key === "Enter" || e.key === " ") handleOpen();
         }}
         role="button"
         tabIndex={0}
@@ -219,16 +226,13 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
           flexDirection: "column",
           cursor: "pointer",
           transition: "all 0.25s ease-in-out",
-          "&:hover": {
-            transform: "translateY(-5px)",
-            boxShadow: 6,
-          },
+          "&:hover": { transform: "translateY(-5px)", boxShadow: 6 },
           height: "100%",
           justifyContent: "space-between",
           ...sx,
         }}
       >
-        {/* --- IMAGE SECTION --- */}
+        {/* Image */}
         <Box
           sx={{
             position: "relative",
@@ -244,7 +248,7 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
         >
           <LazyLoadImage
             src={imageSrc}
-            alt={humanizeName(f.name)}
+            alt={humanizeName(f?.name)}
             effect="blur"
             onError={(e) => {
               e.target.src = "/images/no-image.png";
@@ -265,113 +269,143 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
             }}
           />
 
-          {/* Save Menu Button - Top Left */}
-          <Tooltip title="Save to list" placement="top" arrow>
-            <IconButton
-              onClick={handleSaveMenuOpen}
+          {/* Admin edit/delete buttons or public save button */}
+          {admin ? (
+            <Box
               sx={{
                 position: "absolute",
                 top: 6,
                 left: 6,
-                bgcolor: "background.paper",
-                boxShadow: 1,
-                "&:hover": {
-                  bgcolor: "primary.main",
-                  "& .MuiSvgIcon-root": {
-                    color: "white",
-                  },
-                },
-                width: 30,
-                height: 30,
-                p: 0.6,
-                transition: "all 0.2s ease-in-out",
+                display: "flex",
+                gap: 0.5,
               }}
-              size="small"
-              aria-label="Save to list"
             >
-              <PlaylistAdd
-                fontSize="small"
-                sx={{
-                  color: "text.primary",
-                  transition: "color 0.2s ease-in-out",
-                }}
-              />
-            </IconButton>
-          </Tooltip>
+              <Tooltip title="Edit" placement="top" arrow>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.(f);
+                  }}
+                  sx={{
+                    bgcolor: "background.paper",
+                    boxShadow: 1,
+                    width: 30,
+                    height: 30,
+                    "&:hover": { bgcolor: "primary.main", color: "white" },
+                  }}
+                >
+                  <Edit fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete" placement="top" arrow>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete?.(f.perfume_id ?? f.id);
+                  }}
+                  sx={{
+                    bgcolor: "background.paper",
+                    boxShadow: 1,
+                    width: 30,
+                    height: 30,
+                    "&:hover": { bgcolor: "error.main", color: "white" },
+                  }}
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          ) : (
+            <>
+              <Tooltip title="Save to list" placement="top" arrow>
+                <IconButton
+                  onClick={handleSaveMenuOpen}
+                  sx={{
+                    position: "absolute",
+                    top: 6,
+                    left: 6,
+                    bgcolor: "background.paper",
+                    boxShadow: 1,
+                    "&:hover": {
+                      bgcolor: "primary.main",
+                      "& .MuiSvgIcon-root": { color: "white" },
+                    },
+                    width: 30,
+                    height: 30,
+                    p: 0.6,
+                  }}
+                  size="small"
+                >
+                  <PlaylistAdd
+                    fontSize="small"
+                    sx={{ color: "text.primary" }}
+                  />
+                </IconButton>
+              </Tooltip>
+              <Menu
+                anchorEl={saveMenuAnchor}
+                open={Boolean(saveMenuAnchor)}
+                onClose={handleSaveMenuClose}
+                onClick={handleSaveMenuClose}
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                transformOrigin={{ vertical: "top", horizontal: "left" }}
+              >
+                <MenuItem onClick={toggleFavorite}>
+                  <ListItemIcon>
+                    {isFavorited ? (
+                      <Favorite sx={{ color: "error.main" }} />
+                    ) : (
+                      <FavoriteBorder />
+                    )}
+                  </ListItemIcon>
+                  <ListItemText>
+                    {isFavorited ? "Remove from Favorites" : "Add to Favorites"}
+                  </ListItemText>
+                </MenuItem>
+                <MenuItem onClick={toggleWishlist}>
+                  <ListItemIcon>
+                    {isInWishlist ? (
+                      <Bookmark sx={{ color: "primary.main" }} />
+                    ) : (
+                      <BookmarkBorder />
+                    )}
+                  </ListItemIcon>
+                  <ListItemText>
+                    {isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+                  </ListItemText>
+                </MenuItem>
+              </Menu>
+            </>
+          )}
 
-          {/* Gender Icon - Top Right */}
+          {/* Gender icon */}
           {gender && (
             <Tooltip title={humanizeName(gender)} placement="top" arrow>
               <IconButton
+                size="small"
                 sx={{
                   position: "absolute",
                   top: 6,
                   right: 6,
                   bgcolor: genderColors.bgcolor,
                   boxShadow: 1,
-                  "&:hover": {
-                    bgcolor: genderColors.hoverBg,
-                  },
+                  "&:hover": { bgcolor: genderColors.hoverBg },
                   p: 0.6,
                   width: 30,
                   height: 30,
-                  transition: "background-color 0.2s ease-in-out",
                 }}
-                size="small"
               >
                 <GenderIcon
                   fontSize="small"
-                  sx={{
-                    color: genderColors.color,
-                  }}
+                  sx={{ color: genderColors.color }}
                 />
               </IconButton>
             </Tooltip>
           )}
         </Box>
 
-        {/* Save Menu Dropdown */}
-        <Menu
-          anchorEl={saveMenuAnchor}
-          open={Boolean(saveMenuAnchor)}
-          onClose={handleSaveMenuClose}
-          onClick={handleSaveMenuClose}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "left",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "left",
-          }}
-        >
-          <MenuItem onClick={handleFavorite}>
-            <ListItemIcon>
-              {isFavorited ? (
-                <Favorite sx={{ color: "error.main" }} />
-              ) : (
-                <FavoriteBorder />
-              )}
-            </ListItemIcon>
-            <ListItemText>
-              {isFavorited ? "Remove from Favorites" : "Add to Favorites"}
-            </ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleWishlist}>
-            <ListItemIcon>
-              {isInWishlist ? (
-                <Bookmark sx={{ color: "primary.main" }} />
-              ) : (
-                <BookmarkBorder />
-              )}
-            </ListItemIcon>
-            <ListItemText>
-              {isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
-            </ListItemText>
-          </MenuItem>
-        </Menu>
-
-        {/* --- CONTENT SECTION --- */}
         <CardContent
           sx={{
             flexGrow: 1,
@@ -382,26 +416,19 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
             "&:last-child": { pb: { xs: 1.5, sm: 2 } },
           }}
         >
-          {/* Brand + Fragrance Name (centered) */}
           <Box sx={{ textAlign: "center" }}>
-            {/* Brand Name */}
             <Typography
               color="text.secondary"
               sx={{
                 fontSize: { xs: 13, sm: 14 },
                 mb: 0.3,
-                display: "block",
-                fontWeight: 500,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
-                textAlign: "center",
               }}
             >
-              {humanizeName(f.brand)}
+              {humanizeName(f?.brand_name || f?.brand)}
             </Typography>
-
-            {/* Fragrance Name */}
             <Typography
               variant="h6"
               component="h3"
@@ -416,81 +443,98 @@ const FragranceCard = ({ fragrance, onClick, onViewDetails, sx = {} }) => {
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                textAlign: "center",
               }}
             >
-              {humanizeName(f.name)}
+              {humanizeName(f?.name)}
             </Typography>
           </Box>
 
-          {/* Rating - centered */}
-          {ratingNumber != null && !isNaN(ratingNumber) && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 0.5,
-                mb: { xs: 0.5, sm: 1 },
-              }}
+          {/* Rating */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 0.5,
+              mb: 1,
+            }}
+          >
+            <Rating
+              value={ratingNumber}
+              precision={0.1}
+              readOnly
+              size="small"
+            />
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              fontWeight={500}
             >
-              <Rating
-                value={ratingNumber}
-                precision={0.1}
-                readOnly
-                size="small"
-              />
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ fontWeight: 500 }}
-              >
-                {ratingNumber.toFixed(1)}
-              </Typography>
-            </Box>
-          )}
-          {/* Spacer */}
+              {hasRating ? ratingNumber.toFixed(1) : "N/A"}
+            </Typography>
+          </Box>
+
           <Box sx={{ flexGrow: 1 }} />
 
-          {/* Season & Occasion Chips */}
+          {/* Chips – all same style (outlined, neutral) */}
           <Box
             sx={{
               display: "flex",
               gap: 0.4,
               flexWrap: "wrap",
               justifyContent: "center",
-              mt: { xs: 1, sm: 1.5 },
+              mt: 1,
             }}
           >
-            {splitSeasons.slice(0, 2).map((season) => (
+            {/* Concentration */}
+            {f?.type_name && (
               <Chip
-                key={season}
-                label={humanizeName(season)}
+                label={getTypeLabel(f.type_name)}
                 size="small"
                 variant="outlined"
-                sx={{
-                  fontSize: { xs: "0.65rem", sm: "0.7rem" },
-                  height: { xs: 20, sm: 22 },
-                }}
+                sx={{ fontSize: "0.65rem", height: 22 }}
+              />
+            )}
+
+            {/* Category tags (Niche, Designer, etc.) */}
+            {f?.tags
+              ?.filter((tag) => tag.type === "category")
+              .slice(0, 2)
+              .map((tag) => (
+                <Chip
+                  key={tag.id}
+                  label={tag.name}
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontSize: "0.65rem", height: 22 }}
+                />
+              ))}
+
+            {/* Seasons */}
+            {f?.seasons?.slice(0, 2).map((s) => (
+              <Chip
+                key={s.id}
+                label={s.name}
+                size="small"
+                variant="outlined"
+                sx={{ fontSize: "0.65rem", height: 22 }}
               />
             ))}
-            {splitOccasions.slice(0, 2).map((occasion) => (
+
+            {/* Occasions */}
+            {f?.occasions?.slice(0, 2).map((o) => (
               <Chip
-                key={occasion}
-                label={humanizeName(occasion)}
+                key={o.id}
+                label={o.name}
                 size="small"
                 variant="outlined"
-                sx={{
-                  fontSize: { xs: "0.65rem", sm: "0.7rem" },
-                  height: { xs: 20, sm: 22 },
-                }}
+                sx={{ fontSize: "0.65rem", height: 22 }}
               />
             ))}
           </Box>
         </CardContent>
       </Card>
 
-      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}

@@ -634,7 +634,7 @@ const Navbar = () => {
               >
                 My Profile
               </Button>
-              {(user.role_id === 3 || user.role_id === 4) && (
+              {(user.role_id === 2 || user.role_id === 3) && (
                 <Button
                   component={Link}
                   to="/admin"

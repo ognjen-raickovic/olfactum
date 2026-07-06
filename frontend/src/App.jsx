@@ -22,13 +22,15 @@ import QuizPage from "./pages/QuizPage";
 import FAQ from "./pages/FaqPage";
 import ContactPage from "./pages/ContactPage";
 import ProfilePage from "./pages/ProfilePage";
-import LoginPage from "./pages/LoginPage"; // ✅ dodan import
-import RegisterPage from "./pages/RegisterPage"; // ✅ dodan import
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import AdminPage from "./pages/AdminPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import ScrollToTop from "./components/ScrollToTop";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 function AppRoutes() {
   const location = useLocation();
@@ -39,7 +41,7 @@ function AppRoutes() {
       <Routes location={background || location}>
         <Route path="/" element={<HomePage />} />
         <Route path="/fragrances" element={<FragrancesPage />} />
-        {/* <Route path="/browse" element={<FragrancesPage />} /> */}
+
         <Route path="/learn" element={<LearnPage />} />
         <Route path="/learn/module1" element={<Module1 />} />
         <Route path="/learn/module2" element={<Module2 />} />
@@ -48,10 +50,8 @@ function AppRoutes() {
         <Route path="/learn/module5" element={<Module5 />} />
         <Route path="/learn/module6" element={<Module6 />} />
 
-        {/* Public za sada */}
         <Route path="/library" element={<LibraryPage />} />
 
-        {/* Profile zaštićen */}
         <Route
           path="/profile"
           element={
@@ -61,7 +61,15 @@ function AppRoutes() {
           }
         />
 
-        {/* Login/Register rute */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminPage />
+            </AdminRoute>
+          }
+        />
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
@@ -74,7 +82,6 @@ function AppRoutes() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
-      {/* Modal prikaz kad postoji background */}
       {background && (
         <Routes>
           <Route path="/fragrances/:slug" element={<FragrancesPage />} />

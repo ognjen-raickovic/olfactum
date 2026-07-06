@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -29,64 +29,65 @@ import {
   Search as SearchIcon,
 } from "@mui/icons-material";
 
-// Filter options
-const FILTER_CATEGORIES = {
-  seasons: {
-    label: "Seasons",
-    options: ["All Year", "Spring / Summer", "Fall / Winter"],
-  },
-  occasions: {
-    label: "Occasions",
-    options: [
-      "Everyday / Casual",
-      "Office / Daytime",
-      "Evening / Special",
-      "Date Night",
-    ],
-  },
-  genders: {
-    label: "Gender",
-    options: ["Men", "Women", "Unisex"],
-  },
-  performance: {
-    label: "Performance",
-    options: ["Very Strong", "Strong", "Moderate", "Light"],
-  },
-};
-
-const FilterSidebar = ({
+// ---------- Sidebar / Drawer content ----------
+const FilterContent = ({
   filters,
   onFilterChange,
   onClearFilters,
-  isMobile = false,
+  isMobile,
   onClose,
   searchTerm,
   onSearchChange,
   sortBy,
   onSortChange,
+  references,
 }) => {
   const theme = useTheme();
 
-  const toggleFilter = (category, value) => {
-    const currentFilters = filters[category] || [];
-    const newFilters = currentFilters.includes(value)
-      ? currentFilters.filter((item) => item !== value)
-      : [...currentFilters, value];
-
-    onFilterChange({
-      ...filters,
-      [category]: newFilters,
-    });
-  };
-
-  const getActiveFilterCount = () => {
-    return Object.values(filters).reduce(
-      (count, categoryFilters) => count + (categoryFilters?.length || 0),
-      0
-    );
+  const toggleArrayFilter = (category, value) => {
+    const current = filters[category] || [];
+    const newValues = current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+    onFilterChange({ ...filters, [category]: newValues });
   };
 
   const clearSearch = () => onSearchChange?.("");
+
+  // Local state for brand search
+  const [brandSearch, setBrandSearch] = useState("");
+
+  // Sort options – always show both admin and public ones
+  const sortOptions = [
+    { value: "relevance", label: "Relevance" },
+    { value: "name-asc", label: "Name (A → Z)" },
+    { value: "name-desc", label: "Name (Z → A)" },
+    { value: "rating-desc", label: "Rating (high → low)" },
+    { value: "rating-asc", label: "Rating (low → high)" },
+    { value: "popularity-desc", label: "Popularity (most → least)" },
+    { value: "popularity-asc", label: "Popularity (least → most)" },
+    { value: "newest", label: "Newest first" },
+    { value: "oldest", label: "Oldest first" },
+  ];
+
+  // References data
+  const {
+    tags = [],
+    brands = [],
+    families = [],
+    types = [],
+    seasons = [],
+    occasions = [],
+  } = references || {};
+
+  const categoryTags = tags.filter((t) => t.type === "category");
+  const priceTags = tags.filter((t) => t.type === "price");
+  const genderOptions = ["Male", "Female", "Unisex"];
+
+  // Filter brands by local search
+  const filteredBrands = (brands || []).filter((b) =>
+    b.name.toLowerCase().includes(brandSearch.toLowerCase()),
+  );
 
   return (
     <Box
@@ -97,7 +98,7 @@ const FilterSidebar = ({
         flexDirection: "column",
       }}
     >
-      {/* Fixed Header */}
+      {/* Header */}
       <Box
         sx={{
           p: 2,
@@ -121,15 +122,15 @@ const FilterSidebar = ({
           )}
         </Box>
 
-        {/* Desktop search only */}
-        {!isMobile && searchTerm !== undefined && onSearchChange && (
+        {/* Search (public only, optional) */}
+        {onSearchChange && (
           <TextField
             variant="outlined"
             placeholder="Search fragrances..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             size="small"
-            sx={{ width: "100%" }}
+            fullWidth
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -148,113 +149,254 @@ const FilterSidebar = ({
         )}
       </Box>
 
-      {/* Scrollable Content Area */}
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          p: 2,
-          pb: isMobile ? 8 : 2,
-        }}
-      >
-        {/* Mobile search bar */}
-        {isMobile && searchTerm !== undefined && onSearchChange && (
-          <>
+      {/* Scrollable filters */}
+      <Box sx={{ flex: 1, overflow: "auto", p: 2, pb: isMobile ? 8 : 2 }}>
+        {/* Sort */}
+        <FormControl fullWidth size="small" sx={{ mb: 3 }}>
+          <InputLabel>Sort by</InputLabel>
+          <Select
+            value={sortBy || "relevance"}
+            label="Sort by"
+            onChange={(e) => onSortChange?.(e.target.value)}
+            MenuProps={{ disableScrollLock: true, sx: { zIndex: 9999 } }}
+          >
+            {sortOptions.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Divider sx={{ mb: 2 }} />
+
+        {/* Category Tags (admin mode only if needed, but we can always show) */}
+        {categoryTags.length > 0 && (
+          <Accordion defaultExpanded sx={accordionStyle(theme)}>
+            <AccordionSummary expandIcon={<ExpandMore />}>
+              <Typography fontWeight={600}>Category Tags</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <FormGroup>
+                {categoryTags.map((tag) => (
+                  <FormControlLabel
+                    key={tag.id}
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={(filters.tags || []).includes(tag.id)}
+                        onChange={() => toggleArrayFilter("tags", tag.id)}
+                      />
+                    }
+                    label={tag.name}
+                  />
+                ))}
+              </FormGroup>
+            </AccordionDetails>
+          </Accordion>
+        )}
+
+        {/* Price Tags */}
+        {priceTags.length > 0 && (
+          <Accordion defaultExpanded sx={accordionStyle(theme)}>
+            <AccordionSummary expandIcon={<ExpandMore />}>
+              <Typography fontWeight={600}>Price Tags</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <FormGroup>
+                {priceTags.map((tag) => (
+                  <FormControlLabel
+                    key={tag.id}
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={(filters.tags || []).includes(tag.id)}
+                        onChange={() => toggleArrayFilter("tags", tag.id)}
+                      />
+                    }
+                    label={tag.name}
+                  />
+                ))}
+              </FormGroup>
+            </AccordionDetails>
+          </Accordion>
+        )}
+
+        {/* Brands with search */}
+        <Accordion defaultExpanded sx={accordionStyle(theme)}>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography fontWeight={600}>Brand</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
             <TextField
+              size="small"
+              placeholder="Search brands..."
+              value={brandSearch}
+              onChange={(e) => setBrandSearch(e.target.value)}
               fullWidth
-              variant="outlined"
-              placeholder="Search fragrances..."
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-              sx={{ mb: 3 }}
+              sx={{ mb: 1 }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon sx={{ color: "text.primary" }} />
+                    <SearchIcon fontSize="small" />
                   </InputAdornment>
                 ),
-                endAdornment: searchTerm && (
+                endAdornment: brandSearch && (
                   <InputAdornment position="end">
-                    <IconButton onClick={clearSearch} edge="end" size="small">
-                      <Close sx={{ color: "text.primary", fontSize: 18 }} />
+                    <IconButton size="small" onClick={() => setBrandSearch("")}>
+                      <Close fontSize="small" />
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
-            <Divider sx={{ mb: 2 }} />
-          </>
-        )}
-
-        {/* Sort Dropdown */}
-        {(isMobile || sortBy !== undefined) && (
-          <>
-            <FormControl fullWidth size="small" sx={{ mb: 3 }}>
-              <InputLabel>Sort by</InputLabel>
-              <Select
-                value={sortBy || "relevance"}
-                label="Sort by"
-                onChange={(e) => onSortChange?.(e.target.value)}
-              >
-                <MenuItem value="relevance">Relevance</MenuItem>
-                <MenuItem value="name-asc">Name (A → Z)</MenuItem>
-                <MenuItem value="name-desc">Name (Z → A)</MenuItem>
-                <MenuItem value="rating-desc">Rating (high → low)</MenuItem>
-                <MenuItem value="rating-asc">Rating (low → high)</MenuItem>
-                <MenuItem value="popularity-desc">
-                  Popularity (most → least)
-                </MenuItem>
-                <MenuItem value="popularity-asc">
-                  Popularity (least → most)
-                </MenuItem>
-              </Select>
-            </FormControl>
-            <Divider sx={{ mb: 2 }} />
-          </>
-        )}
-
-        {/* Filter Categories */}
-        {Object.entries(FILTER_CATEGORIES).map(
-          ([category, { label, options }]) => (
-            <Accordion
-              key={category}
-              defaultExpanded={!isMobile}
-              sx={{
-                mb: 1,
-                "&:before": { display: "none" },
-                boxShadow: "none",
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: 1,
-              }}
-            >
-              <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  {label}
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <FormGroup>
-                  {options.map((option) => (
-                    <FormControlLabel
-                      key={option}
-                      control={
-                        <Checkbox
-                          size="small"
-                          checked={(filters[category] || []).includes(option)}
-                          onChange={() => toggleFilter(category, option)}
-                        />
-                      }
-                      label={option}
+            <FormGroup>
+              {filteredBrands.slice(0, 20).map((brand) => (
+                <FormControlLabel
+                  key={brand.id}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={(filters.brands || []).includes(brand.id)}
+                      onChange={() => toggleArrayFilter("brands", brand.id)}
                     />
-                  ))}
-                </FormGroup>
-              </AccordionDetails>
-            </Accordion>
-          )
-        )}
+                  }
+                  label={brand.name}
+                />
+              ))}
+              {filteredBrands.length === 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  No brands found.
+                </Typography>
+              )}
+            </FormGroup>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Scent Families */}
+        <Accordion defaultExpanded sx={accordionStyle(theme)}>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography fontWeight={600}>Scent Family</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormGroup>
+              {(families || []).map((family) => (
+                <FormControlLabel
+                  key={family.id}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={(filters.families || []).includes(family.id)}
+                      onChange={() => toggleArrayFilter("families", family.id)}
+                    />
+                  }
+                  label={family.name}
+                />
+              ))}
+            </FormGroup>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Types */}
+        <Accordion defaultExpanded sx={accordionStyle(theme)}>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography fontWeight={600}>Type</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormGroup>
+              {(types || []).map((type) => (
+                <FormControlLabel
+                  key={type.id}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={(filters.types || []).includes(type.id)}
+                      onChange={() => toggleArrayFilter("types", type.id)}
+                    />
+                  }
+                  label={type.name}
+                />
+              ))}
+            </FormGroup>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Seasons */}
+        <Accordion defaultExpanded sx={accordionStyle(theme)}>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography fontWeight={600}>Season</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormGroup>
+              {(seasons || []).map((season) => (
+                <FormControlLabel
+                  key={season.id}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={(filters.seasons || []).includes(season.id)}
+                      onChange={() => toggleArrayFilter("seasons", season.id)}
+                    />
+                  }
+                  label={season.name}
+                />
+              ))}
+            </FormGroup>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Occasions */}
+        <Accordion defaultExpanded sx={accordionStyle(theme)}>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography fontWeight={600}>Occasion</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormGroup>
+              {(occasions || []).map((occasion) => (
+                <FormControlLabel
+                  key={occasion.id}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={(filters.occasions || []).includes(occasion.id)}
+                      onChange={() =>
+                        toggleArrayFilter("occasions", occasion.id)
+                      }
+                    />
+                  }
+                  label={occasion.name}
+                />
+              ))}
+            </FormGroup>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Gender */}
+        <Accordion defaultExpanded sx={accordionStyle(theme)}>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography fontWeight={600}>Gender</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormGroup>
+              {genderOptions.map((gender) => (
+                <FormControlLabel
+                  key={gender}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={(filters.genders || []).includes(gender)}
+                      onChange={() => toggleArrayFilter("genders", gender)}
+                    />
+                  }
+                  label={gender}
+                />
+              ))}
+            </FormGroup>
+          </AccordionDetails>
+        </Accordion>
       </Box>
 
-      {/* Fixed Action Buttons */}
+      {/* Footer */}
       <Box
         sx={{
           p: 2,
@@ -263,41 +405,62 @@ const FilterSidebar = ({
           bgcolor: "background.paper",
         }}
       >
-        <Box sx={{ display: "flex", gap: 1 }}>
+        {isMobile && (
           <Button
-            variant="outlined"
             fullWidth
-            onClick={onClearFilters}
-            disabled={getActiveFilterCount() === 0}
+            variant="contained"
+            onClick={onClose}
+            sx={{ mb: 1 }}
           >
-            Clear All
+            Apply Filters
           </Button>
-          {isMobile && (
-            <Button variant="contained" fullWidth onClick={onClose}>
-              Apply
-            </Button>
-          )}
-        </Box>
+        )}
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={onClearFilters}
+          disabled={
+            Object.values(filters).every(
+              (val) => !val || (Array.isArray(val) && val.length === 0),
+            ) && filters.sortBy === "relevance"
+          }
+        >
+          Clear All Filters
+        </Button>
       </Box>
     </Box>
   );
 };
 
+const accordionStyle = (theme) => ({
+  mb: 1,
+  "&:before": { display: "none" },
+  boxShadow: "none",
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: 1,
+});
+
+// ---------- Main exported component ----------
 const FragranceFilter = ({
   onFilterChange,
   searchTerm,
   onSearchChange,
   sortBy,
   onSortChange,
+  references,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
+
   const [filters, setFilters] = useState({
+    tags: [],
+    brands: [],
+    families: [],
+    types: [],
     seasons: [],
     occasions: [],
     genders: [],
-    performance: [],
     sortBy: "relevance",
   });
 
@@ -307,29 +470,32 @@ const FragranceFilter = ({
   };
 
   const handleClearFilters = () => {
-    const clearedFilters = {
+    const empty = {
+      tags: [],
+      brands: [],
+      families: [],
+      types: [],
       seasons: [],
       occasions: [],
       genders: [],
-      performance: [],
       sortBy: "relevance",
     };
-    setFilters(clearedFilters);
-    onFilterChange(clearedFilters);
+    setFilters(empty);
+    onFilterChange(empty);
   };
 
-  const getActiveFilterCount = () => {
-    return Object.values(filters).reduce(
-      (count, categoryFilters) =>
-        count + (Array.isArray(categoryFilters) ? categoryFilters.length : 0),
-      0
-    );
-  };
+  const activeFilterCount =
+    (filters.tags?.length || 0) +
+    (filters.brands?.length || 0) +
+    (filters.families?.length || 0) +
+    (filters.types?.length || 0) +
+    (filters.seasons?.length || 0) +
+    (filters.occasions?.length || 0) +
+    (filters.genders?.length || 0);
 
-  // Desktop sidebar
   if (!isMobile) {
     return (
-      <FilterSidebar
+      <FilterContent
         filters={filters}
         onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
@@ -338,11 +504,11 @@ const FragranceFilter = ({
         onSearchChange={onSearchChange}
         sortBy={sortBy}
         onSortChange={onSortChange}
+        references={references}
       />
     );
   }
 
-  // Mobile drawer
   return (
     <>
       <Box
@@ -368,9 +534,9 @@ const FragranceFilter = ({
           }}
         >
           Filters
-          {getActiveFilterCount() > 0 && (
+          {activeFilterCount > 0 && (
             <Chip
-              label={getActiveFilterCount()}
+              label={activeFilterCount}
               size="small"
               sx={{
                 position: "absolute",
@@ -397,7 +563,7 @@ const FragranceFilter = ({
           },
         }}
       >
-        <FilterSidebar
+        <FilterContent
           filters={filters}
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
@@ -407,6 +573,7 @@ const FragranceFilter = ({
           onSearchChange={onSearchChange}
           sortBy={sortBy}
           onSortChange={onSortChange}
+          references={references}
         />
       </Drawer>
     </>
