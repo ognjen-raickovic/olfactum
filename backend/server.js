@@ -1,4 +1,5 @@
 // Sets up the Express server, applies middleware, and mounts route handlers.
+
 require("dotenv").config(); // must be at the very top
 
 const express = require("express");
@@ -11,7 +12,8 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users"); // Handles user-related endpoints
 const adminRoutes = require("./routes/admin"); // Handles admin-related endpoints
 const referenceRoutes = require("./routes/references"); // Lookup/reference data
-// (We'll add more routes later: perfumes, reviews, etc.)
+const perfumeRoutes = require("./routes/perfumes"); // Public perfume endpoints
+// (We'll add more routes later: reviews, etc.)
 
 const app = express();
 
@@ -33,6 +35,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // --- Routes ---
+
 // Authentication endpoints (login, register, etc.)
 app.use("/api/auth", authRoutes);
 
@@ -45,6 +48,9 @@ app.use("/api/admin", adminRoutes);
 
 // Reference/lookup endpoints (brands, notes, accords, etc.)
 app.use("/api/references", referenceRoutes);
+
+// Public perfume endpoints
+app.use("/api/perfumes", perfumeRoutes);
 
 // Simple health-check endpoint
 app.get("/", (req, res) => {
