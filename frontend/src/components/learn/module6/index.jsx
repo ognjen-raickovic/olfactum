@@ -165,7 +165,7 @@ export default function Module6() {
             textAlign: "center",
             background: `linear-gradient(135deg, ${alpha(
               theme.palette.primary.main,
-              0.1
+              0.1,
             )} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
             border: `1px solid ${theme.palette.divider}`,
             position: "relative",
@@ -297,7 +297,7 @@ export default function Module6() {
                     transform: "translateY(-8px)",
                     boxShadow: `0 16px 32px ${alpha(
                       theme.palette.primary.main,
-                      0.15
+                      0.15,
                     )}`,
                     "& .card-icon": {
                       transform: "scale(1.1)",
@@ -453,14 +453,14 @@ export default function Module6() {
                             borderRadius: 1,
                             backgroundColor: alpha(
                               theme.palette.info.main,
-                              0.05
+                              0.05,
                             ),
                             borderLeft: `4px solid ${theme.palette.info.main}`,
                             transition: "all 0.3s ease",
                             "&:hover": {
                               backgroundColor: alpha(
                                 theme.palette.info.main,
-                                0.1
+                                0.1,
                               ),
                               transform: "translateX(4px)",
                             },
@@ -627,7 +627,7 @@ export default function Module6() {
             p: { xs: 3, md: 6 },
             background: `linear-gradient(135deg, ${alpha(
               theme.palette.success.main,
-              0.1
+              0.1,
             )} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
             border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
           }}
@@ -661,7 +661,7 @@ export default function Module6() {
                     backgroundColor: alpha(theme.palette.success.main, 0.05),
                     border: `2px solid ${alpha(
                       theme.palette.success.main,
-                      0.3
+                      0.3,
                     )}`,
                     height: "100%",
                     transition: "all 0.3s ease",
@@ -671,7 +671,7 @@ export default function Module6() {
                       transform: "translateY(-6px)",
                       boxShadow: `0 12px 24px ${alpha(
                         theme.palette.success.main,
-                        0.15
+                        0.15,
                       )}`,
                     },
                   }}
@@ -702,14 +702,14 @@ export default function Module6() {
                           borderRadius: 2,
                           backgroundColor: alpha(
                             theme.palette.success.main,
-                            0.08
+                            0.08,
                           ),
                           borderLeft: `4px solid ${theme.palette.success.main}`,
                           transition: "all 0.3s ease",
                           "&:hover": {
                             backgroundColor: alpha(
                               theme.palette.success.main,
-                              0.12
+                              0.12,
                             ),
                             transform: "translateX(8px)",
                           },
@@ -760,7 +760,7 @@ export default function Module6() {
                       transform: "translateY(-6px)",
                       boxShadow: `0 12px 24px ${alpha(
                         theme.palette.error.main,
-                        0.15
+                        0.15,
                       )}`,
                     },
                   }}
@@ -791,14 +791,14 @@ export default function Module6() {
                           borderRadius: 2,
                           backgroundColor: alpha(
                             theme.palette.error.main,
-                            0.08
+                            0.08,
                           ),
                           borderLeft: `4px solid ${theme.palette.error.main}`,
                           transition: "all 0.3s ease",
                           "&:hover": {
                             backgroundColor: alpha(
                               theme.palette.error.main,
-                              0.12
+                              0.12,
                             ),
                             transform: "translateX(8px)",
                           },
@@ -835,7 +835,7 @@ export default function Module6() {
       </Fade>
       <ModuleCompletion
         loaded={loaded}
-        moduleId="module-6"
+        moduleId={6}
         moduleTitle="Module 6: Fragrance Testing & Skin Chemistry"
       />
       <ModuleNavigation sx={{ mt: 4 }} />

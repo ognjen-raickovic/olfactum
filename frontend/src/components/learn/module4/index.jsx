@@ -300,21 +300,21 @@ export default function Module4() {
                       transition: "all 0.3s ease",
                       background: `linear-gradient(135deg, ${alpha(
                         theme.palette.primary.main,
-                        0.05
+                        0.05,
                       )} 0%, ${alpha(
                         theme.palette.background.paper,
-                        0.9
+                        0.9,
                       )} 100%)`,
                       border: `1px solid ${alpha(
                         theme.palette.primary.main,
-                        0.1
+                        0.1,
                       )}`,
                       borderRadius: 3,
                       "&:hover": {
                         transform: "translateY(-8px)",
                         boxShadow: `0 16px 32px ${alpha(
                           theme.palette.primary.main,
-                          0.15
+                          0.15,
                         )}`,
                       },
                     }}
@@ -354,7 +354,7 @@ export default function Module4() {
             mb: 6,
             background: `linear-gradient(135deg, ${alpha(
               theme.palette.info.main,
-              0.05
+              0.05,
             )} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
             border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
             borderRadius: 0,
@@ -400,7 +400,7 @@ export default function Module4() {
           sx={{
             background: `linear-gradient(135deg, ${alpha(
               theme.palette.success.main,
-              0.1
+              0.1,
             )} 0%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
             py: { xs: 4, md: 6 },
             borderTop: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
@@ -431,13 +431,13 @@ export default function Module4() {
                       backgroundColor: alpha(theme.palette.success.main, 0.05),
                       border: `2px solid ${alpha(
                         theme.palette.success.main,
-                        0.3
+                        0.3,
                       )}`,
                       transition: "all 0.3s ease",
                       "&:hover": {
                         backgroundColor: alpha(
                           theme.palette.success.main,
-                          0.08
+                          0.08,
                         ),
                         transform: "translateY(-4px)",
                       },
@@ -466,14 +466,14 @@ export default function Module4() {
                             borderRadius: 2,
                             backgroundColor: alpha(
                               theme.palette.success.main,
-                              0.08
+                              0.08,
                             ),
                             borderLeft: `4px solid ${theme.palette.success.main}`,
                             transition: "all 0.3s ease",
                             "&:hover": {
                               backgroundColor: alpha(
                                 theme.palette.success.main,
-                                0.12
+                                0.12,
                               ),
                               transform: "translateX(8px)",
                             },
@@ -524,7 +524,7 @@ export default function Module4() {
       <Container maxWidth="lg" sx={{ mb: 4 }}>
         <ModuleCompletion
           loaded={loaded}
-          moduleId="module-4"
+          moduleId={4}
           moduleTitle="Module 4: Fragrance Families"
         />
       </Container>

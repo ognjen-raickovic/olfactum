@@ -10,42 +10,39 @@ import {
 import { CheckCircle, PlayCircle } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../../services/api";
 
-export default function ModuleCompletion({ loaded, moduleId, moduleTitle }) {
+export default function ModuleCompletion({ moduleId, moduleTitle }) {
   const theme = useTheme();
   const [isCompleted, setIsCompleted] = useState(false);
 
-  useEffect(() => {
-    const checkCompletion = () => {
-      const completedModules = JSON.parse(
-        localStorage.getItem("completedModules") || "{}"
-      );
-      setIsCompleted(!!completedModules[moduleId]);
-    };
-
-    checkCompletion();
-    window.addEventListener("storage", checkCompletion);
-    return () => window.removeEventListener("storage", checkCompletion);
-  }, [moduleId]);
-
-  const handleComplete = () => {
-    const completedModules = JSON.parse(
-      localStorage.getItem("completedModules") || "{}"
-    );
-    completedModules[moduleId] = true;
-    localStorage.setItem("completedModules", JSON.stringify(completedModules));
-    setIsCompleted(true);
-    window.dispatchEvent(new Event("storage"));
+  const numericId = Number(moduleId);
+  const fetchCompletion = async () => {
+    const res = await api.get("/modules/progress");
+    const mod = res.data.modules.find((m) => m.module_id === numericId);
+    setIsCompleted(mod?.progress === "Completed");
   };
 
-  const handleReset = () => {
-    const completedModules = JSON.parse(
-      localStorage.getItem("completedModules") || "{}"
-    );
-    delete completedModules[moduleId];
-    localStorage.setItem("completedModules", JSON.stringify(completedModules));
+  useEffect(() => {
+    fetchCompletion();
+  }, [moduleId]);
+
+  const handleComplete = async () => {
+    await api.post("/modules/progress", {
+      module_id: numericId,
+      progress: "Completed",
+    });
+    setIsCompleted(true);
+    window.dispatchEvent(new Event("moduleProgressUpdated"));
+  };
+
+  const handleReset = async () => {
+    await api.post("/modules/progress", {
+      module_id: numericId,
+      progress: "Not Started",
+    });
     setIsCompleted(false);
-    window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(new Event("moduleProgressUpdated"));
   };
 
   const fadeVariants = {

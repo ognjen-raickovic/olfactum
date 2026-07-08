@@ -12,10 +12,12 @@ const adminRoutes = require("./routes/admin"); // Handles admin-related endpoint
 const referenceRoutes = require("./routes/references"); // Lookup/reference data
 const perfumeRoutes = require("./routes/perfumes"); // Public perfume endpoints
 const reviewRoutes = require("./routes/reviews"); // Handles review-related endpoints
+const moduleRoutes = require("./routes/modules"); // Learning modules endpoints
 
 const app = express();
 
 // --- Middleware ---
+
 // CORS allows requests from your React frontend (localhost:5173 by default)
 app.use(cors());
 
@@ -52,6 +54,9 @@ app.use("/api/perfumes", perfumeRoutes);
 
 // Review endpoints
 app.use("/api/reviews", reviewRoutes);
+
+// Learning modules endpoints
+app.use("/api/modules", moduleRoutes);
 
 // Simple health-check endpoint
 app.get("/", (req, res) => {

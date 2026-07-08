@@ -2,40 +2,41 @@ import { Box, Button, useTheme } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import api from "../../services/api";
 
 const moduleStructure = [
   {
-    id: "module-1",
+    id: 1,
     path: "/learn/module1",
     label: "The Language of Perfume",
     shortLabel: "Perfume Language",
   },
   {
-    id: "module-2",
+    id: 2,
     path: "/learn/module2",
     label: "Fragrance Concentrations",
     shortLabel: "Concentrations",
   },
   {
-    id: "module-3",
+    id: 3,
     path: "/learn/module3",
     label: "Sillage & Longevity",
     shortLabel: "Sillage & Longevity",
   },
   {
-    id: "module-4",
+    id: 4,
     path: "/learn/module4",
     label: "Fragrance Families",
     shortLabel: "Families",
   },
   {
-    id: "module-5",
+    id: 5,
     path: "/learn/module5",
     label: "Fragrance Storage & Care",
     shortLabel: "Storage & Care",
   },
   {
-    id: "module-6",
+    id: 6,
     path: "/learn/module6",
     label: "Fragrance Testing & Skin Chemistry",
     shortLabel: "Testing & Skin",
@@ -48,32 +49,33 @@ export default function ModuleNavigation({ sx = {} }) {
   const theme = useTheme();
 
   // ✅ Reactively track completed modules
-  const [completedModules, setCompletedModules] = useState(
-    JSON.parse(localStorage.getItem("completedModules") || "{}")
-  );
+  const [completedModules, setCompletedModules] = useState({});
 
-  // ✅ Update when localStorage changes (even in same tab)
+  const fetchProgress = async () => {
+    try {
+      const res = await api.get("/modules/progress");
+
+      const map = {};
+      res.data.modules.forEach((m) => {
+        map[m.module_id] = m.progress === "Completed";
+      });
+
+      setCompletedModules(map);
+    } catch (err) {
+      console.error("Failed to load module progress", err);
+    }
+  };
+
   useEffect(() => {
-    const handleStorageChange = () => {
-      setCompletedModules(
-        JSON.parse(localStorage.getItem("completedModules") || "{}")
-      );
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  // ✅ Also update immediately when navigation changes (useful if user completes then navigates)
-  useEffect(() => {
-    setCompletedModules(
-      JSON.parse(localStorage.getItem("completedModules") || "{}")
-    );
+    fetchProgress();
+    const onUpdate = () => fetchProgress();
+    window.addEventListener("moduleProgressUpdated", onUpdate);
+    return () => window.removeEventListener("moduleProgressUpdated", onUpdate);
   }, [location.pathname]);
 
   // Find current module
   const currentIndex = moduleStructure.findIndex(
-    (module) => location.pathname === module.path
+    (module) => location.pathname === module.path,
   );
 
   const previousModule =
@@ -84,7 +86,7 @@ export default function ModuleNavigation({ sx = {} }) {
       : null;
 
   const isCurrentCompleted =
-    !!completedModules[moduleStructure[currentIndex]?.id];
+    !!completedModules[moduleStructure[currentIndex].id];
   const isNextAccessible = nextModule && isCurrentCompleted;
 
   // If not on a recognized path, don't render

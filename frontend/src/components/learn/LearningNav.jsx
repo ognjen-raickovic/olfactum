@@ -29,57 +29,16 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import api from "../../services/api";
 
-const initialModules = [
-  {
-    id: "module-1",
-    title: "Module 1: The Language of Perfume",
-    description:
-      "Understand fragrance notes, the pyramid, and how scents evolve over time",
-    icon: <School />,
-    path: "/learn/module1",
-  },
-  {
-    id: "module-2",
-    title: "Module 2: Fragrance Concentrations",
-    description:
-      "Learn about Eau de Toilette, Eau de Parfum, Parfum and their differences",
-    icon: <LocalBar />,
-    path: "/learn/module2",
-  },
-  {
-    id: "module-3",
-    title: "Module 3: Sillage & Longevity",
-    description:
-      "Discover scent trails and techniques to make fragrances last longer",
-    icon: <Air />,
-    path: "/learn/module3",
-  },
-  {
-    id: "module-4",
-    title: "Module 4: Fragrance Families",
-    description:
-      "Explore the main scent categories and their unique characteristics",
-    icon: <Palette />,
-    path: "/learn/module4",
-  },
-  {
-    id: "module-5",
-    title: "Module 5: Fragrance Storage & Care",
-    description:
-      "Learn proper storage techniques and how to preserve your fragrance collection",
-    icon: <Inventory2 />,
-    path: "/learn/module5",
-  },
-  {
-    id: "module-6",
-    title: "Module 6: Fragrance Testing & Skin Chemistry",
-    description:
-      "Learn proper testing techniques and how skin chemistry transforms fragrances",
-    icon: <Science />,
-    path: "/learn/module6",
-  },
-];
+const iconMap = {
+  1: <School />,
+  2: <LocalBar />,
+  3: <Air />,
+  4: <Palette />,
+  5: <Inventory2 />,
+  6: <Science />,
+};
 
 export default function LearningNav() {
   const theme = useTheme();
@@ -87,48 +46,45 @@ export default function LearningNav() {
   const [modules, setModules] = useState([]);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
-  // Load module progress from localStorage
-  useEffect(() => {
-    const updateModuleProgress = () => {
-      const completedModules = JSON.parse(
-        localStorage.getItem("completedModules") || "{}",
-      );
+  const fetchProgress = async () => {
+    try {
+      const res = await api.get("/modules/progress");
+      const raw = res.data.modules;
 
-      const updatedModules = initialModules.map((module, index) => {
-        const isCompleted = completedModules[module.id];
+      const updated = raw.map((mod, index) => {
+        const isCompleted = mod.progress === "Completed";
+
         let status = "upcoming";
-        let progress = 0;
 
         if (isCompleted) {
           status = "completed";
-          progress = 100;
-        } else {
-          // If this is the first module or previous module is completed, mark as active
-          if (index === 0 || completedModules[initialModules[index - 1].id]) {
-            status = "active";
-          }
+        } else if (index === 0 || raw[index - 1]?.progress === "Completed") {
+          status = "active";
         }
 
         return {
-          ...module,
+          id: `module-${mod.module_id}`,
+          title: mod.name,
+          description: mod.description,
+          icon: iconMap[mod.module_id] || <School />,
+          path: `/learn/module${mod.module_id}`,
           status,
-          progress,
+          progress: isCompleted ? 100 : 0,
+          module_id: mod.module_id,
         };
       });
 
-      setModules(updatedModules);
-    };
+      setModules(updated);
+    } catch (err) {
+      console.error("Failed to load module progress", err);
+    }
+  };
 
-    // Initial load
-    updateModuleProgress();
-
-    // Listen for storage changes (when modules are marked complete/incomplete)
-    const handleStorageChange = () => {
-      updateModuleProgress();
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+  useEffect(() => {
+    fetchProgress();
+    const onUpdate = () => fetchProgress();
+    window.addEventListener("moduleProgressUpdated", onUpdate);
+    return () => window.removeEventListener("moduleProgressUpdated", onUpdate);
   }, []);
 
   const navigateToModule = (path) => {
@@ -153,19 +109,23 @@ export default function LearningNav() {
   };
 
   // Function to mark a module as complete from the learn page
-  const markModuleAsComplete = (moduleId) => {
-    const completedModules = JSON.parse(
-      localStorage.getItem("completedModules") || "{}",
-    );
-    completedModules[moduleId] = true;
-    localStorage.setItem("completedModules", JSON.stringify(completedModules));
-    window.dispatchEvent(new Event("storage"));
+  const markModuleAsComplete = async (moduleId) => {
+    await api.post("/modules/progress", {
+      module_id: moduleId,
+      progress: "Completed",
+    });
+    fetchProgress();
   };
 
   // Function to reset all progress with confirmation
-  const handleResetProgress = () => {
-    localStorage.removeItem("completedModules");
-    window.dispatchEvent(new Event("storage"));
+  const handleResetProgress = async () => {
+    for (let i = 1; i <= 6; i++) {
+      await api.post("/modules/progress", {
+        module_id: i,
+        progress: "Not Started",
+      });
+    }
+    fetchProgress();
     setResetDialogOpen(false);
   };
 
@@ -346,7 +306,7 @@ export default function LearningNav() {
                           startIcon={<Check />}
                           onClick={(e) => {
                             e.stopPropagation();
-                            markModuleAsComplete(module.id);
+                            markModuleAsComplete(module.module_id);
                           }}
                         >
                           Complete
