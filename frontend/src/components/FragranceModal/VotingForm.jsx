@@ -66,11 +66,12 @@ const getRatingDescription = (category, value) => {
       5: "Massive - Leaves a trail",
     },
   };
+
   const starLevel = Math.ceil(value);
   return descriptions[category]?.[starLevel] || "Click stars to rate";
 };
 
-// Precise 5‑star rating component (supports half‑star hover/click)
+// Precise 5-star rating component (supports half-star hover/click)
 const PreciseStarRating = ({ value, onChange, label }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -87,7 +88,6 @@ const PreciseStarRating = ({ value, onChange, label }) => {
     setHoverValue(0);
   };
 
-  // Determine which value to display (hover vs actual)
   const displayValue = isHovering ? hoverValue : value;
   const numericValue = ((displayValue / 5) * 10).toFixed(1);
   const currentDescription = getRatingDescription(
@@ -95,10 +95,10 @@ const PreciseStarRating = ({ value, onChange, label }) => {
     displayValue,
   );
 
-  // Render a single star (full, half, or empty)
   const renderStar = (position) => {
     const isActive = displayValue >= position;
     const isHalf = displayValue >= position - 0.5 && displayValue < position;
+
     return (
       <Box
         key={position}
@@ -130,7 +130,6 @@ const PreciseStarRating = ({ value, onChange, label }) => {
   };
 
   return (
-    // Container with FIXED width to prevent layout shift
     <Box
       sx={{
         textAlign: "center",
@@ -139,10 +138,10 @@ const PreciseStarRating = ({ value, onChange, label }) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        width: 220, // fixed width – no more size changes
+        width: 220,
         maxWidth: 220,
         minWidth: 220,
-        mx: "auto", // center horizontally
+        mx: "auto",
         overflow: "hidden",
       }}
     >
@@ -157,7 +156,6 @@ const PreciseStarRating = ({ value, onChange, label }) => {
         {label}
       </Typography>
 
-      {/* Star icons */}
       <Box
         sx={{
           display: "flex",
@@ -171,7 +169,6 @@ const PreciseStarRating = ({ value, onChange, label }) => {
         {[1, 2, 3, 4, 5].map(renderStar)}
       </Box>
 
-      {/* Numeric score */}
       <Typography
         variant={isMobile ? "body1" : "h6"}
         sx={{
@@ -185,7 +182,6 @@ const PreciseStarRating = ({ value, onChange, label }) => {
         {value > 0 ? `${numericValue}/10` : "Not rated"}
       </Typography>
 
-      {/* Description – fixed width + nowrap to stay on one line */}
       <Box
         sx={{
           width: "100%",
@@ -202,9 +198,9 @@ const PreciseStarRating = ({ value, onChange, label }) => {
             fontSize: isMobile ? "0.75rem" : "0.8rem",
             textAlign: "center",
             lineHeight: 1.3,
-            whiteSpace: "nowrap", // keep on one line
+            whiteSpace: "nowrap",
             overflow: "hidden",
-            textOverflow: "ellipsis", // just in case, but not needed with 220px
+            textOverflow: "ellipsis",
           }}
         >
           {currentDescription}
@@ -217,25 +213,35 @@ const PreciseStarRating = ({ value, onChange, label }) => {
 const VotingForm = ({ fragrance }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedSeasons, setSelectedSeasons] = useState([]);
+  const [selectedOccasions, setSelectedOccasions] = useState([]);
   const [scores, setScores] = useState({ scent: 0, longevity: 0, sillage: 0 });
   const [gender, setGender] = useState("");
   const [review, setReview] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-
-  // Where to Buy dropdown state
   const [buyMenuAnchor, setBuyMenuAnchor] = useState(null);
 
   const handleScoreChange = (key) => (newValue) =>
     setScores((old) => ({ ...old, [key]: newValue }));
+
   const handleGenderChange = (event, newGender) => {
     if (newGender !== null) setGender(newGender);
   };
+
   const handleCategoryChange = (event, newValue) => {
     if (newValue.length <= 3) setSelectedCategories(newValue);
   };
 
-  // Form is valid only when all required fields are filled
+  const handleSeasonChange = (event, newValue) => {
+    setSelectedSeasons(newValue.slice(0, 2));
+  };
+
+  const handleOccasionChange = (event, newValue) => {
+    setSelectedOccasions(newValue.slice(0, 3));
+  };
+
   const isFormValid = () =>
     scores.scent > 0 &&
     scores.longevity > 0 &&
@@ -243,10 +249,11 @@ const VotingForm = ({ fragrance }) => {
     gender &&
     review.trim().length > 0;
 
-  // Submit handler (currently logs to console)
   const handleSubmit = () => {
     if (!isFormValid()) return;
+
     const submission = {
+      perfume_id: fragrance?.perfume_id,
       scores: {
         scent: ((scores.scent / 5) * 10).toFixed(1),
         longevity: ((scores.longevity / 5) * 10).toFixed(1),
@@ -254,24 +261,38 @@ const VotingForm = ({ fragrance }) => {
       },
       gender,
       categories: selectedCategories,
+      seasons: selectedSeasons.map((s) => s.id ?? s.name ?? s),
+      occasions: selectedOccasions.map((o) => o.id ?? o.name ?? o),
       review: review.trim(),
       rawScores: scores,
     };
+
     console.log("Vote submission:", submission);
     setSnackbarOpen(true);
   };
 
-  // Purchase links (fallback to Google search)
-  const purchaseLinks = fragrance?.purchaseLinks || [];
+  const retailers = fragrance?.retailers || [];
   const defaultSearchUrl = `https://www.google.com/search?q=where+to+buy+${encodeURIComponent(
     `${fragrance?.brand} ${fragrance?.name}`,
   )}`;
+
   const handleBuyMenuOpen = (event) => setBuyMenuAnchor(event.currentTarget);
   const handleBuyMenuClose = () => setBuyMenuAnchor(null);
 
+  const getOptionLabel = (option) => {
+    if (typeof option === "string") return option;
+    return option?.name || "";
+  };
+
+  const optionEquals = (option, value) => {
+    if (typeof option === "string" || typeof value === "string") {
+      return option === value;
+    }
+    return (option?.id ?? option?.name) === (value?.id ?? value?.name);
+  };
+
   return (
     <>
-      {/* Review card */}
       <Box
         sx={{
           background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
@@ -308,6 +329,56 @@ const VotingForm = ({ fragrance }) => {
           )}
           sx={{ mb: isMobile ? 3 : 4 }}
           getOptionDisabled={() => selectedCategories.length >= 3}
+        />
+
+        {/* Season selection */}
+        <Typography
+          variant="subtitle2"
+          gutterBottom
+          sx={{ mt: 1, mb: 1, fontWeight: 700 }}
+        >
+          Season (choose up to 2)
+        </Typography>
+        <Autocomplete
+          multiple
+          options={fragrance?.seasons || []}
+          getOptionLabel={getOptionLabel}
+          isOptionEqualToValue={optionEquals}
+          value={selectedSeasons}
+          onChange={handleSeasonChange}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Seasons"
+              size={isMobile ? "small" : "medium"}
+            />
+          )}
+          sx={{ mb: 2 }}
+        />
+
+        {/* Occasion selection */}
+        <Typography
+          variant="subtitle2"
+          gutterBottom
+          sx={{ mt: 1, mb: 1, fontWeight: 700 }}
+        >
+          Occasion (choose up to 3)
+        </Typography>
+        <Autocomplete
+          multiple
+          options={fragrance?.occasions || []}
+          getOptionLabel={getOptionLabel}
+          isOptionEqualToValue={optionEquals}
+          value={selectedOccasions}
+          onChange={handleOccasionChange}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Occasions"
+              size={isMobile ? "small" : "medium"}
+            />
+          )}
+          sx={{ mb: isMobile ? 3 : 4 }}
         />
 
         {/* Star ratings for scent, longevity, sillage */}
@@ -419,7 +490,7 @@ const VotingForm = ({ fragrance }) => {
           </Typography>
         </Box>
 
-        {/* Review textarea (required) */}
+        {/* Review textarea */}
         <TextField
           label="Review *"
           placeholder="Share your thoughts about this fragrance..."
@@ -442,7 +513,7 @@ const VotingForm = ({ fragrance }) => {
           }
         />
 
-        {/* Submit button (disabled until form is valid) */}
+        {/* Submit button */}
         <Button
           variant="contained"
           color={isFormValid() ? "primary" : "inherit"}
@@ -470,7 +541,7 @@ const VotingForm = ({ fragrance }) => {
         </Button>
       </Box>
 
-      {/* External links: Fragrantica Reviews + Where to Buy dropdown */}
+      {/* External links */}
       <Box
         sx={{
           display: "flex",
@@ -516,21 +587,22 @@ const VotingForm = ({ fragrance }) => {
           Where to Buy
         </Button>
 
-        {/* Dropdown with purchase links (or Google search fallback) */}
         <Menu
           anchorEl={buyMenuAnchor}
           open={Boolean(buyMenuAnchor)}
           onClose={handleBuyMenuClose}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
           transformOrigin={{ vertical: "bottom", horizontal: "center" }}
-          PaperProps={{ sx: { minWidth: 220, borderRadius: 2, mt: 1 } }}
+          PaperProps={{ sx: { minWidth: 240, borderRadius: 2, mt: 1 } }}
         >
-          {purchaseLinks.length > 0
-            ? purchaseLinks.map((link, index) => (
+          {retailers.length > 0 ? (
+            retailers.map((ret, index) => {
+              const retailerUrl = ret.url || ret.website_url || "";
+              return (
                 <MenuItem
                   key={index}
                   component={Link}
-                  href={link.url}
+                  href={retailerUrl || defaultSearchUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={handleBuyMenuClose}
@@ -539,32 +611,31 @@ const VotingForm = ({ fragrance }) => {
                     <ShoppingCartIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText
-                    primary={link.store || "Buy online"}
-                    secondary={link.price || ""}
+                    primary={ret.name || "Retailer"}
+                    secondary={retailerUrl ? "" : ret.website_url || ""}
                   />
                   <OpenInNewIcon fontSize="small" />
                 </MenuItem>
-              ))
-            : [
-                <MenuItem
-                  key="default"
-                  component={Link}
-                  href={defaultSearchUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={handleBuyMenuClose}
-                >
-                  <ListItemIcon>
-                    <ShoppingCartIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Search on Google" />
-                  <OpenInNewIcon fontSize="small" />
-                </MenuItem>,
-              ]}
+              );
+            })
+          ) : (
+            <MenuItem
+              component={Link}
+              href={defaultSearchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleBuyMenuClose}
+            >
+              <ListItemIcon>
+                <ShoppingCartIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Search on Google" />
+              <OpenInNewIcon fontSize="small" />
+            </MenuItem>
+          )}
         </Menu>
       </Box>
 
-      {/* Success snackbar */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}

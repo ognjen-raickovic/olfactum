@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Typography, Box, Paper, useTheme } from "@mui/material";
 import { humanizeName } from "../../utils/humanizeName";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
@@ -10,30 +10,34 @@ import CelebrationIcon from "@mui/icons-material/Celebration";
 
 const FragranceDescription = ({ fragrance }) => {
   const theme = useTheme();
-
+  const description = fragrance?.description || "No description available.";
   // Build a rich natural‑language description from fragrance data
+  /*
   const description = useMemo(() => {
     if (!fragrance) return "No description available.";
-    // ... same logic as before
+
     const {
-      brand,
+      brand_name,
       name,
-      perfumer,
-      year,
+      perfumers,
+      release_year,
       country,
-      type = "Eau de Parfum",
-      topNotes = [],
-      middleNotes = [],
-      baseNotes = [],
+      type_name = "Eau de Parfum",
+      notes = {},
       accords = [],
-      genderProfile = "Unisex",
-      season = [],
-      occasion = [],
+      gender_profile = "Unisex",
+      seasons = [],
+      occasions = [],
     } = fragrance;
 
-    const formatNotes = (notes) => {
-      if (!notes.length) return null;
-      const humanized = notes.map((n) => humanizeName(n));
+    const topNotes = fragrance.notes?.top?.map((n) => n.name) || [];
+    const middleNotes = fragrance.notes?.middle?.map((n) => n.name) || [];
+    const baseNotes = fragrance.notes?.base?.map((n) => n.name) || [];
+    const accordNames = accords.map((a) => a.name);
+
+    const formatNotes = (notesArr) => {
+      if (!notesArr.length) return null;
+      const humanized = notesArr.map((n) => humanizeName(n));
       if (humanized.length === 1) return humanized[0];
       if (humanized.length === 2) return humanized.join(" and ");
       return (
@@ -44,18 +48,17 @@ const FragranceDescription = ({ fragrance }) => {
     };
 
     const parts = [];
-    let opening = `${humanizeName(name)} by ${humanizeName(brand)}`;
-    if (year) opening += `, launched in ${year}`;
-    if (perfumer && perfumer !== "Unknown")
-      opening += `, crafted by ${humanizeName(perfumer)}`;
+    let opening = `${humanizeName(name)} by ${humanizeName(brand_name)}`;
+    if (release_year) opening += `, launched in ${release_year}`;
+    if (perfumers?.length > 0) {
+      const perfNames = perfumers.map((p) => humanizeName(p.name)).join(", ");
+      opening += `, crafted by ${perfNames}`;
+    }
     if (country) opening += ` in ${country}`;
     parts.push(opening + ".");
 
-    const genderText = humanizeName(genderProfile.toLowerCase());
-    const typeText =
-      type.toLowerCase() === "eau de parfum"
-        ? "Eau de Parfum"
-        : humanizeName(type);
+    const genderText = humanizeName(gender_profile.toLowerCase());
+    const typeText = humanizeName(type_name);
     parts.push(
       `This ${genderText} ${typeText} presents a sophisticated blend that evolves beautifully over time.`,
     );
@@ -76,8 +79,8 @@ const FragranceDescription = ({ fragrance }) => {
         `Finally, it settles into a warm base of ${baseStr}, leaving a memorable trail that lingers.`,
       );
 
-    if (accords.length > 0) {
-      const mainAccords = accords.slice(0, 3).map((a) => humanizeName(a));
+    if (accordNames.length > 0) {
+      const mainAccords = accordNames.slice(0, 3).map((a) => humanizeName(a));
       const accordText =
         mainAccords.length === 1
           ? mainAccords[0]
@@ -91,17 +94,15 @@ const FragranceDescription = ({ fragrance }) => {
       );
     }
 
-    if (season.length > 0 || occasion.length > 0) {
-      const s =
-        season.length > 0 ? season.map((x) => x.toLowerCase()).join(", ") : "";
-      const o =
-        occasion.length > 0
-          ? occasion.map((x) => x.toLowerCase()).join(", ")
-          : "";
-      if (s && o) parts.push(`Ideal for ${s} wear and ${o} occasions.`);
-      else if (s) parts.push(`Perfect for ${s} seasons.`);
-      else if (o) parts.push(`Well-suited for ${o} occasions.`);
-    }
+    const seasonNames = seasons.map((s) => s.name.toLowerCase()).join(", ");
+    const occasionNames = occasions.map((o) => o.name.toLowerCase()).join(", ");
+    if (seasonNames && occasionNames)
+      parts.push(
+        `Ideal for ${seasonNames} wear and ${occasionNames} occasions.`,
+      );
+    else if (seasonNames) parts.push(`Perfect for ${seasonNames} seasons.`);
+    else if (occasionNames)
+      parts.push(`Well-suited for ${occasionNames} occasions.`);
 
     const finals = [
       "A sophisticated choice for the discerning fragrance enthusiast.",
@@ -112,10 +113,9 @@ const FragranceDescription = ({ fragrance }) => {
     parts.push(finals[Math.floor(Math.random() * finals.length)]);
     return parts.join(" ");
   }, [fragrance]);
-
+  */
   return (
     <Box>
-      {/* Meta chips – now centered on all screen sizes */}
       {fragrance && (
         <Box
           sx={{
@@ -123,10 +123,10 @@ const FragranceDescription = ({ fragrance }) => {
             flexWrap: "wrap",
             gap: 1.5,
             mb: 2,
-            justifyContent: "center", // ← changed to always center
+            justifyContent: "center",
           }}
         >
-          {fragrance.year && (
+          {fragrance.release_year && (
             <Paper
               variant="outlined"
               sx={{
@@ -140,10 +140,10 @@ const FragranceDescription = ({ fragrance }) => {
               }}
             >
               <CalendarTodayIcon fontSize="small" color="action" />
-              <Typography variant="body2">{fragrance.year}</Typography>
+              <Typography variant="body2">{fragrance.release_year}</Typography>
             </Paper>
           )}
-          {fragrance.perfumer && fragrance.perfumer !== "Unknown" && (
+          {fragrance.perfumers?.length > 0 && (
             <Paper
               variant="outlined"
               sx={{
@@ -158,7 +158,9 @@ const FragranceDescription = ({ fragrance }) => {
             >
               <PersonIcon fontSize="small" color="action" />
               <Typography variant="body2">
-                {humanizeName(fragrance.perfumer)}
+                {fragrance.perfumers
+                  .map((p) => humanizeName(p.name))
+                  .join(", ")}
               </Typography>
             </Paper>
           )}
@@ -179,7 +181,7 @@ const FragranceDescription = ({ fragrance }) => {
               <Typography variant="body2">{fragrance.country}</Typography>
             </Paper>
           )}
-          {fragrance.type && (
+          {fragrance.type_name && (
             <Paper
               variant="outlined"
               sx={{
@@ -193,10 +195,10 @@ const FragranceDescription = ({ fragrance }) => {
               }}
             >
               <LocalOfferIcon fontSize="small" color="action" />
-              <Typography variant="body2">{fragrance.type}</Typography>
+              <Typography variant="body2">{fragrance.type_name}</Typography>
             </Paper>
           )}
-          {fragrance.season?.length > 0 && (
+          {fragrance.seasons?.length > 0 && (
             <Paper
               variant="outlined"
               sx={{
@@ -211,11 +213,11 @@ const FragranceDescription = ({ fragrance }) => {
             >
               <WbSunnyIcon fontSize="small" color="action" />
               <Typography variant="body2">
-                {fragrance.season.map((s) => s.toLowerCase()).join(", ")}
+                {fragrance.seasons.map((s) => s.name.toLowerCase()).join(", ")}
               </Typography>
             </Paper>
           )}
-          {fragrance.occasion?.length > 0 && (
+          {fragrance.occasions?.length > 0 && (
             <Paper
               variant="outlined"
               sx={{
@@ -230,14 +232,15 @@ const FragranceDescription = ({ fragrance }) => {
             >
               <CelebrationIcon fontSize="small" color="action" />
               <Typography variant="body2">
-                {fragrance.occasion.map((o) => o.toLowerCase()).join(", ")}
+                {fragrance.occasions
+                  .map((o) => o.name.toLowerCase())
+                  .join(", ")}
               </Typography>
             </Paper>
           )}
         </Box>
       )}
 
-      {/* Generated description paragraph */}
       <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
         ✨ Overview
       </Typography>

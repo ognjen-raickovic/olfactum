@@ -119,18 +119,31 @@ const FragrancesPage = () => {
 
   const handleClearSearch = () => setSearchTerm("");
 
-  // Modal: fetch perfume detail
+  // Modal: fetch perfume detail whenever the URL id changes
   useEffect(() => {
-    if (!id || loading) return;
+    if (!id) {
+      setSelected(null);
+      return;
+    }
+
+    let cancelled = false;
+
     const fetchDetail = async () => {
       try {
         const res = await api.get(`/perfumes/${id}`);
-        setSelected(res.data);
+        if (!cancelled) {
+          setSelected(res.data);
+        }
       } catch (err) {
         console.error("Failed to load perfume detail", err);
       }
     };
+
     fetchDetail();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   const handleCardClick = (f) => {

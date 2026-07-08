@@ -42,7 +42,6 @@ function AppRoutes() {
         <Route path="/" element={<HomePage />} />
 
         <Route path="/fragrances" element={<FragrancesPage />} />
-        <Route path="/fragrances/:id" element={<FragrancesPage />} />
 
         <Route path="/learn" element={<LearnPage />} />
         <Route path="/learn/module1" element={<Module1 />} />

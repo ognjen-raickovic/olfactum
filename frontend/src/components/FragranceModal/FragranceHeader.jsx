@@ -23,12 +23,6 @@ import {
   BookmarkBorder,
 } from "@mui/icons-material";
 import { humanizeName } from "../../utils/humanizeName";
-import {
-  getBrandDisplayName,
-  getFragranceTypeAbbreviation,
-  cleanFragranceName,
-  nameIncludesConcentration,
-} from "../../utils/fragranceModalUtils";
 
 const FragranceHeader = ({
   fragrance,
@@ -46,38 +40,14 @@ const FragranceHeader = ({
   const handleSaveMenuOpen = (event) => setSaveMenuAnchor(event.currentTarget);
   const handleSaveMenuClose = () => setSaveMenuAnchor(null);
 
-  const fragranceTypeAbbrev = useMemo(
-    () => getFragranceTypeAbbreviation(fragrance?.type),
-    [fragrance],
-  );
-  const shouldShowTypeAbbrev = useMemo(() => {
-    const rawName = fragrance?.name || "";
-    const slug = fragrance?.slug || "";
-    return (
-      nameIncludesConcentration(rawName) || nameIncludesConcentration(slug)
-    );
-  }, [fragrance]);
-  const cleanedName = useMemo(
-    () => cleanFragranceName(fragrance?.name || "", fragrance?.type),
-    [fragrance],
-  );
-  const brandPart = useMemo(
-    () => getBrandDisplayName(fragrance?.brand || "", isMobile),
-    [fragrance, isMobile],
-  );
-  const namePart = useMemo(() => humanizeName(cleanedName), [cleanedName]);
-  const displayTitle = useMemo(() => {
-    const parts = [];
-    if (brandPart) parts.push(brandPart);
-    if (namePart) parts.push(namePart);
-    if (shouldShowTypeAbbrev && fragranceTypeAbbrev)
-      parts.push(fragranceTypeAbbrev);
-    return parts.join(" ");
-  }, [brandPart, namePart, fragranceTypeAbbrev, shouldShowTypeAbbrev]);
+  const ratingValue = Number(fragrance?.average_rating) || 0;
+  const reviewCount = Number(fragrance?.rating_count) || 0;
 
-  // Always show review count, fallback to 0
-  const ratingValue = fragrance?.rating || fragrance?.ratingValue || 4.2;
-  const reviewCount = fragrance?.reviewCount || fragrance?.totalReviews || 0;
+  const displayTitle = useMemo(() => {
+    const brand = fragrance?.brand_name || fragrance?.brand || "";
+    const name = fragrance?.name || "";
+    return `${humanizeName(brand)} - ${humanizeName(name)}`.trim();
+  }, [fragrance]);
 
   return (
     <Box
@@ -94,8 +64,7 @@ const FragranceHeader = ({
         borderTopRightRadius: 12,
       }}
     >
-      {/* Desktop */}
-      {!isMobile && (
+      {!isMobile ? (
         <Box
           sx={{
             display: "flex",
@@ -122,7 +91,6 @@ const FragranceHeader = ({
               <Share />
             </IconButton>
           </Tooltip>
-
           <Box sx={{ flex: 1, minWidth: 0, textAlign: "center" }}>
             <Typography
               variant="h5"
@@ -143,7 +111,6 @@ const FragranceHeader = ({
             >
               {displayTitle}
             </Typography>
-
             <Box
               sx={{
                 display: "flex",
@@ -155,13 +122,12 @@ const FragranceHeader = ({
             >
               <Rating value={ratingValue} precision={0.1} readOnly />
               <Chip
-                label={`${Number(ratingValue).toFixed(1)}/5`}
+                label={`${ratingValue.toFixed(1)}/5`}
                 size="small"
                 variant="filled"
                 color="primary"
                 sx={{ fontWeight: 600 }}
               />
-              {/* Review count ALWAYS shown */}
               <Typography
                 variant="body2"
                 color="text.secondary"
@@ -171,7 +137,6 @@ const FragranceHeader = ({
               </Typography>
             </Box>
           </Box>
-
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Tooltip title="Save to list">
               <IconButton
@@ -211,10 +176,7 @@ const FragranceHeader = ({
             </Tooltip>
           </Box>
         </Box>
-      )}
-
-      {/* Mobile */}
-      {isMobile && (
+      ) : (
         <Box sx={{ textAlign: "center" }}>
           <Typography
             variant="h6"
@@ -236,7 +198,6 @@ const FragranceHeader = ({
           >
             {displayTitle}
           </Typography>
-
           <Stack
             direction="row"
             alignItems="center"
@@ -261,7 +222,6 @@ const FragranceHeader = ({
                 <Share fontSize="small" />
               </IconButton>
             </Tooltip>
-
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
               <Rating
                 size="small"
@@ -270,12 +230,11 @@ const FragranceHeader = ({
                 readOnly
               />
               <Chip
-                label={`${Number(ratingValue).toFixed(1)}/5`}
+                label={`${ratingValue.toFixed(1)}/5`}
                 size="small"
                 color="primary"
                 sx={{ fontWeight: 600, height: 22 }}
               />
-              {/* Review count ALWAYS shown */}
               <Typography
                 variant="caption"
                 color="text.secondary"
@@ -284,7 +243,6 @@ const FragranceHeader = ({
                 ({reviewCount})
               </Typography>
             </Box>
-
             <Tooltip title="Save to list">
               <IconButton
                 onClick={handleSaveMenuOpen}
@@ -324,7 +282,6 @@ const FragranceHeader = ({
           </Stack>
         </Box>
       )}
-
       <Menu
         anchorEl={saveMenuAnchor}
         open={Boolean(saveMenuAnchor)}

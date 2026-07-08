@@ -164,7 +164,10 @@ const FragranceNotes = ({ fragrance }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   if (!fragrance) return null;
-  const { topNotes, middleNotes, baseNotes } = fragrance;
+
+  const topNotes = fragrance.notes?.top?.map((n) => n.name) || [];
+  const middleNotes = fragrance.notes?.middle?.map((n) => n.name) || [];
+  const baseNotes = fragrance.notes?.base?.map((n) => n.name) || [];
 
   return (
     <Box sx={{ textAlign: "center", width: "100%" }}>
@@ -182,7 +185,6 @@ const FragranceNotes = ({ fragrance }) => {
       >
         🎵 Fragrance Notes
       </Typography>
-
       <NoteSection
         title="Top Notes"
         notes={topNotes}
