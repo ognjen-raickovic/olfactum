@@ -24,7 +24,8 @@ import ContactPage from "./pages/ContactPage";
 import ProfilePage from "./pages/ProfilePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import AdminPage from "./pages/AdminPage";
+import AllPerfumesPage from "./pages/AllPerfumesPage";
+import DashboardPage from "./pages/DashboardPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import ScrollToTop from "./components/ScrollToTop";
@@ -63,10 +64,19 @@ function AppRoutes() {
         />
 
         <Route
-          path="/admin"
+          path="/admin/dashboard"
           element={
             <AdminRoute>
-              <AdminPage />
+              <DashboardPage />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/admin/perfumes"
+          element={
+            <AdminRoute>
+              <AllPerfumesPage />
             </AdminRoute>
           }
         />

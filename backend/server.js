@@ -9,6 +9,7 @@ const morgan = require("morgan");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users"); // Handles user-related endpoints
 const adminRoutes = require("./routes/admin"); // Handles admin-related endpoints
+const adminUserRoutes = require("./routes/admin/users"); // Admin user management endpoints
 const referenceRoutes = require("./routes/references"); // Lookup/reference data
 const perfumeRoutes = require("./routes/perfumes"); // Public perfume endpoints
 const reviewRoutes = require("./routes/reviews"); // Handles review-related endpoints
@@ -46,6 +47,9 @@ app.use("/api/users", userRoutes);
 
 // Admin endpoints
 app.use("/api/admin", adminRoutes);
+
+// Admin user management endpoints
+app.use("/api/admin/users", adminUserRoutes);
 
 // Reference/lookup endpoints (brands, notes, accords, etc.)
 app.use("/api/references", referenceRoutes);

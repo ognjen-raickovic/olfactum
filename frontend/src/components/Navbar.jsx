@@ -18,6 +18,10 @@ import {
   MenuItem,
   ListItemIcon,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import {
   Search,
@@ -51,6 +55,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const openProfileMenu = Boolean(profileMenuAnchor);
 
   const handleProfileClick = (event) => {
@@ -65,10 +70,19 @@ const Navbar = () => {
     setProfileMenuAnchor(null);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogoutClick = () => {
     setProfileMenuAnchor(null);
+    setLogoutDialogOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    logout();
+    setLogoutDialogOpen(false);
     navigate("/");
+  };
+
+  const handleLogoutCancel = () => {
+    setLogoutDialogOpen(false);
   };
 
   const searchRef = useRef(null);
@@ -416,10 +430,10 @@ const Navbar = () => {
                     textDecoration: "none",
                     color: "text.primary",
                     fontWeight: 600,
-                    fontSize: "0.9rem", // uniform size for all links
+                    fontSize: "0.9rem",
                     lineHeight: 1.2,
                     display: "flex",
-                    alignItems: "center", // vertical centring
+                    alignItems: "center",
                     whiteSpace: "nowrap",
                     position: "relative",
                     px: 0.25,
@@ -503,7 +517,7 @@ const Navbar = () => {
                 onClose={handleProfileMenuClose}
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-                disableScrollLock // prevents body from shifting
+                disableScrollLock
                 keepMounted
                 PaperProps={{
                   elevation: 3,
@@ -530,7 +544,21 @@ const Navbar = () => {
                   <MenuItem
                     onClick={() => {
                       handleProfileMenuClose();
-                      navigate("/admin");
+                      navigate("/admin/perfumes");
+                    }}
+                  >
+                    <ListItemIcon>
+                      <DashboardIcon fontSize="small" />
+                    </ListItemIcon>
+                    All Perfumes
+                  </MenuItem>
+                )}
+
+                {(user?.role_id === 2 || user?.role_id === 3) && (
+                  <MenuItem
+                    onClick={() => {
+                      handleProfileMenuClose();
+                      navigate("/admin/dashboard");
                     }}
                   >
                     <ListItemIcon>
@@ -541,7 +569,7 @@ const Navbar = () => {
                 )}
 
                 <Divider />
-                <MenuItem onClick={handleLogout}>
+                <MenuItem onClick={handleLogoutClick}>
                   <ListItemIcon>
                     <LogoutIcon fontSize="small" />
                   </ListItemIcon>
@@ -635,21 +663,33 @@ const Navbar = () => {
                 My Profile
               </Button>
               {(user.role_id === 2 || user.role_id === 3) && (
-                <Button
-                  component={Link}
-                  to="/admin"
-                  fullWidth
-                  variant="outlined"
-                  sx={{ textTransform: "none", mb: 1 }}
-                  onClick={() => setDrawerOpen(false)}
-                >
-                  Dashboard
-                </Button>
+                <>
+                  <Button
+                    component={Link}
+                    to="/admin/perfumes"
+                    fullWidth
+                    variant="outlined"
+                    sx={{ textTransform: "none", mb: 1 }}
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    All Perfumes
+                  </Button>
+                  <Button
+                    component={Link}
+                    to="/admin/dashboard"
+                    fullWidth
+                    variant="outlined"
+                    sx={{ textTransform: "none", mb: 1 }}
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    Dashboard
+                  </Button>
+                </>
               )}
               <Button
                 onClick={() => {
-                  logout();
                   setDrawerOpen(false);
+                  setLogoutDialogOpen(true);
                 }}
                 fullWidth
                 color="error"
@@ -713,6 +753,24 @@ const Navbar = () => {
           </Box>
         </Box>
       </Drawer>
+
+      {/* Logout confirmation dialog */}
+      <Dialog open={logoutDialogOpen} onClose={handleLogoutCancel}>
+        <DialogTitle>Logout</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to log out?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleLogoutConfirm}
+            variant="contained"
+            color="primary"
+          >
+            Yes
+          </Button>
+          <Button onClick={handleLogoutCancel}>No</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
