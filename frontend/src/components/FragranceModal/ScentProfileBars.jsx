@@ -1,7 +1,13 @@
-import React from "react";
-import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Typography,
+  useTheme,
+  useMediaQuery,
+  CircularProgress,
+} from "@mui/material";
+import api from "../../services/api";
 
-// Color mapping for scent categories
 const SCENT_CATEGORY_COLORS = {
   Fresh: "#4FC3F7",
   Citrus: "#FFF176",
@@ -18,22 +24,32 @@ const SCENT_CATEGORY_COLORS = {
   Green: "#66BB6A",
 };
 
-const ScentProfileBars = ({ fragrance }) => {
+const ScentProfileBars = ({ fragrance, refreshKey }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const data = [
-    { label: "Spicy", percentage: 85 },
-    { label: "Aromatic", percentage: 65 },
-    { label: "Fresh", percentage: 45 },
-    { label: "Woody", percentage: 30 },
-    { label: "Floral", percentage: 20 },
-    { label: "Citrus", percentage: 10 },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await api.get(
+          `/reviews/${fragrance.perfume_id}/scent-stats`,
+        );
+        setData(res.data.slice(0, 5)); // top 5
+      } catch (err) {
+        console.error("Failed to load scent stats", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const topFive = [...data]
-    .sort((a, b) => b.percentage - a.percentage)
-    .slice(0, 5);
+    fetchStats();
+  }, [fragrance.perfume_id, refreshKey]);
+
+  if (loading) return <CircularProgress />;
+
+  const maxCount = Math.max(...data.map((d) => d.count), 1);
 
   return (
     <Box sx={{ mb: 3, width: "100%", textAlign: "center" }}>
@@ -41,52 +57,60 @@ const ScentProfileBars = ({ fragrance }) => {
         Scent profile
       </Typography>
 
-      {topFive.map(({ label, percentage }) => (
-        <Box
-          key={label}
-          sx={{
-            position: "relative",
-            height: isMobile ? 30 : 40, // thicker on desktop
-            borderRadius: 1,
-            bgcolor: theme.palette.action.hover,
-            overflow: "hidden",
-            mb: isMobile ? 1.5 : 2,
-            width: "100%",
-            maxWidth: 500, // wider
-            mx: "auto",
-          }}
-        >
+      {data.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          No scent votes yet
+        </Typography>
+      ) : (
+        data.map((item) => (
           <Box
+            key={item.name}
             sx={{
-              height: "100%",
-              width: `${percentage}%`,
+              position: "relative",
+              height: isMobile ? 30 : 40,
               borderRadius: 1,
-              backgroundColor:
-                SCENT_CATEGORY_COLORS[label] || theme.palette.primary.main,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-              px: isMobile ? 1 : 2,
-              transition: "width 0.6s ease",
-              minWidth: "fit-content",
+              bgcolor: theme.palette.action.hover,
+              overflow: "hidden",
+              mb: isMobile ? 1.5 : 2,
+              width: "100%",
+              maxWidth: 500,
+              mx: "auto",
             }}
           >
-            <Typography
-              variant="body2"
+            <Box
               sx={{
-                fontWeight: 600,
-                color: theme.palette.getContrastText(
-                  SCENT_CATEGORY_COLORS[label] || theme.palette.primary.main,
-                ),
-                fontSize: isMobile ? "0.7rem" : "0.9rem",
-                whiteSpace: "nowrap",
+                height: "100%",
+                width: `${(item.count / maxCount) * 100}%`,
+                borderRadius: 1,
+                backgroundColor:
+                  SCENT_CATEGORY_COLORS[item.name] ||
+                  theme.palette.primary.main,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-start",
+                px: isMobile ? 1 : 2,
+                transition: "width 0.6s ease",
+                minWidth: "fit-content",
               }}
             >
-              {label}
-            </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  color: theme.palette.getContrastText(
+                    SCENT_CATEGORY_COLORS[item.name] ||
+                      theme.palette.primary.main,
+                  ),
+                  fontSize: isMobile ? "0.7rem" : "0.9rem",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item.name} ({item.count})
+              </Typography>
+            </Box>
           </Box>
-        </Box>
-      ))}
+        ))
+      )}
     </Box>
   );
 };

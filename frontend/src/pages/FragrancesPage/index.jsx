@@ -162,6 +162,14 @@ const FragrancesPage = () => {
     setSelected(null);
   };
 
+  const handleUpdatePerfume = (updatedPerfume) => {
+    setAllPerfumes((prev) =>
+      prev.map((p) =>
+        p.perfume_id === updatedPerfume.perfume_id ? updatedPerfume : p,
+      ),
+    );
+  };
+
   const headerText = () => {
     if (loading && allPerfumes.length === 0) return "Loading...";
     const active = [];
@@ -253,7 +261,7 @@ const FragrancesPage = () => {
             >
               {allPerfumes.slice(0, visibleCount).map((f) => (
                 <FragranceCard
-                  key={f.perfume_id}
+                  key={`${f.perfume_id}-${f.average_rating || 0}`}
                   fragrance={f}
                   onClick={handleCardClick}
                   sx={{
@@ -282,6 +290,7 @@ const FragrancesPage = () => {
             fragrance={selected}
             open={!!selected}
             onClose={handleClose}
+            onUpdatePerfume={handleUpdatePerfume}
           />
         )}
       </Box>

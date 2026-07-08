@@ -1,5 +1,3 @@
-// Sets up the Express server, applies middleware, and mounts route handlers.
-
 require("dotenv").config(); // must be at the very top
 
 const express = require("express");
@@ -13,7 +11,7 @@ const userRoutes = require("./routes/users"); // Handles user-related endpoints
 const adminRoutes = require("./routes/admin"); // Handles admin-related endpoints
 const referenceRoutes = require("./routes/references"); // Lookup/reference data
 const perfumeRoutes = require("./routes/perfumes"); // Public perfume endpoints
-// (We'll add more routes later: reviews, etc.)
+const reviewRoutes = require("./routes/reviews"); // Handles review-related endpoints
 
 const app = express();
 
@@ -51,6 +49,9 @@ app.use("/api/references", referenceRoutes);
 
 // Public perfume endpoints
 app.use("/api/perfumes", perfumeRoutes);
+
+// Review endpoints
+app.use("/api/reviews", reviewRoutes);
 
 // Simple health-check endpoint
 app.get("/", (req, res) => {

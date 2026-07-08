@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -20,26 +20,9 @@ import {
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
-import StarHalfIcon from "@mui/icons-material/StarHalf";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-
-// Allowed scent categories (max 3)
-const SCENT_CATEGORIES = [
-  "Fresh",
-  "Citrus",
-  "Floral",
-  "Green",
-  "Aquatic",
-  "Spicy",
-  "Woody",
-  "Amber",
-  "Oriental",
-  "Gourmand",
-  "Earthy",
-  "Musky",
-  "Aromatic",
-];
+import api from "../../services/api";
 
 // Maps star level to descriptive text for each rating category
 const getRatingDescription = (category, value) => {
@@ -66,13 +49,12 @@ const getRatingDescription = (category, value) => {
       5: "Massive - Leaves a trail",
     },
   };
-
   const starLevel = Math.ceil(value);
   return descriptions[category]?.[starLevel] || "Click stars to rate";
 };
 
-// Precise 5-star rating component (supports half-star hover/click)
-const PreciseStarRating = ({ value, onChange, label }) => {
+// Precise 5‑star rating component (supports hover description)
+const StarRating = ({ value, onChange, label }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [hoverValue, setHoverValue] = useState(0);
@@ -94,40 +76,6 @@ const PreciseStarRating = ({ value, onChange, label }) => {
     label.toLowerCase(),
     displayValue,
   );
-
-  const renderStar = (position) => {
-    const isActive = displayValue >= position;
-    const isHalf = displayValue >= position - 0.5 && displayValue < position;
-
-    return (
-      <Box
-        key={position}
-        sx={{
-          cursor: "pointer",
-          padding: "1px",
-          fontSize: isMobile ? "1.6rem" : "1.8rem",
-          color: isActive
-            ? theme.palette.warning.main
-            : isHalf
-              ? theme.palette.warning.main
-              : theme.palette.text.disabled,
-          position: "relative",
-          "&:hover": { transform: "scale(1.1)" },
-          transition: "all 0.2s ease",
-        }}
-        onClick={() => handleStarClick(position)}
-        onMouseEnter={() => handleStarHover(position)}
-      >
-        {isActive ? (
-          <StarIcon fontSize="inherit" />
-        ) : isHalf ? (
-          <StarHalfIcon fontSize="inherit" />
-        ) : (
-          <StarBorderIcon fontSize="inherit" />
-        )}
-      </Box>
-    );
-  };
 
   return (
     <Box
@@ -166,80 +114,88 @@ const PreciseStarRating = ({ value, onChange, label }) => {
         }}
         onMouseLeave={handleMouseLeave}
       >
-        {[1, 2, 3, 4, 5].map(renderStar)}
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Box
+            key={star}
+            sx={{
+              cursor: "pointer",
+              fontSize: isMobile ? "1.6rem" : "1.8rem",
+              color:
+                star <= displayValue
+                  ? theme.palette.warning.main
+                  : theme.palette.text.disabled,
+              "&:hover": { transform: "scale(1.1)" },
+            }}
+            onClick={() => handleStarClick(star)}
+            onMouseEnter={() => handleStarHover(star)}
+          >
+            {star <= displayValue ? (
+              <StarIcon fontSize="inherit" />
+            ) : (
+              <StarBorderIcon fontSize="inherit" />
+            )}
+          </Box>
+        ))}
       </Box>
 
       <Typography
-        variant={isMobile ? "body1" : "h6"}
+        variant="body2"
         sx={{
-          color: theme.palette.primary.main,
-          fontWeight: 700,
-          minHeight: isMobile ? "24px" : "32px",
-          fontSize: isMobile ? "0.9rem" : "1rem",
-          mb: 0.5,
+          color: theme.palette.text.secondary,
+          fontSize: isMobile ? "0.75rem" : "0.8rem",
+          textAlign: "center",
+          lineHeight: 1.3,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}
       >
-        {value > 0 ? `${numericValue}/10` : "Not rated"}
+        {currentDescription}
       </Typography>
-
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: 1,
-        }}
-      >
-        <Typography
-          variant="body2"
-          sx={{
-            color: theme.palette.text.secondary,
-            fontSize: isMobile ? "0.75rem" : "0.8rem",
-            textAlign: "center",
-            lineHeight: 1.3,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {currentDescription}
-        </Typography>
-      </Box>
     </Box>
   );
 };
 
-const VotingForm = ({ fragrance }) => {
+const VotingForm = ({ fragrance, onReviewSubmitted }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedSeasons, setSelectedSeasons] = useState([]);
-  const [selectedOccasions, setSelectedOccasions] = useState([]);
   const [scores, setScores] = useState({ scent: 0, longevity: 0, sillage: 0 });
   const [gender, setGender] = useState("");
   const [review, setReview] = useState("");
+  const [selectedSeasons, setSelectedSeasons] = useState([]);
+  const [selectedOccasions, setSelectedOccasions] = useState([]);
+  const [scentProfiles, setScentProfiles] = useState([]);
+  const [allSeasons, setAllSeasons] = useState([]);
+  const [allOccasions, setAllOccasions] = useState([]);
+  const [submitted, setSubmitted] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [buyMenuAnchor, setBuyMenuAnchor] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  useEffect(() => {
+    const fetchRefs = async () => {
+      try {
+        const res = await api.get("/references");
+
+        setScentProfiles(res.data.scentProfiles || []);
+        setAllSeasons(res.data.seasons || []);
+        setAllOccasions(res.data.occasions || []);
+      } catch (err) {
+        console.error("Failed to load references", err);
+      }
+    };
+
+    fetchRefs();
+  }, []);
   const handleScoreChange = (key) => (newValue) =>
     setScores((old) => ({ ...old, [key]: newValue }));
-
-  const handleGenderChange = (event, newGender) => {
+  const handleGenderChange = (e, newGender) => {
     if (newGender !== null) setGender(newGender);
   };
-
-  const handleCategoryChange = (event, newValue) => {
+  const handleCategoryChange = (e, newValue) => {
     if (newValue.length <= 3) setSelectedCategories(newValue);
-  };
-
-  const handleSeasonChange = (event, newValue) => {
-    setSelectedSeasons(newValue.slice(0, 2));
-  };
-
-  const handleOccasionChange = (event, newValue) => {
-    setSelectedOccasions(newValue.slice(0, 3));
   };
 
   const isFormValid = () =>
@@ -249,65 +205,54 @@ const VotingForm = ({ fragrance }) => {
     gender &&
     review.trim().length > 0;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isFormValid()) return;
-
-    const submission = {
-      perfume_id: fragrance?.perfume_id,
-      scores: {
-        scent: ((scores.scent / 5) * 10).toFixed(1),
-        longevity: ((scores.longevity / 5) * 10).toFixed(1),
-        sillage: ((scores.sillage / 5) * 10).toFixed(1),
-      },
-      gender,
-      categories: selectedCategories,
-      seasons: selectedSeasons.map((s) => s.id ?? s.name ?? s),
-      occasions: selectedOccasions.map((o) => o.id ?? o.name ?? o),
-      review: review.trim(),
-      rawScores: scores,
-    };
-
-    console.log("Vote submission:", submission);
-    setSnackbarOpen(true);
-  };
-
-  const retailers = fragrance?.retailers || [];
-  const defaultSearchUrl = `https://www.google.com/search?q=where+to+buy+${encodeURIComponent(
-    `${fragrance?.brand} ${fragrance?.name}`,
-  )}`;
-
-  const handleBuyMenuOpen = (event) => setBuyMenuAnchor(event.currentTarget);
-  const handleBuyMenuClose = () => setBuyMenuAnchor(null);
-
-  const getOptionLabel = (option) => {
-    if (typeof option === "string") return option;
-    return option?.name || "";
-  };
-
-  const optionEquals = (option, value) => {
-    if (typeof option === "string" || typeof value === "string") {
-      return option === value;
+    setLoading(true);
+    setError("");
+    try {
+      await api.post("/reviews", {
+        perfume_id: fragrance.perfume_id,
+        scent_rating: scores.scent,
+        longevity_rating: scores.longevity,
+        sillage_rating: scores.sillage,
+        gender_vote: gender.charAt(0).toUpperCase() + gender.slice(1),
+        review_text: review.trim(),
+        scent_profile_ids: selectedCategories.map((c) => c.id),
+        seasons: selectedSeasons.map((s) => s.id),
+        occasions: selectedOccasions.map((o) => o.id),
+      });
+      // success → show snackbar and reset form
+      setSnackbarOpen(true);
+      // reset form
+      setScores({ scent: 0, longevity: 0, sillage: 0 });
+      setGender("");
+      setReview("");
+      setSelectedCategories([]);
+      setSelectedSeasons([]);
+      setSelectedOccasions([]);
+      if (onReviewSubmitted) onReviewSubmitted();
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setError("You have already reviewed this perfume.");
+      } else {
+        setError("Failed to submit review. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
-    return (option?.id ?? option?.name) === (value?.id ?? value?.name);
   };
 
   return (
     <>
-      <Box
-        sx={{
-          background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
-          border: `1px solid ${theme.palette.divider}`,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
-          p: isMobile ? 2 : 3,
-          borderRadius: 2,
-          mb: 3,
-        }}
-      >
+      <Box sx={{ py: 2 }}>
         <Typography
           variant="h6"
           fontWeight="700"
           gutterBottom
-          sx={{ fontSize: isMobile ? "1.1rem" : "1.25rem" }}
+          sx={{
+            fontSize: isMobile ? "1.1rem" : "1.25rem",
+            textAlign: "center",
+          }}
         >
           Review this fragrance
         </Typography>
@@ -315,66 +260,18 @@ const VotingForm = ({ fragrance }) => {
         {/* Scent categories autocomplete (max 3) */}
         <Autocomplete
           multiple
-          freeSolo
-          options={SCENT_CATEGORIES}
+          options={scentProfiles}
+          getOptionLabel={(option) => option.name}
           value={selectedCategories}
-          onChange={handleCategoryChange}
+          onChange={(e, newValue) => {
+            if (newValue.length <= 3) {
+              setSelectedCategories(newValue);
+            }
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
               label="Scent profile (max 3)"
-              placeholder="Select or add up to 3 scent categories"
-              size={isMobile ? "small" : "medium"}
-            />
-          )}
-          sx={{ mb: isMobile ? 3 : 4 }}
-          getOptionDisabled={() => selectedCategories.length >= 3}
-        />
-
-        {/* Season selection */}
-        <Typography
-          variant="subtitle2"
-          gutterBottom
-          sx={{ mt: 1, mb: 1, fontWeight: 700 }}
-        >
-          Season (choose up to 2)
-        </Typography>
-        <Autocomplete
-          multiple
-          options={fragrance?.seasons || []}
-          getOptionLabel={getOptionLabel}
-          isOptionEqualToValue={optionEquals}
-          value={selectedSeasons}
-          onChange={handleSeasonChange}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Seasons"
-              size={isMobile ? "small" : "medium"}
-            />
-          )}
-          sx={{ mb: 2 }}
-        />
-
-        {/* Occasion selection */}
-        <Typography
-          variant="subtitle2"
-          gutterBottom
-          sx={{ mt: 1, mb: 1, fontWeight: 700 }}
-        >
-          Occasion (choose up to 3)
-        </Typography>
-        <Autocomplete
-          multiple
-          options={fragrance?.occasions || []}
-          getOptionLabel={getOptionLabel}
-          isOptionEqualToValue={optionEquals}
-          value={selectedOccasions}
-          onChange={handleOccasionChange}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Occasions"
               size={isMobile ? "small" : "medium"}
             />
           )}
@@ -389,7 +286,7 @@ const VotingForm = ({ fragrance }) => {
             sm={4}
             sx={{ display: "flex", justifyContent: "center" }}
           >
-            <PreciseStarRating
+            <StarRating
               value={scores.scent}
               onChange={handleScoreChange("scent")}
               label="Scent"
@@ -401,7 +298,7 @@ const VotingForm = ({ fragrance }) => {
             sm={4}
             sx={{ display: "flex", justifyContent: "center" }}
           >
-            <PreciseStarRating
+            <StarRating
               value={scores.longevity}
               onChange={handleScoreChange("longevity")}
               label="Longevity"
@@ -413,7 +310,7 @@ const VotingForm = ({ fragrance }) => {
             sm={4}
             sx={{ display: "flex", justifyContent: "center" }}
           >
-            <PreciseStarRating
+            <StarRating
               value={scores.sillage}
               onChange={handleScoreChange("sillage")}
               label="Sillage"
@@ -421,14 +318,48 @@ const VotingForm = ({ fragrance }) => {
           </Grid>
         </Grid>
 
-        {/* Gender selection */}
-        <Box
-          sx={{
-            textAlign: "center",
-            mb: isMobile ? 2 : 3,
-            p: isMobile ? 1 : 2,
-          }}
+        {/* Seasons */}
+        <Typography
+          variant="subtitle2"
+          gutterBottom
+          sx={{ textAlign: { xs: "center", sm: "left" } }}
         >
+          Season (choose up to 2)
+        </Typography>
+        <Autocomplete
+          multiple
+          options={allSeasons}
+          getOptionLabel={(opt) => opt.name}
+          value={selectedSeasons}
+          onChange={(e, newVal) => setSelectedSeasons(newVal.slice(0, 2))}
+          renderInput={(params) => (
+            <TextField {...params} label="Seasons" size="small" />
+          )}
+          sx={{ mb: 2 }}
+        />
+
+        {/* Occasions */}
+        <Typography
+          variant="subtitle2"
+          gutterBottom
+          sx={{ textAlign: { xs: "center", sm: "left" } }}
+        >
+          Occasion (choose up to 3)
+        </Typography>
+        <Autocomplete
+          multiple
+          options={allOccasions}
+          getOptionLabel={(opt) => opt.name}
+          value={selectedOccasions}
+          onChange={(e, newVal) => setSelectedOccasions(newVal.slice(0, 3))}
+          renderInput={(params) => (
+            <TextField {...params} label="Occasions" size="small" />
+          )}
+          sx={{ mb: 3 }}
+        />
+
+        {/* Gender */}
+        <Box sx={{ textAlign: "center", mb: 2 }}>
           <Typography
             sx={{
               fontWeight: 600,
@@ -442,7 +373,6 @@ const VotingForm = ({ fragrance }) => {
             value={gender}
             exclusive
             onChange={handleGenderChange}
-            aria-label="gender selection"
             sx={{
               mb: 1.5,
               "& .MuiToggleButton-root": {
@@ -454,94 +384,64 @@ const VotingForm = ({ fragrance }) => {
                 "&.Mui-selected": {
                   backgroundColor: theme.palette.primary.main,
                   color: theme.palette.primary.contrastText,
-                  "&:hover": {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
+                  "&:hover": { backgroundColor: theme.palette.primary.dark },
                 },
                 "&:not(.Mui-selected)": {
-                  "&:hover": {
-                    backgroundColor: theme.palette.action.hover,
-                  },
+                  "&:hover": { backgroundColor: theme.palette.action.hover },
                 },
               },
             }}
           >
-            <ToggleButton value="male" aria-label="male">
-              Male
-            </ToggleButton>
-            <ToggleButton value="unisex" aria-label="unisex">
-              Unisex
-            </ToggleButton>
-            <ToggleButton value="female" aria-label="female">
-              Female
-            </ToggleButton>
+            <ToggleButton value="male">Male</ToggleButton>
+            <ToggleButton value="unisex">Unisex</ToggleButton>
+            <ToggleButton value="female">Female</ToggleButton>
           </ToggleButtonGroup>
-          <Typography
-            variant="body2"
-            sx={{
-              color: theme.palette.text.secondary,
-              minHeight: "20px",
-              fontSize: isMobile ? "0.8rem" : "0.85rem",
-            }}
-          >
+          <Typography variant="body2" color="text.secondary">
             {gender
               ? `Selected: ${gender.charAt(0).toUpperCase() + gender.slice(1)}`
               : "Please select a gender"}
           </Typography>
         </Box>
 
-        {/* Review textarea */}
+        {/* Review text */}
         <TextField
           label="Review *"
-          placeholder="Share your thoughts about this fragrance..."
+          placeholder="Share your thoughts..."
           multiline
           fullWidth
           minRows={3}
-          size={isMobile ? "small" : "medium"}
           value={review}
           onChange={(e) => setReview(e.target.value)}
-          sx={{ mt: 1, mb: 2 }}
-          error={
-            !review.trim() &&
-            (scores.scent > 0 || scores.longevity > 0 || scores.sillage > 0)
-          }
+          sx={{ mb: 2 }}
+          error={!review.trim() && isFormValid()}
           helperText={
-            !review.trim() &&
-            (scores.scent > 0 || scores.longevity > 0 || scores.sillage > 0)
-              ? "Review is required"
-              : ""
+            !review.trim() && isFormValid() ? "Review is required" : ""
           }
         />
 
-        {/* Submit button */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
         <Button
           variant="contained"
           color={isFormValid() ? "primary" : "inherit"}
           onClick={handleSubmit}
-          size={isMobile ? "medium" : "large"}
-          disabled={!isFormValid()}
-          sx={{
-            width: "100%",
-            py: isMobile ? 1 : 1.5,
-            opacity: isFormValid() ? 1 : 0.7,
-            fontSize: isMobile ? "0.9rem" : "1rem",
-            backgroundColor: isFormValid()
-              ? undefined
-              : theme.palette.action.disabledBackground,
-            color: isFormValid() ? undefined : theme.palette.text.disabled,
-            "&:hover": isFormValid()
-              ? {}
-              : {
-                  backgroundColor: theme.palette.action.disabledBackground,
-                  cursor: "not-allowed",
-                },
-          }}
+          disabled={!isFormValid() || loading}
+          fullWidth
+          sx={{ py: 1.5 }}
         >
-          {isFormValid() ? "Submit Review" : "Complete all fields to submit"}
+          {loading
+            ? "Saving..."
+            : isFormValid()
+              ? "Submit Review"
+              : "Complete all fields to submit"}
         </Button>
       </Box>
 
-      {/* External links */}
+      {/* Where to Buy */}
       <Box
         sx={{
           display: "flex",
@@ -561,23 +461,16 @@ const VotingForm = ({ fragrance }) => {
             target="_blank"
             rel="noopener noreferrer"
             startIcon={<span>📖</span>}
-            sx={{
-              flex: { xs: "1 1 100%", sm: "0 1 auto" },
-              fontSize: isMobile ? "0.8rem" : "0.9rem",
-            }}
           >
             Fragrantica Reviews
           </Button>
         )}
-
         <Button
           variant="contained"
           size={isMobile ? "medium" : "large"}
-          onClick={handleBuyMenuOpen}
+          onClick={(e) => setBuyMenuAnchor(e.currentTarget)}
           startIcon={<ShoppingCartIcon />}
           sx={{
-            flex: { xs: "1 1 100%", sm: "0 1 auto" },
-            fontSize: isMobile ? "0.8rem" : "0.9rem",
             background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
             "&:hover": {
               background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
@@ -586,45 +479,41 @@ const VotingForm = ({ fragrance }) => {
         >
           Where to Buy
         </Button>
-
         <Menu
           anchorEl={buyMenuAnchor}
           open={Boolean(buyMenuAnchor)}
-          onClose={handleBuyMenuClose}
+          onClose={() => setBuyMenuAnchor(null)}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
           transformOrigin={{ vertical: "bottom", horizontal: "center" }}
-          PaperProps={{ sx: { minWidth: 240, borderRadius: 2, mt: 1 } }}
+          PaperProps={{ sx: { minWidth: 220, borderRadius: 2, mt: 1 } }}
         >
-          {retailers.length > 0 ? (
-            retailers.map((ret, index) => {
-              const retailerUrl = ret.url || ret.website_url || "";
-              return (
-                <MenuItem
-                  key={index}
-                  component={Link}
-                  href={retailerUrl || defaultSearchUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={handleBuyMenuClose}
-                >
-                  <ListItemIcon>
-                    <ShoppingCartIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={ret.name || "Retailer"}
-                    secondary={retailerUrl ? "" : ret.website_url || ""}
-                  />
-                  <OpenInNewIcon fontSize="small" />
-                </MenuItem>
-              );
-            })
+          {(fragrance?.retailers || []).length > 0 ? (
+            fragrance.retailers.map((ret, idx) => (
+              <MenuItem
+                key={idx}
+                component={Link}
+                href={ret.url || ret.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setBuyMenuAnchor(null)}
+              >
+                <ListItemIcon>
+                  <ShoppingCartIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={ret.name}
+                  secondary={ret.url ? "" : ret.website_url}
+                />
+                <OpenInNewIcon fontSize="small" />
+              </MenuItem>
+            ))
           ) : (
             <MenuItem
               component={Link}
-              href={defaultSearchUrl}
+              href={`https://www.google.com/search?q=where+to+buy+${encodeURIComponent(`${fragrance?.brand_name} ${fragrance?.name}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={handleBuyMenuClose}
+              onClick={() => setBuyMenuAnchor(null)}
             >
               <ListItemIcon>
                 <ShoppingCartIcon fontSize="small" />
@@ -643,7 +532,7 @@ const VotingForm = ({ fragrance }) => {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert severity="success" onClose={() => setSnackbarOpen(false)}>
-          Thank you for your review! It has been submitted.
+          Review submitted successfully!
         </Alert>
       </Snackbar>
     </>

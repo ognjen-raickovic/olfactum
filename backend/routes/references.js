@@ -32,6 +32,9 @@ router.get("/", async (req, res) => {
     const [retailers] = await pool.query(
       "SELECT retailer_id AS id, name, website_url FROM Retailers",
     );
+    const [scentProfiles] = await pool.query(
+      "SELECT profile_id AS id, name FROM ScentProfiles",
+    );
 
     res.json({
       brands,
@@ -44,6 +47,7 @@ router.get("/", async (req, res) => {
       occasions,
       tags,
       retailers,
+      scentProfiles,
     });
   } catch (err) {
     console.error(err);

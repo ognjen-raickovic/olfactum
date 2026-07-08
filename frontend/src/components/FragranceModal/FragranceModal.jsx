@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Modal,
   Backdrop,
@@ -15,6 +15,7 @@ import {
   useScrollLock,
   useFragranceState,
 } from "../../hooks/useFragranceModal";
+import api from "../../services/api";
 
 const FragranceModal = ({
   fragrance,
@@ -25,6 +26,9 @@ const FragranceModal = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  // Local copy that can be refreshed after reviews change
+  const [perfume, setPerfume] = useState(fragrance);
+
   const {
     isFavorited,
     isInWishlist,
@@ -34,9 +38,20 @@ const FragranceModal = ({
     handleWishlist,
     handleShare,
     handleSnackbarClose,
-  } = useFragranceState(fragrance);
+  } = useFragranceState(perfume);
 
   useScrollLock(open);
+
+  // Refresh the whole perfume object from API
+  const refreshFragrance = async () => {
+    try {
+      const res = await api.get(`/perfumes/${perfume.perfume_id}`);
+      setPerfume(res.data);
+      onUpdatePerfume?.(res.data); // <-- notify parent
+    } catch (err) {
+      console.error("Failed to refresh perfume data", err);
+    }
+  };
 
   const handleClose = (event, reason) => {
     if (disableRouting && reason === "backdropClick") return;
@@ -47,7 +62,7 @@ const FragranceModal = ({
     if (disableRouting) event.stopPropagation();
   };
 
-  if (!fragrance) return null;
+  if (!perfume) return null;
 
   return (
     <>
@@ -56,9 +71,7 @@ const FragranceModal = ({
         onClose={disableRouting ? undefined : handleClose}
         closeAfterTransition
         slots={{ backdrop: Backdrop }}
-        slotProps={{
-          backdrop: { timeout: 300, onClick: handleBackdropClick },
-        }}
+        slotProps={{ backdrop: { timeout: 300, onClick: handleBackdropClick } }}
         sx={{
           display: "flex",
           alignItems: "center",
@@ -70,7 +83,7 @@ const FragranceModal = ({
           <Box
             sx={{
               position: "relative",
-              width: { xs: "98%", sm: "95%", md: "1350px" }, // slightly wider
+              width: { xs: "98%", sm: "95%", md: "1350px" },
               maxHeight: "92vh",
               bgcolor: "background.paper",
               borderRadius: 4,
@@ -86,7 +99,7 @@ const FragranceModal = ({
             }}
           >
             <FragranceHeader
-              fragrance={fragrance}
+              fragrance={perfume}
               onClose={handleClose}
               onShare={handleShare}
               onFavorite={handleFavorite}
@@ -99,6 +112,7 @@ const FragranceModal = ({
               sx={{
                 flex: 1,
                 overflowY: "auto",
+                pb: 2,
                 "&::-webkit-scrollbar": { width: "10px" },
                 "&::-webkit-scrollbar-track": {
                   background: theme.palette.background.paper,
@@ -130,12 +144,15 @@ const FragranceModal = ({
                 },
               }}
             >
-              <FragranceContent fragrance={fragrance} isMobile={isMobile} />
+              <FragranceContent
+                fragrance={perfume}
+                isMobile={isMobile}
+                onRefreshFragrance={refreshFragrance}
+              />
             </Box>
           </Box>
         </Fade>
       </Modal>
-
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
