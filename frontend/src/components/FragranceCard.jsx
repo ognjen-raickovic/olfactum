@@ -30,6 +30,8 @@ import {
   Edit,
   Delete,
 } from "@mui/icons-material";
+import { useAuth } from "../contexts/AuthContext";
+import api from "../services/api";
 
 const typeAbbreviations = {
   "Eau de Parfum": "EDP",
@@ -48,8 +50,11 @@ const FragranceCard = ({
   admin = false,
   onEdit,
   onDelete,
+  library = false,
+  onRemove,
 }) => {
   const f = fragrance?.fragrance ? fragrance.fragrance : fragrance;
+  const { user } = useAuth();
 
   const [isFavorited, setIsFavorited] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
@@ -61,7 +66,6 @@ const FragranceCard = ({
     f?.rating != null ? Number(String(f.rating).replace(",", ".")) : 0;
   const hasRating = ratingNumber > 0;
 
-  // Gender mapping
   const rawGender = (f?.gender_profile || f?.genderProfile || "")
     .toString()
     .toLowerCase()
@@ -74,14 +78,12 @@ const FragranceCard = ({
         : rawGender === "unisex"
           ? "unisex"
           : "";
-
   const GenderIcon =
     gender === "men"
       ? MaleIcon
       : gender === "women"
         ? FemaleIcon
         : TransgenderIcon;
-
   const getGenderColors = () => {
     switch (gender) {
       case "men":
@@ -111,32 +113,28 @@ const FragranceCard = ({
     else if (onViewDetails) onViewDetails(f);
   };
 
-  // Load favorite/wishlist status from localStorage (unchanged)
+  // Fetch current library state from backend when user is logged in
   useEffect(() => {
-    if (f) {
-      const favorites = JSON.parse(
-        localStorage.getItem("fragranceFavorites") || "[]",
-      );
-      const wishlist = JSON.parse(
-        localStorage.getItem("fragranceWishlist") || "[]",
-      );
-      const currentId = f.perfume_id ?? f.id;
-      setIsFavorited(
-        favorites.some(
-          (item) =>
-            (typeof item === "object" ? (item.id ?? item.perfume_id) : item) ===
-            currentId,
-        ),
-      );
-      setIsInWishlist(
-        wishlist.some(
-          (item) =>
-            (typeof item === "object" ? (item.id ?? item.perfume_id) : item) ===
-            currentId,
-        ),
-      );
-    }
-  }, [f]);
+    if (!user || !f) return;
+    const fetchState = async () => {
+      try {
+        const perfumeId = f.perfume_id ?? f.id;
+        const [favRes, wlRes] = await Promise.all([
+          api.get("/library/favorites"),
+          api.get("/library/wishlist"),
+        ]);
+        setIsFavorited(
+          favRes.data.favorites.some((p) => p.perfume_id === perfumeId),
+        );
+        setIsInWishlist(
+          wlRes.data.wishlist.some((p) => p.perfume_id === perfumeId),
+        );
+      } catch (err) {
+        console.error("Failed to load library state", err);
+      }
+    };
+    fetchState();
+  }, [user, f]);
 
   const handleSaveMenuOpen = (e) => {
     e.stopPropagation();
@@ -144,68 +142,41 @@ const FragranceCard = ({
   };
   const handleSaveMenuClose = () => setSaveMenuAnchor(null);
 
-  const toggleFavorite = (e) => {
+  const toggleFavorite = async (e) => {
     e.stopPropagation();
-    const currentId = f.perfume_id ?? f.id;
-    const favorites = JSON.parse(
-      localStorage.getItem("fragranceFavorites") || "[]",
-    );
-    let newFav = isFavorited
-      ? favorites.filter(
-          (item) =>
-            (typeof item === "object" ? (item.id ?? item.perfume_id) : item) !==
-            currentId,
-        )
-      : [
-          { id: currentId, addedAt: Date.now(), fragranceData: f },
-          ...favorites.filter(
-            (item) =>
-              (typeof item === "object"
-                ? (item.id ?? item.perfume_id)
-                : item) !== currentId,
-          ),
-        ];
-    localStorage.setItem("fragranceFavorites", JSON.stringify(newFav));
-    setIsFavorited(!isFavorited);
-    setSnackbarMessage(
-      isFavorited ? "Removed from favorites" : "Added to favorites",
-    );
-    setSnackbarOpen(true);
+    if (!user) return;
+    const perfumeId = f.perfume_id ?? f.id;
+    try {
+      const res = await api.post("/library/favorites", {
+        perfume_id: perfumeId,
+      });
+      setIsFavorited(res.data.action === "added");
+      setSnackbarMessage(res.data.message);
+      setSnackbarOpen(true);
+    } catch (err) {
+      console.error("Toggle favorite failed", err);
+    }
     setSaveMenuAnchor(null);
   };
 
-  const toggleWishlist = (e) => {
+  const toggleWishlist = async (e) => {
     e.stopPropagation();
-    const currentId = f.perfume_id ?? f.id;
-    const wishlist = JSON.parse(
-      localStorage.getItem("fragranceWishlist") || "[]",
-    );
-    let newWl = isInWishlist
-      ? wishlist.filter(
-          (item) =>
-            (typeof item === "object" ? (item.id ?? item.perfume_id) : item) !==
-            currentId,
-        )
-      : [
-          { id: currentId, addedAt: Date.now(), fragranceData: f },
-          ...wishlist.filter(
-            (item) =>
-              (typeof item === "object"
-                ? (item.id ?? item.perfume_id)
-                : item) !== currentId,
-          ),
-        ];
-    localStorage.setItem("fragranceWishlist", JSON.stringify(newWl));
-    setIsInWishlist(!isInWishlist);
-    setSnackbarMessage(
-      isInWishlist ? "Removed from wishlist" : "Added to wishlist",
-    );
-    setSnackbarOpen(true);
+    if (!user) return;
+    const perfumeId = f.perfume_id ?? f.id;
+    try {
+      const res = await api.post("/library/wishlist", {
+        perfume_id: perfumeId,
+      });
+      setIsInWishlist(res.data.action === "added");
+      setSnackbarMessage(res.data.message);
+      setSnackbarOpen(true);
+    } catch (err) {
+      console.error("Toggle wishlist failed", err);
+    }
     setSaveMenuAnchor(null);
   };
 
   const handleSnackbarClose = () => setSnackbarOpen(false);
-
   const imageSrc =
     f?.image && f.image !== "/images/default.jpg"
       ? f.image
@@ -232,7 +203,6 @@ const FragranceCard = ({
           ...sx,
         }}
       >
-        {/* Image */}
         <Box
           sx={{
             position: "relative",
@@ -268,8 +238,6 @@ const FragranceCard = ({
               display: "block",
             }}
           />
-
-          {/* Admin edit/delete buttons or public save button */}
           {admin ? (
             <Box
               sx={{
@@ -280,7 +248,7 @@ const FragranceCard = ({
                 gap: 0.5,
               }}
             >
-              <Tooltip title="Edit" placement="top" arrow>
+              <Tooltip title="Edit" arrow>
                 <IconButton
                   size="small"
                   onClick={(e) => {
@@ -292,13 +260,17 @@ const FragranceCard = ({
                     boxShadow: 1,
                     width: 30,
                     height: 30,
-                    "&:hover": { bgcolor: "primary.main", color: "white" },
+                    "&:hover": {
+                      bgcolor: "primary.main",
+                      color: "white",
+                    },
                   }}
                 >
                   <Edit fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Delete" placement="top" arrow>
+
+              <Tooltip title="Delete" arrow>
                 <IconButton
                   size="small"
                   onClick={(e) => {
@@ -310,7 +282,40 @@ const FragranceCard = ({
                     boxShadow: 1,
                     width: 30,
                     height: 30,
-                    "&:hover": { bgcolor: "error.main", color: "white" },
+                    "&:hover": {
+                      bgcolor: "error.main",
+                      color: "white",
+                    },
+                  }}
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          ) : library ? (
+            <Box
+              sx={{
+                position: "absolute",
+                top: 6,
+                left: 6,
+              }}
+            >
+              <Tooltip title="Remove from list" arrow>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove?.(f.perfume_id ?? f.id);
+                  }}
+                  sx={{
+                    bgcolor: "background.paper",
+                    boxShadow: 1,
+                    width: 30,
+                    height: 30,
+                    "&:hover": {
+                      bgcolor: "error.main",
+                      color: "white",
+                    },
                   }}
                 >
                   <Delete fontSize="small" />
@@ -319,7 +324,7 @@ const FragranceCard = ({
             </Box>
           ) : (
             <>
-              <Tooltip title="Save to list" placement="top" arrow>
+              <Tooltip title="Save to list" arrow>
                 <IconButton
                   onClick={handleSaveMenuOpen}
                   sx={{
@@ -330,7 +335,9 @@ const FragranceCard = ({
                     boxShadow: 1,
                     "&:hover": {
                       bgcolor: "primary.main",
-                      "& .MuiSvgIcon-root": { color: "white" },
+                      "& .MuiSvgIcon-root": {
+                        color: "white",
+                      },
                     },
                     width: 30,
                     height: 30,
@@ -344,6 +351,7 @@ const FragranceCard = ({
                   />
                 </IconButton>
               </Tooltip>
+
               <Menu
                 anchorEl={saveMenuAnchor}
                 open={Boolean(saveMenuAnchor)}
@@ -351,6 +359,7 @@ const FragranceCard = ({
                 onClick={handleSaveMenuClose}
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 transformOrigin={{ vertical: "top", horizontal: "left" }}
+                disableScrollLock
               >
                 <MenuItem onClick={toggleFavorite}>
                   <ListItemIcon>
@@ -364,6 +373,7 @@ const FragranceCard = ({
                     {isFavorited ? "Remove from Favorites" : "Add to Favorites"}
                   </ListItemText>
                 </MenuItem>
+
                 <MenuItem onClick={toggleWishlist}>
                   <ListItemIcon>
                     {isInWishlist ? (
@@ -379,10 +389,8 @@ const FragranceCard = ({
               </Menu>
             </>
           )}
-
-          {/* Gender icon */}
           {gender && (
-            <Tooltip title={humanizeName(gender)} placement="top" arrow>
+            <Tooltip title={humanizeName(gender)} arrow>
               <IconButton
                 size="small"
                 sx={{
@@ -405,7 +413,6 @@ const FragranceCard = ({
             </Tooltip>
           )}
         </Box>
-
         <CardContent
           sx={{
             flexGrow: 1,
@@ -448,8 +455,6 @@ const FragranceCard = ({
               {humanizeName(f?.name)}
             </Typography>
           </Box>
-
-          {/* Rating */}
           <Box
             sx={{
               display: "flex",
@@ -473,10 +478,7 @@ const FragranceCard = ({
               {hasRating ? ratingNumber.toFixed(1) : "N/A"}
             </Typography>
           </Box>
-
           <Box sx={{ flexGrow: 1 }} />
-
-          {/* Chips – all same style (outlined, neutral) */}
           <Box
             sx={{
               display: "flex",
@@ -486,7 +488,6 @@ const FragranceCard = ({
               mt: 1,
             }}
           >
-            {/* Concentration */}
             {f?.type_name && (
               <Chip
                 label={getTypeLabel(f.type_name)}
@@ -495,8 +496,6 @@ const FragranceCard = ({
                 sx={{ fontSize: "0.65rem", height: 22 }}
               />
             )}
-
-            {/* Category tags (Niche, Designer, etc.) */}
             {f?.tags
               ?.filter((tag) => tag.type === "category")
               .slice(0, 2)
@@ -509,8 +508,6 @@ const FragranceCard = ({
                   sx={{ fontSize: "0.65rem", height: 22 }}
                 />
               ))}
-
-            {/* Seasons */}
             {f?.seasons?.slice(0, 2).map((s) => (
               <Chip
                 key={s.id}
@@ -520,8 +517,6 @@ const FragranceCard = ({
                 sx={{ fontSize: "0.65rem", height: 22 }}
               />
             ))}
-
-            {/* Occasions */}
             {f?.occasions?.slice(0, 2).map((o) => (
               <Chip
                 key={o.id}
@@ -534,7 +529,6 @@ const FragranceCard = ({
           </Box>
         </CardContent>
       </Card>
-
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}

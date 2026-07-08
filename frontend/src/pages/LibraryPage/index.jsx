@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Tabs,
@@ -13,40 +13,49 @@ import {
 import { Favorite, BookmarkBorder } from "@mui/icons-material";
 import LibraryGrid from "../../components/LibraryGrid";
 import FragranceModal from "../../components/FragranceModal/FragranceModal";
-import useFragranceLibrary from "../../hooks/useFragranceLibrary";
+import api from "../../services/api";
 
 const LibraryPage = () => {
   const theme = useTheme();
   const [tab, setTab] = useState(0);
+  const [favorites, setFavorites] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedFragrance, setSelectedFragrance] = useState(null);
 
-  const {
-    favorites,
-    wishlist,
-    loading,
-    removeFromFavorites,
-    removeFromWishlist,
-  } = useFragranceLibrary();
-
-  const handleTabChange = (event, newValue) => {
-    setTab(newValue);
-  };
-
-  const handleFragranceClick = (fragrance) => {
-    setSelectedFragrance(fragrance);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedFragrance(null);
-  };
-
-  const handleRemoveFragrance = (fragranceId) => {
-    if (tab === 0) {
-      removeFromFavorites(fragranceId);
-    } else {
-      removeFromWishlist(fragranceId);
+  const fetchLibrary = async () => {
+    setLoading(true);
+    try {
+      const [favRes, wlRes] = await Promise.all([
+        api.get("/library/favorites"),
+        api.get("/library/wishlist"),
+      ]);
+      setFavorites(favRes.data.favorites);
+      setWishlist(wlRes.data.wishlist);
+    } catch (err) {
+      console.error("Failed to load library", err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchLibrary();
+  }, []);
+
+  const handleRemove = async (perfumeId) => {
+    if (tab === 0) {
+      await api.post("/library/favorites", { perfume_id: perfumeId });
+      setFavorites((prev) => prev.filter((f) => f.perfume_id !== perfumeId));
+    } else {
+      await api.post("/library/wishlist", { perfume_id: perfumeId });
+      setWishlist((prev) => prev.filter((f) => f.perfume_id !== perfumeId));
+    }
+  };
+
+  const handleTabChange = (event, newValue) => setTab(newValue);
+  const handleFragranceClick = (fragrance) => setSelectedFragrance(fragrance);
+  const handleCloseModal = () => setSelectedFragrance(null);
 
   if (loading) {
     return (
@@ -69,13 +78,7 @@ const LibraryPage = () => {
     <Box sx={{ width: "100%" }}>
       <Box
         sx={{
-          background: `
-            linear-gradient(135deg,
-              ${alpha(theme.palette.primary.main, 0.1)} 0%,
-              ${alpha(theme.palette.secondary.main, 0.05)} 50%,
-              ${alpha(theme.palette.background.paper, 0.9)} 100%
-            )
-          `,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 50%, ${alpha(theme.palette.background.paper, 0.9)} 100%)`,
           py: { xs: 10, md: 14 },
           width: "100%",
           borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
@@ -122,18 +125,14 @@ const LibraryPage = () => {
           textColor="primary"
           indicatorColor="primary"
           centered
-          sx={{
-            mb: 4,
-            borderBottom: 1,
-            borderColor: "divider",
-          }}
+          sx={{ mb: 4, borderBottom: 1, borderColor: "divider" }}
         >
           <Tab
             icon={<Favorite />}
             iconPosition="start"
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                Favorites
+                Favorites{" "}
                 {favorites.length > 0 && (
                   <Typography
                     variant="caption"
@@ -158,7 +157,7 @@ const LibraryPage = () => {
             iconPosition="start"
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                Wishlist
+                Wishlist{" "}
                 {wishlist.length > 0 && (
                   <Typography
                     variant="caption"
@@ -186,7 +185,7 @@ const LibraryPage = () => {
               fragrances={favorites}
               variant="favorite"
               onFragranceClick={handleFragranceClick}
-              onRemoveFragrance={handleRemoveFragrance}
+              onRemoveFragrance={handleRemove}
               emptyMessage="No favorites yet"
               emptyIcon={
                 <Favorite
@@ -196,14 +195,13 @@ const LibraryPage = () => {
             />
           </Box>
         </Fade>
-
         <Fade in={tab === 1} timeout={500}>
           <Box hidden={tab !== 1}>
             <LibraryGrid
               fragrances={wishlist}
               variant="wishlist"
               onFragranceClick={handleFragranceClick}
-              onRemoveFragrance={handleRemoveFragrance}
+              onRemoveFragrance={handleRemove}
               emptyMessage="Wishlist is empty"
               emptyIcon={
                 <BookmarkBorder

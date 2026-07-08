@@ -6,7 +6,7 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { EmojiObjects, Favorite, BookmarkBorder } from "@mui/icons-material";
+import { Favorite, BookmarkBorder } from "@mui/icons-material";
 import FragranceCard from "./FragranceCard";
 
 const LibraryGrid = ({
@@ -87,10 +87,11 @@ const LibraryGrid = ({
       >
         {fragrances.map((fragrance) => (
           <FragranceCard
-            key={fragrance.id}
+            key={fragrance.perfume_id} // fixed key
             fragrance={fragrance}
             onClick={onFragranceClick}
-            disableNavigation={true}
+            library // new prop: enables remove button
+            onRemove={onRemoveFragrance} // new prop: removal callback
             sx={{
               transition: "all 0.2s ease-in-out",
               "&:hover": {
