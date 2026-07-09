@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Grid,
@@ -6,6 +7,8 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  Typography,
+  Button,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
@@ -23,6 +26,9 @@ const FragranceContent = ({ fragrance, onRefreshFragrance }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [tab, setTab] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+  const navigate = useNavigate();
+
+  const isLoggedIn = !!localStorage.getItem("token");
   const triggerRefresh = () => setRefreshKey((k) => k + 1);
   const imageUrl = fragrance?.image || "/images/no-image.png";
 
@@ -161,13 +167,61 @@ const FragranceContent = ({ fragrance, onRefreshFragrance }) => {
 
               {/* Voting Form */}
               <Grid item xs={12} sx={{ width: "100%", maxWidth: 600 }}>
-                <VotingForm
-                  fragrance={fragrance}
-                  onReviewSubmitted={() => {
-                    triggerRefresh();
-                    onRefreshFragrance();
-                  }}
-                />
+                {isLoggedIn ? (
+                  <VotingForm
+                    fragrance={fragrance}
+                    onReviewSubmitted={() => {
+                      triggerRefresh();
+                      onRefreshFragrance();
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      border: `1px solid ${theme.palette.divider}`,
+                      borderRadius: 3,
+                      p: 4,
+                      textAlign: "center",
+                      backgroundColor: theme.palette.background.paper,
+                    }}
+                  >
+                    <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
+                      Review this fragrance
+                    </Typography>
+
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      sx={{ mb: 3 }}
+                    >
+                      You need to be logged in to write a review and rate this
+                      fragrance.
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: 2,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <Button
+                        variant="contained"
+                        onClick={() => navigate("/login")}
+                      >
+                        Log In
+                      </Button>
+
+                      <Button
+                        variant="outlined"
+                        onClick={() => navigate("/register")}
+                      >
+                        Create Account
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
               </Grid>
             </Grid>
           ) : (
@@ -269,13 +323,61 @@ const FragranceContent = ({ fragrance, onRefreshFragrance }) => {
 
               {/* Voting Form */}
               <Grid item xs={12}>
-                <VotingForm
-                  fragrance={fragrance}
-                  onReviewSubmitted={() => {
-                    triggerRefresh();
-                    onRefreshFragrance();
-                  }}
-                />
+                {isLoggedIn ? (
+                  <VotingForm
+                    fragrance={fragrance}
+                    onReviewSubmitted={() => {
+                      triggerRefresh();
+                      onRefreshFragrance();
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      border: `1px solid ${theme.palette.divider}`,
+                      borderRadius: 3,
+                      p: 4,
+                      textAlign: "center",
+                      backgroundColor: theme.palette.background.paper,
+                    }}
+                  >
+                    <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
+                      Review this fragrance
+                    </Typography>
+
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      sx={{ mb: 3 }}
+                    >
+                      You need to be logged in to write a review and rate this
+                      fragrance.
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: 2,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <Button
+                        variant="contained"
+                        onClick={() => navigate("/login")}
+                      >
+                        Log In
+                      </Button>
+
+                      <Button
+                        variant="outlined"
+                        onClick={() => navigate("/register")}
+                      >
+                        Create Account
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
               </Grid>
             </Grid>
           )}

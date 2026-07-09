@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Tabs,
@@ -7,6 +8,7 @@ import {
   Fade,
   CircularProgress,
   Container,
+  Button,
   useTheme,
   alpha,
 } from "@mui/material";
@@ -17,6 +19,8 @@ import api from "../../services/api";
 
 const LibraryPage = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("token");
   const [tab, setTab] = useState(0);
   const [favorites, setFavorites] = useState([]);
   const [wishlist, setWishlist] = useState([]);
@@ -40,8 +44,12 @@ const LibraryPage = () => {
   };
 
   useEffect(() => {
-    fetchLibrary();
-  }, []);
+    if (isLoggedIn) {
+      fetchLibrary();
+    } else {
+      setLoading(false);
+    }
+  }, [isLoggedIn]);
 
   const handleRemove = async (perfumeId) => {
     if (tab === 0) {
@@ -181,34 +189,135 @@ const LibraryPage = () => {
 
         <Fade in={tab === 0} timeout={500}>
           <Box hidden={tab !== 0}>
-            <LibraryGrid
-              fragrances={favorites}
-              variant="favorite"
-              onFragranceClick={handleFragranceClick}
-              onRemoveFragrance={handleRemove}
-              emptyMessage="No favorites yet"
-              emptyIcon={
+            {isLoggedIn ? (
+              <LibraryGrid
+                fragrances={favorites}
+                variant="favorite"
+                onFragranceClick={handleFragranceClick}
+                onRemoveFragrance={handleRemove}
+                emptyMessage="No favorites yet"
+                emptyIcon={
+                  <Favorite
+                    sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
+                  />
+                }
+              />
+            ) : (
+              <Box
+                sx={{
+                  py: 8,
+                  textAlign: "center",
+                  maxWidth: 600,
+                  mx: "auto",
+                }}
+              >
                 <Favorite
-                  sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
+                  sx={{
+                    fontSize: 64,
+                    color: "error.main",
+                    mb: 2,
+                  }}
                 />
-              }
-            />
+
+                <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
+                  Log in to use Favorites
+                </Typography>
+
+                <Typography color="text.secondary" sx={{ mb: 4 }}>
+                  You need to be logged in to add perfumes to your Favorites
+                  collection.
+                </Typography>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 2,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate("/login")}
+                  >
+                    Log In
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate("/register")}
+                  >
+                    Create Account
+                  </Button>
+                </Box>
+              </Box>
+            )}
           </Box>
         </Fade>
         <Fade in={tab === 1} timeout={500}>
           <Box hidden={tab !== 1}>
-            <LibraryGrid
-              fragrances={wishlist}
-              variant="wishlist"
-              onFragranceClick={handleFragranceClick}
-              onRemoveFragrance={handleRemove}
-              emptyMessage="Wishlist is empty"
-              emptyIcon={
+            {isLoggedIn ? (
+              <LibraryGrid
+                fragrances={wishlist}
+                variant="wishlist"
+                onFragranceClick={handleFragranceClick}
+                onRemoveFragrance={handleRemove}
+                emptyMessage="Wishlist is empty"
+                emptyIcon={
+                  <BookmarkBorder
+                    sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
+                  />
+                }
+              />
+            ) : (
+              <Box
+                sx={{
+                  py: 8,
+                  textAlign: "center",
+                  maxWidth: 600,
+                  mx: "auto",
+                }}
+              >
                 <BookmarkBorder
-                  sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
+                  sx={{
+                    fontSize: 64,
+                    color: "primary.main",
+                    mb: 2,
+                  }}
                 />
-              }
-            />
+
+                <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
+                  Log in to use Wishlist
+                </Typography>
+
+                <Typography color="text.secondary" sx={{ mb: 4 }}>
+                  You need to be logged in to add perfumes to your Wishlist.
+                </Typography>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 2,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate("/login")}
+                  >
+                    Log In
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate("/register")}
+                  >
+                    Create Account
+                  </Button>
+                </Box>
+              </Box>
+            )}
           </Box>
         </Fade>
 

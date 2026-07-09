@@ -44,13 +44,14 @@ export default function LearningNav() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [modules, setModules] = useState([]);
+  const [authRequired, setAuthRequired] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   const fetchProgress = async () => {
     try {
       const res = await api.get("/modules/progress");
       const raw = res.data.modules;
-
+      setAuthRequired(false);
       const updated = raw.map((mod, index) => {
         const isCompleted = mod.progress === "Completed";
 
@@ -76,6 +77,12 @@ export default function LearningNav() {
 
       setModules(updated);
     } catch (err) {
+      if (err.response?.status === 401) {
+        setAuthRequired(true);
+        setModules([]);
+        return;
+      }
+
       console.error("Failed to load module progress", err);
     }
   };
@@ -136,6 +143,54 @@ export default function LearningNav() {
   const closeResetDialog = () => {
     setResetDialogOpen(false);
   };
+
+  if (authRequired) {
+    return (
+      <Box
+        sx={{
+          py: 8,
+          px: 3,
+          textAlign: "center",
+          maxWidth: 700,
+          mx: "auto",
+        }}
+      >
+        <School
+          sx={{
+            fontSize: 70,
+            color: "primary.main",
+            mb: 2,
+          }}
+        />
+
+        <Typography variant="h4" fontWeight={700} gutterBottom>
+          Log in to start learning
+        </Typography>
+
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          Create an account or sign in to unlock all learning modules, save your
+          progress, and continue where you left off.
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 2,
+            flexWrap: "wrap",
+          }}
+        >
+          <Button variant="contained" onClick={() => navigate("/login")}>
+            Log In
+          </Button>
+
+          <Button variant="outlined" onClick={() => navigate("/register")}>
+            Create Account
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <>

@@ -402,13 +402,19 @@ const QuizResults = ({ answers, onRestart }) => {
         </Button>
       </Box>
 
-      <FragranceModal
-        fragrance={selectedFragrance}
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        disableRouting={true}
-        noNavigate={true}
-      />
+      {selectedFragrance && (
+        <FragranceModal
+          key={selectedFragrance.perfume_id}
+          fragrance={selectedFragrance}
+          open={modalOpen}
+          onClose={() => {
+            setModalOpen(false);
+            setSelectedFragrance(null);
+          }}
+          disableRouting={true}
+          noNavigate={true}
+        />
+      )}
     </Box>
   );
 };
