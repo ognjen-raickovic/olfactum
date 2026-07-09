@@ -263,28 +263,8 @@ router.get("/perfumes/all", async (req, res) => {
         [perfume.perfume_id],
       );
       perfume.tags = tags;
-
-      // Seasons
-      const [seasons] = await pool.query(
-        `SELECT s.season_id AS id, s.name
-         FROM PerfumeSeasons ps
-         JOIN Seasons s ON ps.season_id = s.season_id
-         WHERE ps.perfume_id = ?`,
-        [perfume.perfume_id],
-      );
-      perfume.seasons = seasons;
-
-      // Occasions
-      const [occasions] = await pool.query(
-        `SELECT o.occasion_id AS id, o.name
-         FROM PerfumeOccasions po
-         JOIN Occasions o ON po.occasion_id = o.occasion_id
-         WHERE po.perfume_id = ?`,
-        [perfume.perfume_id],
-      );
-      perfume.occasions = occasions;
-
-      // Use average_rating as the card rating
+      perfume.seasons = await getTopSeasons(pool, perfume.perfume_id);
+      perfume.occasions = await getTopOccasions(pool, perfume.perfume_id);
       perfume.rating = perfume.average_rating;
     }
 
@@ -527,5 +507,67 @@ router.post("/upload", upload.single("image"), (req, res) => {
   const imageUrl = `/uploads/perfumes/${req.file.filename}`;
   res.json({ imageUrl });
 });
+
+// helpers – get top 2 seasons / top 3 occasions by review votes
+async function getTopSeasons(pool, perfumeId) {
+  const [rows] = await pool.query(
+    `SELECT s.name, s.season_id AS id, COUNT(rs.season_id) AS votes
+     FROM ReviewSeasons rs
+     JOIN Seasons s ON rs.season_id = s.season_id
+     WHERE rs.review_id IN (
+       SELECT review_id
+       FROM Reviews
+       WHERE perfume_id = ?
+     )
+     GROUP BY s.name, s.season_id
+     ORDER BY votes DESC, s.name
+     LIMIT 2`,
+    [perfumeId],
+  );
+
+  if (rows.length > 0) return rows;
+
+  // fallback to static assignment
+  const [staticRows] = await pool.query(
+    `SELECT s.name, s.season_id AS id
+     FROM PerfumeSeasons ps
+     JOIN Seasons s ON ps.season_id = s.season_id
+     WHERE ps.perfume_id = ?
+     LIMIT 2`,
+    [perfumeId],
+  );
+
+  return staticRows;
+}
+
+async function getTopOccasions(pool, perfumeId) {
+  const [rows] = await pool.query(
+    `SELECT o.name, o.occasion_id AS id, COUNT(ro.occasion_id) AS votes
+     FROM ReviewOccasions ro
+     JOIN Occasions o ON ro.occasion_id = o.occasion_id
+     WHERE ro.review_id IN (
+       SELECT review_id
+       FROM Reviews
+       WHERE perfume_id = ?
+     )
+     GROUP BY o.name, o.occasion_id
+     ORDER BY votes DESC, o.name
+     LIMIT 3`,
+    [perfumeId],
+  );
+
+  if (rows.length > 0) return rows;
+
+  const [staticRows] = await pool.query(
+    `SELECT o.name, o.occasion_id AS id
+     FROM PerfumeOccasions po
+     JOIN Occasions o ON po.occasion_id = o.occasion_id
+     WHERE po.perfume_id = ?
+     LIMIT 3`,
+    [perfumeId],
+  );
+
+  return staticRows;
+}
 
 module.exports = router;

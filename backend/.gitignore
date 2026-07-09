@@ -5,3 +5,6 @@ dist/
 .env.production
 .DS_Store
 Thumbs.db
+generated_perfumes.sql
+generate_sql.js
+fra_short.csv

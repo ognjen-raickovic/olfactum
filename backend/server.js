@@ -15,6 +15,7 @@ const perfumeRoutes = require("./routes/perfumes"); // Public perfume endpoints
 const reviewRoutes = require("./routes/reviews"); // Handles review-related endpoints
 const moduleRoutes = require("./routes/modules"); // Learning modules endpoints
 const libraryRoutes = require("./routes/library"); // User library endpoints
+const quizRoutes = require("./routes/quiz"); // Quiz endpoints
 
 const app = express();
 
@@ -65,6 +66,9 @@ app.use("/api/modules", moduleRoutes);
 
 // User library endpoints
 app.use("/api/library", libraryRoutes);
+
+// Quiz endpoints
+app.use("/api/quiz", quizRoutes);
 
 // Simple health-check endpoint
 app.get("/", (req, res) => {

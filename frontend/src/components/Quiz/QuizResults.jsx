@@ -11,19 +11,22 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecommendedFragrances } from "../../utils/fragranceUtils";
+import api from "../../services/api";
 import FragranceModal from "../FragranceModal/FragranceModal";
 import FragranceCard from "../FragranceCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { clearQuizResults } from "../../utils/quizStorage";
+import LoadingSpinner from "../LoadingSpinner";
 
 const QuizResults = ({ answers, onRestart }) => {
   const [selectedFragrance, setSelectedFragrance] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(8);
   const [sortMode, setSortMode] = useState("balanced");
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
   const theme = useTheme();
@@ -34,8 +37,26 @@ const QuizResults = ({ answers, onRestart }) => {
     setVisibleCount(8);
   }, [sortMode]);
 
-  const recommendations = useMemo(() => {
-    return getRecommendedFragrances(answers, sortMode, 40);
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      setLoading(true);
+
+      try {
+        const res = await api.post("/quiz/recommend", {
+          answers,
+          sortMode,
+        });
+
+        setRecommendations(res.data.recommendations || []);
+      } catch (err) {
+        console.error("Failed to fetch recommendations", err);
+        setRecommendations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecommendations();
   }, [answers, sortMode]);
 
   const visibleFragrances = recommendations.slice(0, visibleCount);
@@ -311,44 +332,50 @@ const QuizResults = ({ answers, onRestart }) => {
         </FormControl>
       </Box>
 
-      {/* Results Count */}
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ mb: 2, textAlign: "center" }}
-      >
-        Showing {Math.min(visibleCount, recommendations.length)} of{" "}
-        {recommendations.length} fragrances
-      </Typography>
+      {loading ? (
+        <LoadingSpinner size="medium" />
+      ) : (
+        <>
+          {/* Results Count */}
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 2, textAlign: "center" }}
+          >
+            Showing {Math.min(visibleCount, recommendations.length)} of{" "}
+            {recommendations.length} fragrances
+          </Typography>
 
-      {/* Recommendations Grid */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={sortMode}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.4 }}
-        >
-          <Box sx={{ px: { xs: 1, sm: 3, md: 4 } }}>
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
-                gap: { xs: 2, md: 3 },
-              }}
+          {/* Recommendations Grid */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={sortMode}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
             >
-              {visibleFragrances.map((fragrance) => (
-                <FragranceCard
-                  key={fragrance.id}
-                  fragrance={fragrance}
-                  onClick={handleFragranceClick}
-                />
-              ))}
-            </Box>
-          </Box>
-        </motion.div>
-      </AnimatePresence>
+              <Box sx={{ px: { xs: 1, sm: 3, md: 4 } }}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+                    gap: { xs: 2, md: 3 },
+                  }}
+                >
+                  {visibleFragrances.map((fragrance) => (
+                    <FragranceCard
+                      key={fragrance.id}
+                      fragrance={fragrance}
+                      onClick={handleFragranceClick}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </motion.div>
+          </AnimatePresence>
+        </>
+      )}
 
       {/* Actions */}
       <Box

@@ -118,23 +118,18 @@ router.get("/", async (req, res) => {
     // Attach tags, seasons, occasions (small N+1, acceptable for now)
     for (let perfume of perfumes) {
       const [tags] = await pool.query(
-        `SELECT t.tag_id AS id, t.name, t.type FROM PerfumeTags pt JOIN Tags t ON pt.tag_id = t.tag_id WHERE pt.perfume_id = ?`,
+        `SELECT t.tag_id AS id, t.name, t.type
+     FROM PerfumeTags pt
+     JOIN Tags t ON pt.tag_id = t.tag_id
+     WHERE pt.perfume_id = ?`,
         [perfume.perfume_id],
       );
-      const [seasons] = await pool.query(
-        `SELECT s.season_id AS id, s.name FROM PerfumeSeasons ps JOIN Seasons s ON ps.season_id = s.season_id WHERE ps.perfume_id = ?`,
-        [perfume.perfume_id],
-      );
-      const [occasions] = await pool.query(
-        `SELECT o.occasion_id AS id, o.name FROM PerfumeOccasions po JOIN Occasions o ON po.occasion_id = o.occasion_id WHERE po.perfume_id = ?`,
-        [perfume.perfume_id],
-      );
-      perfume.tags = tags;
-      perfume.seasons = seasons;
-      perfume.occasions = occasions;
-      perfume.rating = perfume.average_rating; // map to rating used by card
-    }
 
+      perfume.tags = tags;
+      perfume.seasons = await getTopSeasons(pool, perfume.perfume_id);
+      perfume.occasions = await getTopOccasions(pool, perfume.perfume_id);
+      perfume.rating = perfume.average_rating;
+    }
     res.json({ perfumes, total });
   } catch (err) {
     console.error("Get perfumes error:", err);
@@ -213,5 +208,66 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// helpers – get top 2 seasons / top 3 occasions by review votes
+async function getTopSeasons(pool, perfumeId) {
+  const [rows] = await pool.query(
+    `SELECT s.name, s.season_id AS id, COUNT(rs.season_id) AS votes
+     FROM ReviewSeasons rs
+     JOIN Seasons s ON rs.season_id = s.season_id
+     WHERE rs.review_id IN (
+       SELECT review_id
+       FROM Reviews
+       WHERE perfume_id = ?
+     )
+     GROUP BY s.name, s.season_id
+     ORDER BY votes DESC, s.name
+     LIMIT 2`,
+    [perfumeId],
+  );
+
+  if (rows.length > 0) return rows;
+
+  const [staticRows] = await pool.query(
+    `SELECT s.name, s.season_id AS id
+     FROM PerfumeSeasons ps
+     JOIN Seasons s ON ps.season_id = s.season_id
+     WHERE ps.perfume_id = ?
+     LIMIT 2`,
+    [perfumeId],
+  );
+
+  return staticRows;
+}
+
+async function getTopOccasions(pool, perfumeId) {
+  const [rows] = await pool.query(
+    `SELECT o.name, o.occasion_id AS id, COUNT(ro.occasion_id) AS votes
+     FROM ReviewOccasions ro
+     JOIN Occasions o ON ro.occasion_id = o.occasion_id
+     WHERE ro.review_id IN (
+       SELECT review_id
+       FROM Reviews
+       WHERE perfume_id = ?
+     )
+     GROUP BY o.name, o.occasion_id
+     ORDER BY votes DESC, o.name
+     LIMIT 3`,
+    [perfumeId],
+  );
+
+  if (rows.length > 0) return rows;
+
+  const [staticRows] = await pool.query(
+    `SELECT o.name, o.occasion_id AS id
+     FROM PerfumeOccasions po
+     JOIN Occasions o ON po.occasion_id = o.occasion_id
+     WHERE po.perfume_id = ?
+     LIMIT 3`,
+    [perfumeId],
+  );
+
+  return staticRows;
+}
 
 module.exports = router;

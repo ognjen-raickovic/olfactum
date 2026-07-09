@@ -4,7 +4,7 @@ import { OrbitProgress } from "react-loading-indicators";
 const LoadingSpinner = ({ size = "medium" }) => {
   const theme = useTheme();
 
-  console.log("LoadingSpinner rendering with theme:", theme.palette.mode);
+  // console.log("LoadingSpinner rendering with theme:", theme.palette.mode);
 
   return (
     <div
