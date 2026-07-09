@@ -52,6 +52,14 @@ const FragrancesPage = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  // Sync search state with URL
+  useEffect(() => {
+    setSearchTerm(queryParam);
+    setDebouncedSearchTerm(queryParam);
+    setVisibleCount(20);
+    setPage(1);
+  }, [queryParam]);
+
   // Load references for filters
   useEffect(() => {
     const loadRefs = async () => {

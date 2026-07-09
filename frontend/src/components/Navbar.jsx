@@ -38,8 +38,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useThemeContext } from "../contexts/ThemeContext";
 import { useAuth } from "../contexts/AuthContext";
-import { getAllFragrances } from "../services/fragranceService";
-import { filterFragrances } from "../utils/filterFragrances";
+import api from "../services/api";
 import { humanizeName } from "../utils/humanizeName";
 import { motion } from "framer-motion";
 
@@ -51,7 +50,6 @@ const Navbar = () => {
   const [results, setResults] = useState([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [allFragrances, setAllFragrances] = useState([]);
   const navigate = useNavigate();
 
   const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
@@ -99,14 +97,6 @@ const Navbar = () => {
   ];
 
   useEffect(() => {
-    const loadFragrances = () => {
-      const data = getAllFragrances();
-      setAllFragrances(data);
-    };
-    loadFragrances();
-  }, []);
-
-  useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setResults([]);
@@ -122,7 +112,7 @@ const Navbar = () => {
   const getDisplayLabel = (f) => {
     if (!f) return "Unknown";
     const name = humanizeName(f.name);
-    const brand = humanizeName(f.brand);
+    const brand = humanizeName(f.brand_name || f.brand);
     const ln = (name || "").toLowerCase();
     const lb = (brand || "").toLowerCase();
     if (brand && ln.startsWith(lb)) {
@@ -132,25 +122,16 @@ const Navbar = () => {
     return name;
   };
 
-  const handleChange = (e) => {
-    const val = e.target.value;
-    setQuery(val);
-    if (val.trim().length >= 3) {
-      setSearchOpen(true);
-      const filtered = filterFragrances(allFragrances, val);
-      setResults(filtered.slice(0, 6));
-    } else {
-      setResults([]);
-      setSearchOpen(false);
-    }
-  };
-
   const handleSearchSubmit = () => {
     if (!query.trim() || query.trim().length < 3) return;
     navigate(`/fragrances?query=${encodeURIComponent(query.trim())}`);
     setResults([]);
     setSearchOpen(false);
     setQuery("");
+  };
+
+  const handleChange = (e) => {
+    setQuery(e.target.value);
   };
 
   const onKeyDown = (e) => {
@@ -165,6 +146,31 @@ const Navbar = () => {
     setQuery("");
   };
 
+  useEffect(() => {
+    if (query.trim().length < 3) {
+      setResults([]);
+      setSearchOpen(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await api.get(
+          `/perfumes?search=${encodeURIComponent(query.trim())}&limit=6`,
+        );
+
+        setResults(res.data.perfumes || []);
+        setSearchOpen(true);
+      } catch (err) {
+        console.error("Search failed", err);
+        setResults([]);
+        setSearchOpen(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
   const handleClearSearch = () => {
     setQuery("");
     setResults([]);
@@ -173,10 +179,8 @@ const Navbar = () => {
   };
 
   const handleSearchFocus = () => {
-    if (query.trim().length >= 3) {
+    if (query.trim().length >= 3 && results.length > 0) {
       setSearchOpen(true);
-      const filtered = filterFragrances(allFragrances, query);
-      setResults(filtered.slice(0, 6));
     }
   };
 
@@ -330,7 +334,7 @@ const Navbar = () => {
                 >
                   {results.map((r) => (
                     <Box
-                      key={r.id}
+                      key={r.perfume_id}
                       onClick={() => handleResultClick(r)}
                       sx={{
                         display: "flex",
@@ -345,7 +349,7 @@ const Navbar = () => {
                       }}
                     >
                       <img
-                        src={r.image || "/images/no-image.png"}
+                        src={r.image_url || r.image || "/images/no-image.png"}
                         alt={r.name}
                         onError={(e) => {
                           e.target.src = "/images/no-image.png";
@@ -380,7 +384,7 @@ const Navbar = () => {
                             textOverflow: "ellipsis",
                           }}
                         >
-                          {humanizeName(r.brand)}
+                          {humanizeName(r.brand_name || r.brand)}
                         </Typography>
                       </Box>
                     </Box>
