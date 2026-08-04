@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api"; // adjust if your backend runs elsewhere
+const API_BASE = "https://olfactum-api.onrender.com/api";
 
 const api = axios.create({
   baseURL: API_BASE,
