@@ -16,7 +16,7 @@ import { Search, Add, Close } from "@mui/icons-material";
 import api from "../../services/api";
 import FragranceCard from "../../components/FragranceCard";
 import FragranceFilter from "../../components/FragranceFilter";
-import PerfumeFormDialog from "../../components/admin/PerfumeFormDialog";
+import PerfumeFormDialog from "../../components/Admin/PerfumeFormDialog";
 
 const AdminPage = () => {
   const theme = useTheme();
