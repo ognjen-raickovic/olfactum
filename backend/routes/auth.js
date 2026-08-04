@@ -8,7 +8,7 @@ const pool = require("../config/db");
 const auth = require("../middleware/auth"); // the JWT middleware
 
 // POST /api/auth/register
-// Creates a new user with role_id = 2 (regular user).
+// Creates a new user with role_id = 1 (regular user).
 // Expects JSON: { username, email, password }
 router.post(
   "/register",
@@ -16,8 +16,8 @@ router.post(
     // Validate and sanitize inputs
     body("username")
       .trim()
-      .isLength({ min: 6 })
-      .withMessage("Username must be at least 6 characters"),
+      .isLength({ min: 3 })
+      .withMessage("Username must be at least 3 characters"),
     body("email")
       .isEmail()
       .normalizeEmail()

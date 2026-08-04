@@ -8,8 +8,11 @@ import {
   Button,
   Alert,
   Link as MuiLink,
+  IconButton,
+  InputAdornment,
   useTheme,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -26,6 +29,7 @@ const RegisterPage = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,7 +51,7 @@ const RegisterPage = () => {
         email: formData.email,
         password: formData.password,
       });
-      navigate("/", { replace: true }); // redirect to home after signup
+      navigate("/", { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
     } finally {
@@ -79,7 +83,7 @@ const RegisterPage = () => {
         <Box component="form" onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Username"
+            label="Username (min 3 characters)"
             name="username"
             value={formData.username}
             onChange={handleChange}
@@ -99,24 +103,48 @@ const RegisterPage = () => {
           />
           <TextField
             fullWidth
-            type="password"
-            label="Password (min 6 characters)"
+            type={showPassword ? "text" : "password"}
+            label="Password (min 8 characters)"
             name="password"
             value={formData.password}
             onChange={handleChange}
             required
-            inputProps={{ minLength: 6 }}
             sx={{ mb: 3 }}
+            inputProps={{ minLength: 8 }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <TextField
             fullWidth
-            type="password"
+            type={showPassword ? "text" : "password"}
             label="Confirm Password"
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
             required
             sx={{ mb: 3 }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button
             type="submit"

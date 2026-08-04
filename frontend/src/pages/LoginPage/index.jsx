@@ -8,8 +8,11 @@ import {
   Button,
   Alert,
   Link as MuiLink,
+  IconButton,
+  InputAdornment,
   useTheme,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -23,6 +26,7 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({ login: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -78,13 +82,26 @@ const LoginPage = () => {
           />
           <TextField
             fullWidth
-            type="password"
+            type={showPassword ? "text" : "password"}
             label="Password"
             name="password"
             value={formData.password}
             onChange={handleChange}
             required
             sx={{ mb: 3 }}
+            inputProps={{ minLength: 8 }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button
             type="submit"
