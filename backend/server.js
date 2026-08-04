@@ -25,8 +25,9 @@ const app = express();
 // app.use(cors());
 app.use(
   cors({
-    origin: "https://olfactum.vercel.app/",
+    origin: "https://olfactum.vercel.app",
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
