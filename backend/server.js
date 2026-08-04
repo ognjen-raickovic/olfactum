@@ -22,7 +22,13 @@ const app = express();
 // --- Middleware ---
 
 // CORS allows requests from your React frontend (localhost:5173 by default)
-app.use(cors());
+// app.use(cors());
+app.use(
+  cors({
+    origin: "https://olfactum.vercel.app/",
+    credentials: true,
+  }),
+);
 
 // Helmet sets various HTTP headers for security
 app.use(helmet());
