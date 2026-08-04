@@ -23,9 +23,22 @@ const app = express();
 
 // CORS allows requests from your React frontend (localhost:5173 by default)
 // app.use(cors());
+
+const allowedOrigins = [
+  "https://olfactum.vercel.app", // production
+  "http://localhost:5173", // local dev
+];
+
 app.use(
   cors({
-    origin: "https://olfactum.vercel.app",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like curl, mobile apps)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
